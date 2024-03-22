@@ -52,19 +52,6 @@
         "configuration": "./configs/systemverilog.configuration.json"
       },
       {
-        "id": "bsv",
-        "aliases": [
-          "BluespecSystemVerilog",
-          "Bluespec SystemVerilog",
-          "BSV"
-        ],
-        "extensions": [
-          ".bsv",
-          ".BSV"
-        ],
-        "configuration": "./configs/BSV.configuration.json"
-      },
-      {
         "id": "vhdl",
         "aliases": [
           "VHDL",
@@ -145,11 +132,6 @@
         "path": "./syntaxes/systemverilog.tmLanguage.json"
       },
       {
-        "language": "bsv",
-        "scopeName": "source.bsv",
-        "path": "./syntaxes/BSV.tmLanguage.json"
-      },
-      {
         "language": "vhdl",
         "scopeName": "source.vhdl",
         "path": "./syntaxes/vhdl.tmLanguage.json"
@@ -203,10 +185,6 @@
       {
         "language": "systemverilog",
         "path": "./snippets/systemverilog.json"
-      },
-      {
-        "language": "bsv",
-        "path": "./snippets/bsv.json"
       }
     ],
     "configuration": {
@@ -531,9 +509,7 @@
     "compile": "tsc -p ./",
     "package": "vsce package",
     "watch": "tsc -w -p ./",
-    "makeBsv": "antlr4ts -visitor syntaxes/bsv.g4 -o src/bsvjs",
-    "pretest": "npm run compile-tests && npm run compile && npm run lint",
-    "test": "node ./out/src/test/bsv.js"
+    "pretest": "npm run compile-tests && npm run compile && npm run lint"
   },
   "dependencies": {
     "antlr4": "^4.13.1-patch-1",

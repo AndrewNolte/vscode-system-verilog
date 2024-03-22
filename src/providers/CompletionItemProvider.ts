@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: MIT
 import * as vscode from 'vscode';
-import { BsvInfoProviderManger } from '../BsvProvider';
 import { CtagsManager, Symbol } from '../ctags';
 import { Logger } from '../logger';
 
 export class VerilogCompletionItemProvider implements vscode.CompletionItemProvider {
   private logger: Logger;
   private ctagsManager: CtagsManager;
-  constructor(logger: Logger,
-    ctagsManager: CtagsManager){
+  constructor(logger: Logger, ctagsManager: CtagsManager) {
     this.logger = logger;
     this.ctagsManager = ctagsManager;
   }
@@ -93,22 +91,5 @@ export class VerilogCompletionItemProvider implements vscode.CompletionItemProvi
       default:
         return vscode.CompletionItemKind.Variable;
     }
-  }
-}
-
-export class BsvCompletionItemProvider implements vscode.CompletionItemProvider {
-  private logger: Logger;
-  constructor(logger: Logger) {
-    this.logger = logger;
-  }
-
-  provideCompletionItems(
-    document: vscode.TextDocument,
-    position: vscode.Position,
-    _token: vscode.CancellationToken,
-    _context: vscode.CompletionContext
-  ): vscode.ProviderResult<vscode.CompletionItem[] | vscode.CompletionList<vscode.CompletionItem>> {
-    const provider = BsvInfoProviderManger.getInstance().getProvider();
-    return provider.lint(document, position);
   }
 }
