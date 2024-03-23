@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
-import * as vscode from 'vscode';
 import * as child_process from 'child_process';
+import * as vscode from 'vscode';
 import { Logger } from './logger';
-import { text } from 'stream/consumers';
 
 // Internal representation of a symbol
 export class Symbol {
@@ -14,6 +13,7 @@ export class Symbol {
   parentScope: string;
   parentType: string;
   isValid: boolean;
+  typeRef: string;
   constructor(
     name: string,
     type: string,
@@ -21,6 +21,7 @@ export class Symbol {
     startLine: number,
     parentScope: string,
     parentType: string,
+    typeRef: string,
     endLine?: number,
     isValid?: boolean
   ) {
@@ -31,6 +32,7 @@ export class Symbol {
     this.parentScope = parentScope;
     this.parentType = parentType;
     this.isValid = isValid;
+    this.typeRef = typeRef;
     this.endPosition = new vscode.Position(endLine, Number.MAX_VALUE);
   }
 
@@ -142,14 +144,22 @@ export class Ctags {
   doc: vscode.TextDocument;
   isDirty: boolean;
   private logger: Logger;
+  binPath: string;
 
   constructor(logger: Logger, document: vscode.TextDocument) {
     this.symbols = [];
     this.isDirty = true;
     this.logger = logger;
     this.doc = document;
-  }
 
+    let binPath: string = <string>(
+      vscode.workspace.getConfiguration().get('verilog.ctags.path', 'ctags')
+    );
+    if (binPath === 'none') {
+      binPath = 'ctags';
+    }
+    this.binPath = binPath;
+  }
 
   clearSymbols() {
     this.isDirty = true;
@@ -161,27 +171,22 @@ export class Ctags {
   }
 
   async execCtags(filepath: string): Promise<string> {
-    this.logger.info('executing ctags');
-
-    let binPath: string = <string>(
-      vscode.workspace.getConfiguration().get('verilog.ctags.path', 'none')
-    );
-    if (binPath !== 'none') {
-      let command: string = binPath + ' -f - --fields=+K --sort=no --excmd=n --fields-SystemVerilog=+{parameter} "' + filepath + '"';
-      this.logger.info('Executing Command: ' + command);
-      return new Promise((resolve, _reject) => {
-        child_process.exec(command, (_error: Error, stdout: string, _stderr: string) => {
-          resolve(stdout);
-        });
+    let command: string =
+      this.binPath +
+      ' -f - --fields=+K --sort=no --excmd=n --fields-SystemVerilog=+{parameter} "' +
+      filepath +
+      '"';
+    this.logger.info('Executing Command: ' + command);
+    return new Promise((resolve, _reject) => {
+      child_process.exec(command, (_error: Error, stdout: string, _stderr: string) => {
+        resolve(stdout);
       });
-    }
-    // Return empty promise if ctags path is not set to avoid errors when indexing
-    return Promise.resolve('');
+    });
   }
 
   parseTagLine(line: string): Symbol {
     try {
-      let name, type, pattern, lineNoStr, parentScope, parentType: string;
+      let name, type, pattern, lineNoStr, parentScope, parentType, typeref: string;
       let scope: string[];
       let lineNo: number;
       let parts: string[] = line.split('\t');
@@ -189,8 +194,14 @@ export class Ctags {
       // pattern = parts[2];
       type = parts[3];
       // override "type" for parameters (See #102)
-      if (parts.length == 6 && parts[5] === 'parameter:') {
-        type = 'parameter';
+      if (parts.length == 6) {
+        if (parts[5] === 'parameter:') {
+          type = 'parameter';
+        }
+
+        if (parts[5].startsWith('typeref')) {
+          typeref = parts[5].split(':')[2];
+        }
       }
       if (parts.length >= 5) {
         scope = parts[4].split(':');
@@ -202,7 +213,18 @@ export class Ctags {
       }
       lineNoStr = parts[2];
       lineNo = Number(lineNoStr.slice(0, -2)) - 1;
-      return new Symbol(name, type, pattern, lineNo, parentScope, parentType, lineNo, false);
+      // pretty print symbol
+      return new Symbol(
+        name,
+        type,
+        pattern,
+        lineNo,
+        parentScope,
+        parentType,
+        typeref,
+        lineNo,
+        false
+      );
     } catch (e) {
       this.logger.error('Line Parser: ' + e);
       this.logger.error('Line: ' + line);
@@ -267,8 +289,7 @@ export class Ctags {
 
   async index(): Promise<void> {
     this.logger.info('indexing ', this.doc.uri.fsPath);
-    
-    let output = await this.execCtags(this.doc.uri.fsPath)
+    let output = await this.execCtags(this.doc.uri.fsPath);
     await this.buildSymbolsList(output);
   }
 }
@@ -311,10 +332,11 @@ export class CtagsManager {
     return ctags.symbols;
   }
 
-
-
   /// find a matching symbol in a single document
-  async findDefinition(document: vscode.TextDocument, targetText: string): Promise<vscode.DefinitionLink[]> {
+  async findDefinition(
+    document: vscode.TextDocument,
+    targetText: string
+  ): Promise<vscode.DefinitionLink[]> {
     let symbols: Symbol[] = await this.getSymbols(document);
     let matchingSymbols = symbols.filter((sym) => sym.name === targetText);
 
@@ -330,40 +352,88 @@ export class CtagsManager {
     });
   }
 
+  async findDefinitionByName(
+    moduleName: string,
+    targetText: string
+  ): Promise<vscode.DefinitionLink[]> {
+    console.log('defByName(' + moduleName + ',' + targetText + ')');
+    this.logger.info('defByName(' + moduleName + ',' + targetText + ')');
+    // kick off async job for indexing for module.sv
+    let searchPattern = new vscode.RelativePattern(
+      vscode.workspace.workspaceFolders[0],
+      `**/${moduleName}.{sv,v}`
+    );
+    let files = await vscode.workspace.findFiles(searchPattern);
+
+    if (files.length !== 0) {
+      let file = await vscode.workspace.openTextDocument(files[0]);
+      let ret = await this.findDefinition(file, targetText);
+      return ret;
+    }
+    return [];
+  }
+
+  getPrevChar(document: vscode.TextDocument, range: vscode.Range): string | undefined {
+    const lineText = document.lineAt(range.start.line).text;
+    if (range.start.character == 0) {
+      return undefined;
+    }
+    return lineText.charAt(range.start.character - 1);
+  }
+
+  getParentText(document: vscode.TextDocument, textRange: vscode.Range): string {
+    let range = textRange;
+    let prevChar = this.getPrevChar(document, textRange);
+    if (prevChar == '.') {
+      // follow interface.modport
+      range = document.getWordRangeAtPosition(range.start.translate(0, -1)) ?? range;
+    } else if (prevChar == ':' && range.start.character > 1) {
+      // follow package scope
+      range = document.getWordRangeAtPosition(range.start.translate(0, -2)) ?? range;
+    }
+    return document.getText(range);
+  }
+
   /// Finds a symbols definition, but also looks in targetText.sv to get module/interface defs
-  async findSymbol(document: vscode.TextDocument, position: vscode.Position): Promise<vscode.DefinitionLink[]> {
-    
+  async findSymbol(
+    document: vscode.TextDocument,
+    position: vscode.Position
+  ): Promise<vscode.DefinitionLink[]> {
     let textRange = document.getWordRangeAtPosition(position);
     if (!textRange || textRange.isEmpty) {
       return undefined;
     }
     let targetText = document.getText(textRange);
-    
-    // always search the current doc
-    let tasks = [this.findDefinition(document, targetText)];
 
-    // if the previous character is :: or ., look up prev word
-    let prevChar = textRange.start.character - 1;
-    let prevCharRange = new vscode.Range(position.line, prevChar, position.line, prevChar+1);
-    let prevCharText = document.getText(prevCharRange);
-    let moduleToFind: string = targetText;
-    if (prevCharText === '.' || prevCharText === ':') {
-      let prevWordRange = document.getWordRangeAtPosition(new vscode.Position(position.line, prevChar - 2));
-      if (prevWordRange) {
-        moduleToFind = document.getText(prevWordRange);
+    let parentScope = this.getParentText(document, textRange);
+    // If we're at a port, .<text> plus no parent
+    if (this.getPrevChar(document, textRange) == '.' && parentScope === targetText) {
+      let insts = (await this.getSymbols(document)).filter((sym) => sym.type == 'instance');
+      this.logger.info('got insts');
+      if (insts.length > 0) {
+        let latestInst = insts.reduce((latest, inst) => {
+          if (
+            inst.startPosition.line < position.line &&
+            inst.startPosition.line > latest.startPosition.line
+          ) {
+            return inst;
+          } else {
+            return latest;
+          }
+        }, insts[0]);
+
+        return await this.findDefinitionByName(latestInst.typeRef, targetText);
+      } else {
+        this.logger.info('no insts');
       }
     }
+    console.log('normal path');
 
-    // kick off async job for indexing for module.sv
-    let searchPattern = new vscode.RelativePattern(vscode.workspace.workspaceFolders[0], `**/${moduleToFind}.sv`);
-    let files = await vscode.workspace.findFiles(searchPattern);
-    if (files.length !== 0) {
-      let file = await vscode.workspace.openTextDocument(files[0]);
-      tasks.push(this.findDefinition(file, targetText));
-    }
-    
     // TODO: use promise.race
-    const results: vscode.DefinitionLink[][] = await Promise.all(tasks);
+    const results: vscode.DefinitionLink[][] = await Promise.all([
+      this.findDefinition(document, targetText),
+      this.findDefinitionByName(parentScope, targetText),
+    ]);
     return results.reduce((acc, val) => acc.concat(val), []);
   }
 }
