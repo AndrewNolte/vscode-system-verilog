@@ -28,8 +28,13 @@ export class VerilogHoverProvider implements vscode.HoverProvider {
       if (i.targetUri !== document.uri) {
         doc = await vscode.workspace.openTextDocument(i.targetUri);
       }
-      // make a range 5 more lines
-      let code = doc.getText(i.targetRange).trim();
+
+      let code = doc
+        .getText(i.targetRange)
+        .trim()
+        .replace(/\s{2,}/g, ' ') // trim long whitespace from formatting
+        .replace(/,$/, ''); // remove trailing commas
+
       let hoverText: vscode.MarkdownString = new vscode.MarkdownString();
       hoverText.appendCodeblock(code, document.languageId);
       this.logger.info('Hover object returned');
