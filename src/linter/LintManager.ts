@@ -1,16 +1,14 @@
 // SPDX-License-Identifier: MIT
 import * as vscode from 'vscode';
+import { Logger } from '../logger';
 import BaseLinter from './BaseLinter';
 import IcarusLinter from './IcarusLinter';
 import ModelsimLinter from './ModelsimLinter';
-import VerilatorLinter from './VerilatorLinter';
 import SlangLinter from './SlangLinter';
+import VerilatorLinter from './VerilatorLinter';
 import XvlogLinter from './XvlogLinter';
-import { Logger } from '../logger';
 
 export default class LintManager {
-  private subscriptions: vscode.Disposable[];
-
   private linter: BaseLinter;
   private diagnosticCollection: vscode.DiagnosticCollection;
   private logger: Logger;
@@ -19,10 +17,7 @@ export default class LintManager {
     this.linter = null;
     this.diagnosticCollection = vscode.languages.createDiagnosticCollection();
     this.logger = logger;
-    vscode.workspace.onDidOpenTextDocument(this.lint, this, this.subscriptions);
-    vscode.workspace.onDidSaveTextDocument(this.lint, this, this.subscriptions);
-    vscode.workspace.onDidCloseTextDocument(this.removeFileDiagnostics, this, this.subscriptions);
-    vscode.workspace.onDidChangeConfiguration(this.configLinter, this, this.subscriptions);
+
     this.configLinter();
 
     // Run linting for open documents on launch

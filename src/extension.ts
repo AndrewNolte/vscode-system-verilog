@@ -32,124 +32,107 @@ export function activate(context: vscode.ExtensionContext) {
   // Configure ctags
   ctagsManager.configure(logger);
 
-  // Configure Document Symbol Provider
+  /////////////////////////////////////////////
+  // Configure Providers
+  /////////////////////////////////////////////
+
   let verilogDocumentSymbolProvider = new DocumentSymbolProvider.VerilogDocumentSymbolProvider(
     logger.getChild('VerilogDocumentSymbolProvider'),
     ctagsManager
   );
-  context.subscriptions.push(
-    vscode.languages.registerDocumentSymbolProvider(
-      { scheme: 'file', language: 'verilog' },
-      verilogDocumentSymbolProvider
-    )
-  );
-  context.subscriptions.push(
-    vscode.languages.registerDocumentSymbolProvider(
-      { scheme: 'file', language: 'systemverilog' },
-      verilogDocumentSymbolProvider
-    )
-  );
 
-  // Configure Completion Item Provider
-  // Trigger on ".", "(", "="
   let verilogCompletionItemProvider = new CompletionItemProvider.VerilogCompletionItemProvider(
     logger.getChild('VerilogCompletionItemProvider'),
     ctagsManager
   );
-  context.subscriptions.push(
-    vscode.languages.registerCompletionItemProvider(
-      { scheme: 'file', language: 'verilog' },
-      verilogCompletionItemProvider,
-      '.',
-      '(',
-      '='
-    )
-  );
-  context.subscriptions.push(
-    vscode.languages.registerCompletionItemProvider(
-      { scheme: 'file', language: 'systemverilog' },
-      verilogCompletionItemProvider,
-      '.',
-      '(',
-      '='
-    )
-  );
 
-  // Configure Hover Providers
   let verilogHoverProvider = new HoverProvider.VerilogHoverProvider(
     logger.getChild('VerilogHoverProvider'),
     ctagsManager
   );
-  context.subscriptions.push(
-    vscode.languages.registerHoverProvider(
-      { scheme: 'file', language: 'verilog' },
-      verilogHoverProvider
-    )
-  );
-  context.subscriptions.push(
-    vscode.languages.registerHoverProvider(
-      { scheme: 'file', language: 'systemverilog' },
-      verilogHoverProvider
-    )
-  );
 
-  // Configure Definition Providers
   let verilogDefinitionProvider = new DefinitionProvider.VerilogDefinitionProvider(
     logger.getChild('VerilogDefinitionProvider'),
     ctagsManager
   );
-  context.subscriptions.push(
-    vscode.languages.registerDefinitionProvider(
-      { scheme: 'file', language: 'verilog' },
-      verilogDefinitionProvider
-    )
-  );
-  context.subscriptions.push(
-    vscode.languages.registerDefinitionProvider(
-      { scheme: 'file', language: 'systemverilog' },
-      verilogDefinitionProvider
-    )
-  );
 
-  // Configure Format Provider
-  let verilogFormatProvider = new FormatProvider.VerilogFormatProvider(
-    logger.getChild('VerilogFormatProvider')
-  );
+  // push provider subs to .v and .sv files
+  const selectors = [
+    { scheme: 'file', language: 'verilog' },
+    { scheme: 'file', language: 'systemverilog' },
+  ];
+  selectors.forEach((selector) => {
+    context.subscriptions.push(
+      vscode.languages.registerDocumentSymbolProvider(selector, verilogDocumentSymbolProvider)
+    );
+
+    context.subscriptions.push(
+      vscode.languages.registerCompletionItemProvider(
+        selector,
+        verilogCompletionItemProvider,
+        '.',
+        '(',
+        '='
+      )
+    );
+
+    context.subscriptions.push(
+      vscode.languages.registerHoverProvider(selector, verilogHoverProvider)
+    );
+
+    context.subscriptions.push(
+      vscode.languages.registerDefinitionProvider(selector, verilogDefinitionProvider)
+    );
+  });
+
+  /////////////////////////////////////////////
+  // Configure Formatters
+  /////////////////////////////////////////////
+
   context.subscriptions.push(
     vscode.languages.registerDocumentFormattingEditProvider(
       { scheme: 'file', language: 'verilog' },
-      verilogFormatProvider
+      new FormatProvider.VerilogFormatProvider(logger.getChild('VerilogFormatProvider'))
     )
-  );
-  let systemVerilogFormatProvider = new FormatProvider.SystemVerilogFormatProvider(
-    logger.getChild('SystemVerilogFormatProvider')
   );
   context.subscriptions.push(
     vscode.languages.registerDocumentFormattingEditProvider(
       { scheme: 'file', language: 'systemverilog' },
-      systemVerilogFormatProvider
+      new FormatProvider.SystemVerilogFormatProvider(logger.getChild('SystemVerilogFormatProvider'))
     )
   );
 
-  // Configure command to instantiate a module
+  /////////////////////////////////////////////
+  // Register Lint Manager, runs selected linters
+  /////////////////////////////////////////////
+  lintManager = new LintManager(logger.getChild('LintManager'));
+  context.subscriptions.push(vscode.workspace.onDidOpenTextDocument(lintManager.lint));
+  context.subscriptions.push(vscode.workspace.onDidSaveTextDocument(lintManager.lint));
+  context.subscriptions.push(
+    vscode.workspace.onDidCloseTextDocument(lintManager.removeFileDiagnostics)
+  );
+  context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(lintManager.configLinter));
+
+  /////////////////////////////////////////////
+  // Register Commands
+  /////////////////////////////////////////////
   vscode.commands.registerCommand(
     'verilog.instantiateModule',
     ModuleInstantiation.instantiateModuleInteract
   );
+  vscode.commands.registerCommand('verilog.lint', lintManager.runLintTool);
 
-  // Register command for manual linting
-  lintManager = new LintManager(logger.getChild('LintManager'));
-  vscode.commands.registerCommand('verilog.lint', lintManager.runLintTool, lintManager);
-
-  // Configure language server
-  vscode.workspace.onDidChangeConfiguration((event) => {
+  /////////////////////////////////////////////
+  // Language Servers
+  /////////////////////////////////////////////
+  vscode.workspace.onDidChangeConfiguration(async (event) => {
     if (!event.affectsConfiguration('verilog.languageServer')) {
       return;
     }
-    stopAllLanguageClients().finally(() => {
-      initAllLanguageClients();
-    });
+    await stopAllLanguageClients();
+    initAllLanguageClients();
   });
+
   initAllLanguageClients();
 
   logger.info(extensionID + ' activation finished.');
