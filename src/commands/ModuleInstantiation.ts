@@ -1,76 +1,85 @@
 // SPDX-License-Identifier: MIT
-import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Ctags, Symbol } from '../ctags';
+import * as vscode from 'vscode';
 import { logger } from '../extension';
+import { Ctags, Symbol } from '../ctags';
 
-export function instantiateModuleInteract() {
+export async function instantiateModuleInteract() {
+  if (vscode.window.activeTextEditor === undefined) {
+    return;
+  }
   let filePath = path.dirname(vscode.window.activeTextEditor.document.fileName);
-  selectFile(filePath).then((srcpath) => {
-    instantiateModule(srcpath).then((inst) => {
-      vscode.window.activeTextEditor.insertSnippet(inst);
-    });
-  });
+  let srcPath = await selectFile(filePath);
+  if (srcPath === undefined) {
+    return;
+  }
+  let snippet = await instantiateModule(srcPath);
+  if (snippet === undefined) {
+    return;
+  }
+  vscode.window.activeTextEditor?.insertSnippet(snippet);
 }
 
-async function instantiateModule(srcpath: string): Promise<vscode.SnippetString | undefined> {
-    // Using Ctags to get all the modules in the file
-    let moduleName: string = '';
-    let portsName: string[] = [];
-    let parametersName: string[] = [];
-    let file: vscode.TextDocument = vscode.window.activeTextEditor.document;
-    let ctags: ModuleTags = new ModuleTags(logger, file);
-    logger.info('Executing ctags for module instantiation');
-    let output = await ctags.execCtags(srcpath);
-    await ctags.buildSymbolsList(output);
-    let module: Symbol;
-    let modules: Symbol[] = ctags.symbols.filter((tag) => tag.type === 'module');
-    // No modules found
-    if (modules.length <= 0) {
-      vscode.window.showErrorMessage('Verilog-HDL/SystemVerilog: No modules found in the file');
+export async function instantiateModule(
+  srcpath: string
+): Promise<vscode.SnippetString | undefined> {
+  // Using Ctags to get all the modules in the file
+  let moduleName: string | undefined = undefined;
+  let portsName: string[] = [];
+  let parametersName: string[] = [];
+  let file: vscode.TextDocument | undefined = vscode.window.activeTextEditor?.document;
+  if (file === undefined) {
+    logger.warn('file undefined... returning');
+    return;
+  }
+  let ctags: ModuleTags = new ModuleTags(logger, file);
+  logger.info('Executing ctags for module instantiation');
+  let output = await ctags.execCtags(srcpath);
+  await ctags.buildSymbolsList(output);
+
+  let modules: Symbol[] = ctags.symbols.filter((tag) => tag.type === 'module');
+  // No modules found
+  if (modules.length <= 0) {
+    vscode.window.showErrorMessage('Verilog-HDL/SystemVerilog: No modules found in the file');
+    return undefined;
+  }
+  let module: Symbol = modules[0];
+  if (modules.length > 1) {
+    // many modules found
+    moduleName = await vscode.window.showQuickPick(
+      ctags.symbols.filter((tag) => tag.type === 'module').map((tag) => tag.name),
+      {
+        placeHolder: 'Choose a module to instantiate',
+      }
+    );
+    if (moduleName === undefined) {
       return undefined;
     }
-    // Only one module found
-    else if (modules.length === 1) {
-      module = modules[0];
-    }
-    // many modules found
-    else if (modules.length > 1) {
-      moduleName = await vscode.window.showQuickPick(
-        ctags.symbols.filter((tag) => tag.type === 'module').map((tag) => tag.name),
-        {
-          placeHolder: 'Choose a module to instantiate',
-        }
-      );
-      if (moduleName === undefined) {
-        return undefined;
-      }
-      module = modules.filter((tag) => tag.name === moduleName)[0];
-    }
-    let scope = module.parentScope != '' ? module.parentScope + '.' + module.name : module.name;
-    let ports: Symbol[] = ctags.symbols.filter(
-      (tag) => tag.type === 'port' && tag.parentType === 'module' && tag.parentScope === scope
-    );
-    portsName = ports.map((tag) => tag.name);
-    let params: Symbol[] = ctags.symbols.filter(
-      (tag) =>
-        tag.type === 'parameter' && tag.parentType === 'module' && tag.parentScope === scope
-    );
-    parametersName = params.map((tag) => tag.name);
-    logger.info('Module name: ' + module.name);
-    let paramString = ``;
-    if (parametersName.length > 0) {
-      paramString = `\n#(\n${instantiatePort(parametersName)})\n`;
-    }
-    logger.info('portsName: ' + portsName.toString());
-    return new vscode.SnippetString()
-        .appendText(module.name + ' ')
-        .appendText(paramString)
-        .appendPlaceholder('u_')
-        .appendPlaceholder(`${module.name}(\n`)
-        .appendText(instantiatePort(portsName))
-        .appendText(');\n');
+    module = modules.filter((tag) => tag.name === moduleName)[0];
+  }
+  let scope = module.parentScope != '' ? module.parentScope + '.' + module.name : module.name;
+  let ports: Symbol[] = ctags.symbols.filter(
+    (tag) => tag.type === 'port' && tag.parentType === 'module' && tag.parentScope === scope
+  );
+  portsName = ports.map((tag) => tag.name);
+  let params: Symbol[] = ctags.symbols.filter(
+    (tag) => tag.type === 'parameter' && tag.parentType === 'module' && tag.parentScope === scope
+  );
+  parametersName = params.map((tag) => tag.name);
+  logger.info('Module name: ' + module.name);
+  let paramString = ``;
+  if (parametersName.length > 0) {
+    paramString = `#(\n${instantiatePort(parametersName)}) `;
+  }
+  logger.info('portsName: ' + portsName.toString());
+  return new vscode.SnippetString()
+    .appendText(module.name + ' ')
+    .appendText(paramString)
+    .appendPlaceholder('u_')
+    .appendPlaceholder(`${module.name} (\n`)
+    .appendText(instantiatePort(portsName))
+    .appendText(');\n');
 }
 
 function instantiatePort(ports: string[]): string {
@@ -84,9 +93,9 @@ function instantiatePort(ports: string[]): string {
   // .NAME(NAME)
   for (let i = 0; i < ports.length; i++) {
     let element = ports[i];
-    let padding = maxLen - element.length + 1;
+    let padding = maxLen - element.length;
     element = element + ' '.repeat(padding);
-    port += `\t.${element}(${element})`;
+    port += `\t.${element}(${ports[i]})`;
     if (i !== ports.length - 1) {
       port += ',';
     }
@@ -96,7 +105,10 @@ function instantiatePort(ports: string[]): string {
 }
 
 async function selectFile(currentDir?: string): Promise<string | undefined> {
-  currentDir = currentDir || vscode.workspace.rootPath;
+  currentDir = currentDir || vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+  if (currentDir === undefined) {
+    return undefined;
+  }
 
   let dirs = getDirectories(currentDir);
   // if is subdirectory, add '../'
@@ -121,10 +133,9 @@ async function selectFile(currentDir?: string): Promise<string | undefined> {
     });
   });
 
-  let selected = await vscode.window
-    .showQuickPick(items, {
-      placeHolder: 'Choose the module file',
-    });
+  let selected = await vscode.window.showQuickPick(items, {
+    placeHolder: 'Choose the module file',
+  });
   if (!selected) {
     return undefined;
   }
@@ -152,7 +163,7 @@ function getFiles(srcpath: string): string[] {
 class ModuleTags extends Ctags {
   buildSymbolsList(tags: string): Promise<void> {
     if (tags === '') {
-      return undefined;
+      return Promise.resolve();
     }
     // Parse ctags output
     let lines: string[] = tags.split(/\r?\n/);
@@ -160,12 +171,12 @@ class ModuleTags extends Ctags {
       if (line !== '') {
         let tag: Symbol = this.parseTagLine(line);
         // add only modules and ports
-        if (tag.type === 'module' || tag.type === 'port' || tag.type === 'constant') {
+        if (tag.type === 'module' || tag.type === 'port' || tag.type === 'parameter') {
           this.symbols.push(tag);
         }
       }
     });
     // skip finding end tags
-    return undefined;
+    return Promise.resolve();
   }
 }
