@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
 import * as vscode from 'vscode';
-import { CtagsManager, Symbol } from '../ctags';
+import { instantiateModule } from '../commands/ModuleInstantiation';
+import { CtagsManager } from '../ctags';
 import { Logger } from '../logger';
+import { Symbol } from '../parsers/ctagsParser';
 
 export class VerilogCompletionItemProvider implements vscode.CompletionItemProvider {
   private logger: Logger;
@@ -11,13 +13,56 @@ export class VerilogCompletionItemProvider implements vscode.CompletionItemProvi
     this.ctagsManager = ctagsManager;
   }
 
+  async provideModuleCompletion(
+    document: vscode.TextDocument,
+    _position: vscode.Position, // module_name #(
+    _token: vscode.CancellationToken,
+    _context: vscode.CompletionContext
+  ): Promise<vscode.CompletionItem[]> {
+    this.logger.info('Module Completion requested');
+    let items: vscode.CompletionItem[] = [];
+
+    let newItem: vscode.CompletionItem = new vscode.CompletionItem(
+      'module label',
+      vscode.CompletionItemKind.Module
+    );
+
+    let moduleRange = document.getWordRangeAtPosition(_position.translate(0, -3));
+    let moduleName = document.getText(moduleRange);
+    console.log('searching for mod ' + moduleName);
+
+    let moduleDoc = await this.ctagsManager.findModule(moduleName);
+    if (moduleDoc === undefined) {
+      return [];
+    }
+    let snippet = await instantiateModule(moduleDoc.fileName);
+    newItem.insertText = snippet;
+    items.push(newItem);
+
+    return items;
+  }
+
   //TODO: Better context based completion items
   async provideCompletionItems(
     document: vscode.TextDocument,
     _position: vscode.Position,
     _token: vscode.CancellationToken,
-    _context: vscode.CompletionContext
+    context: vscode.CompletionContext
   ): Promise<vscode.CompletionItem[]> {
+    this.logger.info('providing completion ' + context.triggerCharacter);
+    if (context.triggerCharacter == '(') {
+      // if the prev char is #
+      let textBeforePosition = document.getText(
+        new vscode.Range(new vscode.Position(_position.line, 0), _position.translate(0, -1))
+      );
+      this.logger.info('text before ' + textBeforePosition);
+      // Check if the last character is #f
+      if (textBeforePosition.endsWith('#')) {
+        this.logger.info('trigging module inst');
+
+        return await this.provideModuleCompletion(document, _position, _token, context);
+      }
+    }
     this.logger.info('Completion items requested');
     let items: vscode.CompletionItem[] = [];
 
