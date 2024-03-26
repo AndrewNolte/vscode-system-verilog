@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 import * as vscode from 'vscode';
-import { instantiateModule } from '../commands/ModuleInstantiation';
+import { moduleFromFile } from '../commands/ModuleInstantiation';
 import { CtagsManager } from '../ctags';
 import { Logger } from '../logger';
 import { Symbol } from '../parsers/ctagsParser';
@@ -35,7 +35,7 @@ export class VerilogCompletionItemProvider implements vscode.CompletionItemProvi
     if (moduleDoc === undefined) {
       return [];
     }
-    let snippet = await instantiateModule(moduleDoc.fileName);
+    let snippet = await moduleFromFile(moduleDoc.fileName);
     newItem.insertText = snippet;
     items.push(newItem);
 

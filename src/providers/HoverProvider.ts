@@ -33,7 +33,9 @@ export class VerilogHoverProvider implements vscode.HoverProvider {
         .getText(i.targetRange)
         .trim()
         .replace(/\s{2,}/g, ' ') // trim long whitespace from formatting
-        .replace(/,$/, ''); // remove trailing commas
+        .replace(/,$/, '') // remove trailing commas
+        .replace(/#\($/, '') // remove trailing #
+        .trim();
 
       let hoverText: vscode.MarkdownString = new vscode.MarkdownString();
       hoverText.appendCodeblock(code, document.languageId);

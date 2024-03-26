@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { logger } from '../extension';
-import { Ctags, Symbol } from '../ctags';
+import { CtagsParser, Symbol } from '../parsers/ctagsParser';
 
 export async function instantiateModuleInteract() {
   if (vscode.window.activeTextEditor === undefined) {
@@ -26,8 +26,7 @@ export async function instantiateModule(
 ): Promise<vscode.SnippetString | undefined> {
   // Using Ctags to get all the modules in the file
   let moduleName: string | undefined = undefined;
-  let portsName: string[] = [];
-  let parametersName: string[] = [];
+
   let file: vscode.TextDocument | undefined = vscode.window.activeTextEditor?.document;
   if (file === undefined) {
     logger.warn('file undefined... returning');
@@ -58,6 +57,35 @@ export async function instantiateModule(
     }
     module = modules.filter((tag) => tag.name === moduleName)[0];
   }
+
+  return moduleSnippet(ctags, module, true);
+}
+
+export async function moduleFromFile(srcpath: string): Promise<vscode.SnippetString | undefined> {
+  let file: vscode.TextDocument | undefined = vscode.window.activeTextEditor?.document;
+  if (file === undefined) {
+    logger.warn('file undefined... returning');
+    return;
+  }
+  let ctags: ModuleTags = new ModuleTags(logger, file);
+  logger.info('Executing ctags for module instantiation');
+  let output = await ctags.execCtags(srcpath);
+  await ctags.buildSymbolsList(output);
+
+  let modules: Symbol[] = ctags.symbols.filter((tag) => tag.type === 'module');
+  // No modules found
+  if (modules.length <= 0) {
+    vscode.window.showErrorMessage('Verilog-HDL/SystemVerilog: No modules found in the file');
+    return undefined;
+  }
+
+  return moduleSnippet(ctags, modules[0], false);
+}
+
+export async function moduleSnippet(ctags: CtagsParser, module: Symbol, fullModule: boolean) {
+  let portsName: string[] = [];
+  let parametersName: string[] = [];
+
   let scope = module.parentScope != '' ? module.parentScope + '.' + module.name : module.name;
   let ports: Symbol[] = ctags.symbols.filter(
     (tag) => tag.type === 'port' && tag.parentType === 'module' && tag.parentScope === scope
@@ -70,16 +98,30 @@ export async function instantiateModule(
   logger.info('Module name: ' + module.name);
   let paramString = ``;
   if (parametersName.length > 0) {
-    paramString = `#(\n${instantiatePort(parametersName)}) `;
+    paramString = `\n${instantiatePort(parametersName)}`;
   }
   logger.info('portsName: ' + portsName.toString());
-  return new vscode.SnippetString()
-    .appendText(module.name + ' ')
-    .appendText(paramString)
-    .appendPlaceholder('u_')
-    .appendPlaceholder(`${module.name} (\n`)
-    .appendText(instantiatePort(portsName))
-    .appendText(');\n');
+
+  if (fullModule) {
+    return new vscode.SnippetString()
+      .appendText(module.name + ' ')
+      .appendText('#(')
+      .appendText(paramString)
+      .appendText(') ')
+      .appendPlaceholder('u_')
+      .appendPlaceholder(`${module.name} (\n`)
+      .appendText(instantiatePort(portsName))
+      .appendText(');\n');
+  }
+  return (
+    new vscode.SnippetString()
+      // .appendText('#(')
+      .appendText(paramString)
+      .appendText(') ')
+      .appendPlaceholder('u_')
+      .appendPlaceholder(`${module.name} (\n`)
+      .appendText(instantiatePort(portsName))
+  );
 }
 
 function instantiatePort(ports: string[]): string {
@@ -160,7 +202,7 @@ function getFiles(srcpath: string): string[] {
   return fs.readdirSync(srcpath).filter((file) => fs.statSync(path.join(srcpath, file)).isFile());
 }
 
-class ModuleTags extends Ctags {
+class ModuleTags extends CtagsParser {
   buildSymbolsList(tags: string): Promise<void> {
     if (tags === '') {
       return Promise.resolve();
@@ -169,7 +211,10 @@ class ModuleTags extends Ctags {
     let lines: string[] = tags.split(/\r?\n/);
     lines.forEach((line) => {
       if (line !== '') {
-        let tag: Symbol = this.parseTagLine(line);
+        let tag: Symbol | undefined = this.parseTagLine(line);
+        if (tag === undefined) {
+          return;
+        }
         // add only modules and ports
         if (tag.type === 'module' || tag.type === 'port' || tag.type === 'parameter') {
           this.symbols.push(tag);

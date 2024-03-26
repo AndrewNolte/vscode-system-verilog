@@ -14,7 +14,7 @@ import * as FormatProvider from './providers/FormatPrivider';
 import * as HoverProvider from './providers/HoverProvider';
 
 export var logger: Logger; // Global logger
-var ctagsManager = new CtagsManager();
+var ctagsManager: CtagsManager;
 let extensionID: string = 'mshr-h.veriloghdl';
 
 let lintManager: LintManager;
@@ -24,13 +24,12 @@ export function activate(context: vscode.ExtensionContext) {
   logger = createLogger('Verilog');
   logger.info(extensionID + ' is now active.');
 
+  ctagsManager = new CtagsManager(logger);
+
   let extMgr = new ExtensionManager(context, extensionID, logger.getChild('ExtensionManager'));
   if (extMgr.isVersionUpdated()) {
     extMgr.showChangelogNotification();
   }
-
-  // Configure ctags
-  ctagsManager.configure(logger);
 
   /////////////////////////////////////////////
   // Configure Providers
