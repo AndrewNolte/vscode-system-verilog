@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
-import * as vscode from 'vscode';
 import * as path from 'path';
+import * as vscode from 'vscode';
 import { Logger } from '../logger';
+import { getWorkspaceFolder } from '../utils';
 
 export default abstract class BaseLinter {
   protected diagnosticCollection: vscode.DiagnosticCollection;
@@ -19,7 +20,11 @@ export default abstract class BaseLinter {
     if (path.isAbsolute(inputPath)) {
       return inputPath;
     }
-    return path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, inputPath);
+    let wspath = getWorkspaceFolder();
+    if (wspath === undefined) {
+      return inputPath;
+    }
+    return path.join(wspath, inputPath);
   }
 
   public startLint(doc: vscode.TextDocument) {
@@ -31,5 +36,5 @@ export default abstract class BaseLinter {
   }
 
   protected abstract convertToSeverity(severityString: string): vscode.DiagnosticSeverity;
-  protected abstract lint(doc: vscode.TextDocument);
+  protected abstract lint(doc: vscode.TextDocument): void;
 }

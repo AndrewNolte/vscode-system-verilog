@@ -1,20 +1,22 @@
 // SPDX-License-Identifier: MIT
-import * as vscode from 'vscode';
 import * as child from 'child_process';
+import { ExecException } from 'child_process';
 import * as path from 'path';
 import * as process from 'process';
-import BaseLinter from './BaseLinter';
+import * as vscode from 'vscode';
 import { Logger } from '../logger';
+import { getWorkspaceFolder } from '../utils';
+import BaseLinter from './BaseLinter';
 
 let isWindows = process.platform === 'win32';
 
 export default class SlangLinter extends BaseLinter {
-  private configuration: vscode.WorkspaceConfiguration;
-  private linterInstalledPath: string;
-  private arguments: string;
-  private includePath: string[];
-  private runAtFileLocation: boolean;
-  private useWSL: boolean;
+  private configuration!: vscode.WorkspaceConfiguration;
+  private linterInstalledPath!: string;
+  private arguments!: string;
+  private includePath!: string[];
+  private runAtFileLocation!: boolean;
+  private useWSL!: boolean;
 
   constructor(diagnosticCollection: vscode.DiagnosticCollection, logger: Logger) {
     super('slang', diagnosticCollection, logger);
@@ -78,11 +80,11 @@ export default class SlangLinter extends BaseLinter {
     args.push(`"${docUri}"`);
     let command: string = binPath + ' ' + args.join(' ');
 
-    let cwd: string = this.runAtFileLocation
+    let cwd: string | undefined = this.runAtFileLocation
       ? isWindows
         ? cwdWin
         : docFolder
-      : vscode.workspace.workspaceFolders[0].uri.fsPath;
+      : getWorkspaceFolder();
 
     this.logger.info('[slang] Execute');
     this.logger.info('[slang]   command: ' + command);
@@ -91,7 +93,7 @@ export default class SlangLinter extends BaseLinter {
     var _: child.ChildProcess = child.exec(
       command,
       { cwd: cwd },
-      (_error: Error, _stdout: string, stderr: string) => {
+      (_error: ExecException | null, _stdout: string, stderr: string) => {
         let diagnostics: vscode.Diagnostic[] = [];
         const re = /(.+?):(\d+):(\d+):\s(note|warning|error):\s(.*?)(\[-W(.*)\]|$)/;
         stderr.split(/\r?\n/g).forEach((line, _) => {
@@ -100,6 +102,9 @@ export default class SlangLinter extends BaseLinter {
           }
 
           let rex = line.match(re);
+          if (rex === null) {
+            return;
+          }
 
           let filePath = rex[1];
           if (isWindows) {

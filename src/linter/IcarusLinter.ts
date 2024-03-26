@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
-import * as vscode from 'vscode';
 import * as child from 'child_process';
+import { ExecException } from 'child_process';
 import * as path from 'path';
-import BaseLinter from './BaseLinter';
+import * as vscode from 'vscode';
 import { Logger } from '../logger';
+import BaseLinter from './BaseLinter';
 
 let standardToArg: Map<string, string> = new Map<string, string>([
   ['Verilog-95', '-g1995'],
@@ -15,19 +16,18 @@ let standardToArg: Map<string, string> = new Map<string, string>([
 ]);
 
 export default class IcarusLinter extends BaseLinter {
-  private configuration: vscode.WorkspaceConfiguration;
-  private linterInstalledPath: string;
-  private arguments: string;
-  private includePath: string[];
-  private standards: Map<string, string>;
-  private runAtFileLocation: boolean;
+  private configuration!: vscode.WorkspaceConfiguration;
+  private linterInstalledPath!: string;
+  private arguments!: string;
+  private includePath!: string[];
+  private standards!: Map<string, string>;
+  private runAtFileLocation!: boolean;
 
   constructor(diagnosticCollection: vscode.DiagnosticCollection, logger: Logger) {
     super('iverilog', diagnosticCollection, logger);
     vscode.workspace.onDidChangeConfiguration(() => {
       this.updateConfig();
     });
-    this.updateConfig();
   }
 
   private updateConfig() {
@@ -39,8 +39,8 @@ export default class IcarusLinter extends BaseLinter {
     let path = <string[]>this.configuration.get('includePath');
     this.includePath = path.map((includePath: string) => this.resolvePath(includePath));
     this.standards = new Map<string, string>([
-      ['verilog', this.configuration.get('verilogHDL.standard')],
-      ['systemverilog', this.configuration.get('systemVerilog.standard')],
+      ['verilog', this.configuration.get('verilogHDL.standard', 'Verilog-2005')],
+      ['systemverilog', this.configuration.get('systemVerilog.standard', 'SystemVerilog2012')],
     ]);
     this.runAtFileLocation = <boolean>this.configuration.get('runAtFileLocation');
   }
@@ -64,7 +64,12 @@ export default class IcarusLinter extends BaseLinter {
     let args: string[] = [];
     args.push('-t null');
 
-    args.push(standardToArg.get(this.standards.get(doc.languageId)));
+    let standard = this.standards.get(doc.languageId);
+    if (standard === undefined) {
+      this.logger.warn(`file ${standard} cannot be linted`);
+      return;
+    }
+    args.push(standardToArg.get(standard) ?? '');
     args = args.concat(this.includePath.map((path: string) => '-I "' + path + '"'));
     args.push(this.arguments);
     args.push('"' + doc.uri.fsPath + '"');
@@ -84,7 +89,7 @@ export default class IcarusLinter extends BaseLinter {
     var _: child.ChildProcess = child.exec(
       command,
       { cwd: cwd },
-      (_error: Error, _stdout: string, stderr: string) => {
+      (_error: ExecException | null, _stdout: string, stderr: string) => {
         let diagnostics: vscode.Diagnostic[] = [];
         // Parse output lines
         // the message is something like this

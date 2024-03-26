@@ -1,20 +1,22 @@
 // SPDX-License-Identifier: MIT
-import * as vscode from 'vscode';
 import * as child from 'child_process';
+import { ExecException } from 'child_process';
 import * as path from 'path';
 import * as process from 'process';
-import BaseLinter from './BaseLinter';
+import * as vscode from 'vscode';
 import { Logger } from '../logger';
+import { getWorkspaceFolder } from '../utils';
+import BaseLinter from './BaseLinter';
 
 let isWindows = process.platform === 'win32';
 
 export default class VerilatorLinter extends BaseLinter {
-  private configuration: vscode.WorkspaceConfiguration;
-  private linterInstalledPath: string;
-  private arguments: string;
-  private includePath: string[];
-  private runAtFileLocation: boolean;
-  private useWSL: boolean;
+  private configuration!: vscode.WorkspaceConfiguration;
+  private linterInstalledPath!: string;
+  private arguments!: string;
+  private includePath!: string[];
+  private runAtFileLocation!: boolean;
+  private useWSL!: boolean;
 
   constructor(diagnosticCollection: vscode.DiagnosticCollection, logger: Logger) {
     super('verilator', diagnosticCollection, logger);
@@ -76,11 +78,11 @@ export default class VerilatorLinter extends BaseLinter {
         ? this.convertToWslPath(path.dirname(doc.uri.fsPath))
         : path.dirname(doc.uri.fsPath).replace(/\\/g, '/')
       : path.dirname(doc.uri.fsPath);
-    let cwd: string = this.runAtFileLocation
+    let cwd: string | undefined = this.runAtFileLocation
       ? isWindows
         ? path.dirname(doc.uri.fsPath.replace(/\\/g, '/'))
         : docFolder
-      : vscode.workspace.workspaceFolders[0].uri.fsPath;
+      : getWorkspaceFolder();
     let verilator: string = isWindows
       ? this.useWSL
         ? 'wsl verilator'
@@ -106,7 +108,7 @@ export default class VerilatorLinter extends BaseLinter {
     var _: child.ChildProcess = child.exec(
       command,
       { cwd: cwd },
-      (_error: Error, _stdout: string, stderr: string) => {
+      (_error: ExecException | null, _stdout: string, stderr: string) => {
         let diagnostics: vscode.Diagnostic[] = [];
         stderr.split(/\r?\n/g).forEach((line, _) => {
           if (!line.startsWith('%') || line.indexOf(docUri) <= 0) {
