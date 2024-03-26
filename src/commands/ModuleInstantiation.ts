@@ -4,6 +4,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { logger } from '../extension';
 import { CtagsParser, Symbol } from '../parsers/ctagsParser';
+import { getWorkspaceFolder } from '../utils';
 
 export async function instantiateModuleInteract() {
   if (vscode.window.activeTextEditor === undefined) {
@@ -86,7 +87,7 @@ export async function moduleSnippet(ctags: CtagsParser, module: Symbol, fullModu
   let portsName: string[] = [];
   let parametersName: string[] = [];
 
-  let scope = module.parentScope != '' ? module.parentScope + '.' + module.name : module.name;
+  let scope = module.parentScope !== '' ? module.parentScope + '.' + module.name : module.name;
   let ports: Symbol[] = ctags.symbols.filter(
     (tag) => tag.type === 'port' && tag.parentType === 'module' && tag.parentScope === scope
   );
@@ -154,7 +155,7 @@ async function selectFile(currentDir?: string): Promise<string | undefined> {
 
   let dirs = getDirectories(currentDir);
   // if is subdirectory, add '../'
-  if (currentDir !== vscode.workspace.rootPath) {
+  if (currentDir !== getWorkspaceFolder()) {
     dirs.unshift('..');
   }
   // all files ends with '.sv'

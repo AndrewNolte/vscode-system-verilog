@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MIT
+
 import * as child_process from 'child_process';
 import * as crypto from 'crypto';
 import * as fs from 'fs';
@@ -7,7 +8,6 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { Logger } from '../logger';
 import { getWorkspaceFolder } from '../utils';
-
 // handle temporary file
 class TemporaryFile {
   public readonly path: string;

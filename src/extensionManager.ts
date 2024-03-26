@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
-import * as vscode from 'vscode';
 import { SemVer } from 'semver';
+import * as vscode from 'vscode';
 import { Logger } from './logger';
 
 export class ExtensionManager {
@@ -14,8 +14,12 @@ export class ExtensionManager {
     this.context = context;
     this.extensionID = extensionID;
     this.logger = logger;
-    this.packageJSON = vscode.extensions.getExtension(this.extensionID).packageJSON;
-    this.extensionPath = vscode.extensions.getExtension(this.extensionID).extensionPath;
+    let ext = vscode.extensions.getExtension(this.extensionID);
+    if (ext === undefined) {
+      throw Error("Couldn't find extension id");
+    }
+    this.packageJSON = ext.packageJSON;
+    this.extensionPath = ext.extensionPath;
   }
 
   public isVersionUpdated(): boolean {
@@ -40,7 +44,7 @@ export class ExtensionManager {
     if (this.isVersionUpdated()) {
       vscode.window
         .showInformationMessage(displayName + ' extension has been updated', 'Open Changelog')
-        .then(function (_: string) {
+        .then(function (_: string | undefined) {
           let changelogUri = vscode.Uri.file(extensionPath + '/CHANGELOG.md');
           vscode.workspace.openTextDocument(changelogUri).then((doc) => {
             vscode.window.showTextDocument(doc);

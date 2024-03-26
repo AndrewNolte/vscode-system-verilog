@@ -30,7 +30,9 @@ export class Logger {
     if (data) {
       formattedMessage += JSON.stringify(data);
     }
-    this.parentLogger[level](formattedMessage);
+    if (this.parentLogger instanceof Logger) {
+      this.parentLogger[level](formattedMessage);
+    }
   }
 
   trace(message: string, data?: unknown): void {

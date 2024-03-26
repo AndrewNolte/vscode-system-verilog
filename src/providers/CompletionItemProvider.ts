@@ -29,7 +29,6 @@ export class VerilogCompletionItemProvider implements vscode.CompletionItemProvi
 
     let moduleRange = document.getWordRangeAtPosition(_position.translate(0, -3));
     let moduleName = document.getText(moduleRange);
-    console.log('searching for mod ' + moduleName);
 
     let moduleDoc = await this.ctagsManager.findModule(moduleName);
     if (moduleDoc === undefined) {
@@ -50,7 +49,7 @@ export class VerilogCompletionItemProvider implements vscode.CompletionItemProvi
     context: vscode.CompletionContext
   ): Promise<vscode.CompletionItem[]> {
     this.logger.info('providing completion ' + context.triggerCharacter);
-    if (context.triggerCharacter == '(') {
+    if (context.triggerCharacter === '(') {
       // if the prev char is #
       let textBeforePosition = document.getText(
         new vscode.Range(new vscode.Position(_position.line, 0), _position.translate(0, -1))
