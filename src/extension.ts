@@ -155,14 +155,12 @@ function setupLanguageClient(
     debug: { command: binPath, args: serverDebugArgs },
   };
 
-  languageClients.set(
-    name,
-    new LanguageClient(name, name + ' language server', serverOptions, clientOptions)
-  );
+  let lc = new LanguageClient(name, name + ' language server', serverOptions, clientOptions);
+  languageClients.set(name, lc);
   if (!enabled) {
     return;
   }
-  languageClients.get(name).start();
+  lc.start();
   logger.info('"' + name + '" language server started.');
 }
 
