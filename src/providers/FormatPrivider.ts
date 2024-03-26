@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: MIT
-import * as vscode from 'vscode';
 import * as child_process from 'child_process';
+import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as os from 'os';
-import * as crypto from 'crypto';
 import * as path from 'path';
+import * as vscode from 'vscode';
 import { Logger } from '../logger';
+import { getWorkspaceFolder } from '../utils';
 
 // handle temporary file
 class TemporaryFile {
@@ -65,10 +66,16 @@ abstract class FileBasedFormattingEditProvider implements vscode.DocumentFormatt
     let args: string[] = this.prepareArgument(tempFile.path);
 
     // execute command
-    let binPath: string = this.config.get('path');
+    let binPath: string | undefined = this.config.get('path');
+    if (binPath === undefined) {
+      this.logger.warn('No path specified for formatter');
+      return [];
+    }
     this.logger.info('Executing command: ' + binPath + ' ' + args.join(' '));
     try {
-      child_process.execFileSync(binPath, args, {cwd: vscode.workspace.workspaceFolders[0].uri.fsPath});
+      child_process.execFileSync(binPath, args, {
+        cwd: getWorkspaceFolder(),
+      });
       let formattedText: string = tempFile.readFileSync({ encoding: 'utf-8' });
       let wholeFileRange: vscode.Range = new vscode.Range(
         document.positionAt(0),
@@ -77,7 +84,7 @@ abstract class FileBasedFormattingEditProvider implements vscode.DocumentFormatt
       tempFile.dispose();
       return [vscode.TextEdit.replace(wholeFileRange, formattedText)];
     } catch (err) {
-      this.logger.error(err.toString());
+      this.logger.error((err as Error).toString());
     }
 
     tempFile.dispose();
@@ -87,8 +94,8 @@ abstract class FileBasedFormattingEditProvider implements vscode.DocumentFormatt
 class VerilogFormatEditProvider extends FileBasedFormattingEditProvider {
   prepareArgument(tmpFilepath: string): string[] {
     var args: string[] = ['-f', tmpFilepath];
-    let settingsPath: string | null = this.config.get('settings');
-    if (settingsPath !== null && fs.existsSync(settingsPath)) {
+    let settingsPath: string | null | undefined = this.config.get('settings');
+    if (typeof settingsPath === 'string' && fs.existsSync(settingsPath)) {
       args.push('-s');
       args.push(settingsPath);
     }
@@ -151,7 +158,11 @@ export class VerilogFormatProvider implements vscode.DocumentFormattingEditProvi
     let settings: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(
       'verilog.formatting.verilogHDL'
     );
-    let formatter: string | null = <string>settings.get('formatter', null);
+    let formatter: string | null = settings.get('formatter', null);
+    if (formatter === null) {
+      this.logger.warn('null formatter');
+      return;
+    }
     let verilogFormatter = new VerilogFormatEditProvider('verilogFormat', '.v', this.logger);
     let iStyleVerilogFormatter = new IStyleVerilogFormatterEditProvider(
       'iStyleVerilogFormatter',
@@ -191,7 +202,11 @@ export class SystemVerilogFormatProvider implements vscode.DocumentFormattingEdi
     let settings: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(
       'verilog.formatting.systemVerilog'
     );
-    let formatter: string | null = <string>settings.get('formatter', null);
+    let formatter: string | null = settings.get('formatter', null);
+    if (formatter === null) {
+      this.logger.warn('null formatter');
+      return;
+    }
     let veribleVerilogFormatter = new VeribleVerilogFormatEditProvider(
       'veribleVerilogFormatter',
       '.sv',
