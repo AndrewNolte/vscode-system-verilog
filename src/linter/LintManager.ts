@@ -9,7 +9,7 @@ import VerilatorLinter from './VerilatorLinter';
 import XvlogLinter from './XvlogLinter';
 
 export default class LintManager {
-  private linter: BaseLinter;
+  private linter: BaseLinter | null;
   private diagnosticCollection: vscode.DiagnosticCollection;
   private logger: Logger;
 
@@ -26,7 +26,7 @@ export default class LintManager {
     });
   }
 
-  getLinterFromString(name: string): BaseLinter {
+  getLinterFromString(name: string): BaseLinter | null {
     switch (name) {
       case 'iverilog':
         return new IcarusLinter(this.diagnosticCollection, this.logger.getChild('IcarusLinter'));
@@ -56,6 +56,10 @@ export default class LintManager {
       if (this.linter.name === linterName) {
         return;
       }
+    }
+    if (linterName === undefined) {
+      this.logger.warn('linterName is undefined');
+      return;
     }
 
     this.linter = this.getLinterFromString(linterName);
@@ -91,7 +95,7 @@ export default class LintManager {
   async runLintTool() {
     // Check for language id
     this.logger.info('Executing runLintTool()');
-    let lang: string = vscode.window.activeTextEditor.document.languageId;
+    let lang: string | undefined = vscode.window.activeTextEditor?.document.languageId;
     if (
       vscode.window.activeTextEditor === undefined ||
       (lang !== 'verilog' && lang !== 'systemverilog')
@@ -100,7 +104,7 @@ export default class LintManager {
       return;
     }
 
-    let linterStr: vscode.QuickPickItem = await vscode.window.showQuickPick(
+    let linterPick: vscode.QuickPickItem | undefined = await vscode.window.showQuickPick(
       [
         {
           label: 'iverilog',
@@ -128,10 +132,11 @@ export default class LintManager {
         placeHolder: 'Choose a linter to run',
       }
     );
-    if (linterStr === undefined) {
+    if (linterPick === undefined) {
       this.logger.error('linterStr is undefined');
       return;
     }
+    let chosenLinter: vscode.QuickPickItem = linterPick;
     // Create and run the linter with progress bar
     await vscode.window.withProgress(
       {
@@ -139,15 +144,19 @@ export default class LintManager {
         title: 'Verilog-HDL/SystemVerilog: Running lint tool...',
       },
       async (_progress, _token) => {
-        let linter: BaseLinter = this.getLinterFromString(linterStr.label);
+        let linter: BaseLinter | null = this.getLinterFromString(chosenLinter.label);
         if (linter === null) {
-          this.logger.error('Cannot find linter name: ' + linterStr.label);
+          this.logger.error('Cannot find linter name: ' + chosenLinter.label);
           return;
         }
         this.logger.info('Using ' + linter.name + ' linter');
 
-        linter.removeFileDiagnostics(vscode.window.activeTextEditor.document);
-        linter.startLint(vscode.window.activeTextEditor.document);
+        if (vscode.window.activeTextEditor) {
+          linter.removeFileDiagnostics(vscode.window.activeTextEditor.document);
+        }
+        if (vscode.window.activeTextEditor) {
+          linter.startLint(vscode.window.activeTextEditor.document);
+        }
       }
     );
   }
