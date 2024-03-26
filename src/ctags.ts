@@ -91,7 +91,7 @@ export class CtagsManager {
 
   getPrevChar(document: vscode.TextDocument, range: vscode.Range): string | undefined {
     const lineText = document.lineAt(range.start.line).text;
-    if (range.start.character == 0) {
+    if (range.start.character === 0) {
       return undefined;
     }
     return lineText.charAt(range.start.character - 1);
@@ -100,10 +100,10 @@ export class CtagsManager {
   getParentText(document: vscode.TextDocument, textRange: vscode.Range): string {
     let range = textRange;
     let prevChar = this.getPrevChar(document, textRange);
-    if (prevChar == '.') {
+    if (prevChar === '.') {
       // follow interface.modport
       range = document.getWordRangeAtPosition(range.start.translate(0, -1)) ?? range;
-    } else if (prevChar == ':' && range.start.character > 1) {
+    } else if (prevChar === ':' && range.start.character > 1) {
       // follow package scope
       range = document.getWordRangeAtPosition(range.start.translate(0, -2)) ?? range;
     }
@@ -123,8 +123,8 @@ export class CtagsManager {
 
     let parentScope = this.getParentText(document, textRange);
     // If we're at a port, .<text> plus no parent
-    if (this.getPrevChar(document, textRange) == '.' && parentScope === targetText) {
-      let insts = (await this.getSymbols(document)).filter((sym) => sym.type == 'instance');
+    if (this.getPrevChar(document, textRange) === '.' && parentScope === targetText) {
+      let insts = (await this.getSymbols(document)).filter((sym) => sym.type === 'instance');
       if (insts.length > 0) {
         let latestInst = insts.reduce((latest, inst) => {
           if (

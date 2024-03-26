@@ -1,16 +1,18 @@
 // SPDX-License-Identifier: MIT
-import * as vscode from 'vscode';
 import * as child from 'child_process';
-import BaseLinter from './BaseLinter';
+import { ExecException } from 'child_process';
+import * as vscode from 'vscode';
 import { Logger } from '../logger';
+import { getWorkspaceFolder } from '../utils';
+import BaseLinter from './BaseLinter';
 
 var isWindows = process.platform === 'win32';
 
 export default class ModelsimLinter extends BaseLinter {
-  private modelsimPath: string;
-  private modelsimArgs: string;
-  private modelsimWork: string;
-  private runAtFileLocation: boolean;
+  private modelsimPath!: string;
+  private modelsimArgs!: string;
+  private modelsimWork!: string;
+  private runAtFileLocation!: boolean;
 
   constructor(diagnosticCollection: vscode.DiagnosticCollection, logger: Logger) {
     super('modelsim', diagnosticCollection, logger);
@@ -47,10 +49,10 @@ export default class ModelsimLinter extends BaseLinter {
   protected lint(doc: vscode.TextDocument) {
     this.logger.info('modelsim lint requested');
     let docUri: string = doc.uri.fsPath; //path of current doc
-    let lastIndex: number = isWindows == true ? docUri.lastIndexOf('\\') : docUri.lastIndexOf('/');
+    let lastIndex: number = isWindows === true ? docUri.lastIndexOf('\\') : docUri.lastIndexOf('/');
     let docFolder = docUri.substr(0, lastIndex); //folder of current doc
-    let runLocation: string =
-      this.runAtFileLocation == true ? docFolder : vscode.workspace.rootPath; //choose correct location to run
+    let runLocation: string | undefined =
+      this.runAtFileLocation === true ? docFolder : getWorkspaceFolder(); //choose correct location to run
     // no change needed for systemverilog
     let command: string =
       this.modelsimPath +
@@ -60,10 +62,10 @@ export default class ModelsimLinter extends BaseLinter {
       doc.fileName +
       '" ' +
       this.modelsimArgs; //command to execute
-    var process: child.ChildProcess = child.exec(
+    child.exec(
       command,
       { cwd: runLocation },
-      (_error: Error, stdout: string, _stderr: string) => {
+      (_error: ExecException | null, stdout: string, _stderr: string) => {
         let diagnostics: vscode.Diagnostic[] = [];
         let lines = stdout.split(/\r?\n/g);
 
@@ -76,7 +78,10 @@ export default class ModelsimLinter extends BaseLinter {
           if (line.startsWith('**')) {
             try {
               let m = line.match(regexExp);
-              if (m[7] != doc.fileName) {
+              if (m === null) {
+                return;
+              }
+              if (m[7] !== doc.fileName) {
                 return;
               }
               let lineNum = parseInt(m[8]) - 1;

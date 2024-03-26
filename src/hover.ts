@@ -16,7 +16,7 @@ export class HoverProvider implements vscode.HoverProvider {
     document: vscode.TextDocument,
     position: vscode.Position,
     _token: vscode.CancellationToken
-  ): vscode.Hover {
+  ): vscode.Hover | undefined{
     // get word start and end
     let textRange = document.getWordRangeAtPosition(position);
 
@@ -32,7 +32,7 @@ export class HoverProvider implements vscode.HoverProvider {
       if (declarationText !== undefined) {
         return new vscode.Hover([
           { language: this.lang, value: declarationText.element },
-          declarationText.comment,
+          declarationText.comment ?? '',
         ]);
       } else {
         return undefined;
@@ -44,7 +44,7 @@ export class HoverProvider implements vscode.HoverProvider {
     document: vscode.TextDocument,
     position: vscode.Position,
     target: string
-  ): { element: string; comment: string } {
+  ): { element: string; comment: string | undefined } {
     // check target is valid variable name
     if (target.search(/[A-Za-z_][A-Za-z0-9_]*/g) === -1) {
       return { element: '', comment: '' };
@@ -55,6 +55,8 @@ export class HoverProvider implements vscode.HoverProvider {
       variableType = String.raw`\b(input|output|inout|reg|wire|logic|integer|bit|byte|shortint|int|longint|time|shortreal|real|double|realtime|rand|randc)\b\s+`;
     } else if (this.lang === 'verilog') {
       variableType = String.raw`\b(input|output|inout|reg|wire|integer|time|real)\b\s+`;
+    } else {
+      throw Error('language not specified');
     }
     let variableTypeStart = '^' + variableType;
     let paraType = String.raw`^\b(parameter|localparam)\b\s+\b${target}\b`;
@@ -86,7 +88,7 @@ export class HoverProvider implements vscode.HoverProvider {
         // replace array to '', like [7:0]
         subText = subText.replace(/(\[.+?\])?/g, '').trim();
         if (subText.search(regexTarget) !== -1) {
-          let comment = getPrefixedComment(document, i);
+          let comment: string | undefined = getPrefixedComment(document, i);
           if (comment) {
             return { element: element, comment: comment };
           } else {
@@ -98,7 +100,7 @@ export class HoverProvider implements vscode.HoverProvider {
 
       // find parameter declaration type
       if (element.search(regexParaType) !== -1) {
-        let comment = getPrefixedComment(document, i);
+        let comment: string | undefined = getPrefixedComment(document, i);
         if (comment) {
           return { element: element, comment: comment };
         } else {
@@ -125,7 +127,7 @@ function getPrefixedComment(document: vscode.TextDocument, lineNo: number) {
   return buf;
 }
 
-function getSuffixedComment(document: vscode.TextDocument, lineNo: number): string {
+function getSuffixedComment(document: vscode.TextDocument, lineNo: number): string | undefined {
   // Spearate comment after the declaration
   let line = document.lineAt(lineNo).text;
   let idx = line.indexOf('//');
