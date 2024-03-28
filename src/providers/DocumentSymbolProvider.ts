@@ -19,7 +19,7 @@ export class VerilogDocumentSymbolProvider implements vscode.DocumentSymbolProvi
     _token: vscode.CancellationToken
   ): Promise<vscode.DocumentSymbol[]> {
     this.logger.info('[VerilogSymbol] Symbols Requested: ' + document.uri);
-    let symbols: Symbol[] = await this.ctagsManager.getSymbols(document);
+    let symbols: Symbol[] = await this.ctagsManager.getCtags(document).getSymbols();
     this.docSymbols = this.buildDocumentSymbolList(symbols);
     this.logger.info(this.docSymbols.length + ' top-level symbols returned');
     return this.docSymbols;

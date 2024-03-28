@@ -24,7 +24,10 @@ export function activate(context: vscode.ExtensionContext) {
   logger = createLogger('Verilog');
   logger.info(extensionID + ' is now active.');
 
-  ctagsManager = new CtagsManager(logger);
+  ctagsManager = new CtagsManager(
+    logger,
+    vscode.workspace.getConfiguration().get('verilog.subdir', '')
+  );
 
   let extMgr = new ExtensionManager(context, extensionID, logger.getChild('ExtensionManager'));
   if (extMgr.isVersionUpdated()) {

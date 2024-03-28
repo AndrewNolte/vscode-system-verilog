@@ -7,13 +7,19 @@ export class Symbol {
   name: string;
   type: string;
   pattern: string;
+  line: number;
+  // range of identifier
+  idRange: vscode.Range | undefined;
   startPosition: vscode.Position;
-  endPosition: vscode.Position;
+  // range of whole object (type, begin/end, etc.)
+  fullRange: vscode.Range | undefined;
   parentScope: string;
   parentType: string;
   isValid: boolean;
   typeRef: string | null;
+  doc: vscode.TextDocument;
   constructor(
+    doc: vscode.TextDocument,
     name: string,
     type: string,
     pattern: string,
@@ -21,34 +27,64 @@ export class Symbol {
     parentScope: string,
     parentType: string,
     typeRef: string | null,
-    endLine: number,
     isValid?: boolean
   ) {
+    this.doc = doc;
     this.name = name;
     this.type = type;
     this.pattern = pattern;
+    this.line = startLine;
     this.startPosition = new vscode.Position(startLine, 0);
     this.parentScope = parentScope;
     this.parentType = parentType;
     this.isValid = Boolean(isValid);
     this.typeRef = typeRef;
-    this.endPosition = new vscode.Position(endLine, Number.MAX_VALUE);
+  }
+
+  getIdRange(): vscode.Range {
+    if (this.idRange === undefined) {
+      this.idRange = this.doc.getWordRangeAtPosition(
+        new vscode.Position(this.line, this.doc.lineAt(this.line).text.indexOf(this.name))
+      );
+      if (this.idRange === undefined) {
+        this.idRange = new vscode.Range(this.line, 0, this.line, Number.MAX_VALUE);
+      }
+    }
+    return this.idRange;
   }
 
   setEndPosition(endLine: number) {
-    this.endPosition = new vscode.Position(endLine, Number.MAX_VALUE);
+    this.fullRange = new vscode.Range(this.line, 0, endLine, Number.MAX_VALUE);
     this.isValid = true;
   }
 
   getDocumentSymbol(): vscode.DocumentSymbol {
-    let range = new vscode.Range(this.startPosition, this.endPosition);
     return new vscode.DocumentSymbol(
       this.name,
       this.type,
       Symbol.getSymbolKind(this.type),
-      range,
-      range
+      this.fullRange ?? this.getIdRange(),
+      this.getIdRange()
     );
+  }
+
+  getHoverText(): string {
+    let code = this.doc
+      .lineAt(this.line)
+      .text.trim()
+      .replace(/\s{2,}/g, ' ') // trim long whitespace from formatting
+      .replace(/,$/, '') // remove trailing commas
+      .replace(/#\($/, '') // remove trailing #(
+      .trim();
+    return code;
+  }
+
+  getDefinitionLink(): vscode.DefinitionLink {
+    return {
+      targetUri: this.doc.uri,
+      targetRange: this.getIdRange(),
+      targetSelectionRange: this.fullRange,
+    };
   }
 
   static isContainer(type: string): boolean {
@@ -165,9 +201,15 @@ export class CtagsParser {
     this.symbols = [];
   }
 
-  async getSymbols(): Promise<Symbol[]> {
+  async getSymbols({ name, type }: { name?: string; type?: string } = {}): Promise<Symbol[]> {
     if (this.isDirty) {
       await this.index();
+    }
+    if (type !== undefined) {
+      return this.symbols.filter((sym) => sym.type === type);
+    }
+    if (name !== undefined) {
+      return this.symbols.filter((sym) => sym.name === name);
     }
     return this.symbols;
   }
@@ -221,6 +263,7 @@ export class CtagsParser {
       lineNo = Number(lineNoStr.slice(0, -2)) - 1;
       // pretty print symbol
       return new Symbol(
+        this.doc,
         name,
         type,
         pattern,
@@ -228,7 +271,6 @@ export class CtagsParser {
         parentScope,
         parentType,
         typeref,
-        lineNo,
         false
       );
     } catch (e) {
@@ -266,35 +308,27 @@ export class CtagsParser {
           if (match === null) {
             break;
           }
-          if (typeof match[1] !== 'undefined') {
-            endPosition = this.doc.positionAt(match.index + match[0].length - 1);
-            // get the starting symbols of the same type
-            // doesn't check for begin...end blocks
-            let s = this.symbols.filter((i) => {
-              return (
-                i.type === (match as RegExpExecArray)[1] &&
-                i.startPosition.isBefore(endPosition) &&
-                !i.isValid
-              );
-            });
-            if (s.length > 0) {
-              // get the symbol nearest to the end tag
-              let max: Symbol = s[0];
-              for (let i = 0; i < s.length; i++) {
-                max = s[i].startPosition.isAfter(max.startPosition) ? s[i] : max;
-              }
-              for (let i of this.symbols) {
-                if (
-                  i.name === max.name &&
-                  i.startPosition.isEqual(max.startPosition) &&
-                  i.type === max.type
-                ) {
-                  i.setEndPosition(endPosition.line);
-                  break;
-                }
-              }
-            }
+          if (typeof match[1] === 'undefined') {
+            continue;
           }
+
+          endPosition = this.doc.positionAt(match.index + match[0].length - 1);
+          let m_type: string = match[1];
+          // get the starting symbols of the same type
+          // doesn't check for begin...end blocks
+          let s = this.symbols.filter((sym) => {
+            return sym.type === m_type && sym.startPosition.isBefore(endPosition) && !sym.isValid;
+          });
+          if (s.length === 0) {
+            continue;
+          }
+          // get the symbol nearest to the end tag
+          let max: Symbol = s.reduce(
+            (max, current) =>
+              current.getIdRange().start.isAfter(max.startPosition) ? current : max,
+            s[0]
+          );
+          max.setEndPosition(endPosition.line);
         }
         this.isDirty = false;
       }

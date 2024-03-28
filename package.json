@@ -190,6 +190,12 @@
     "configuration": {
       "title": "Verilog configuration",
       "properties": {
+        "verilog.subdir": {
+          "scope": "window",
+          "type": "string",
+          "default": "",
+          "description": "The directory containing all hardware files"
+        },
         "verilog.linting.path": {
           "scope": "window",
           "type": "string",
