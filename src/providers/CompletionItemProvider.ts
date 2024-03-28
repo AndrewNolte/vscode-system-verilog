@@ -65,7 +65,7 @@ export class VerilogCompletionItemProvider implements vscode.CompletionItemProvi
     this.logger.info('Completion items requested');
     let items: vscode.CompletionItem[] = [];
 
-    let symbols: Symbol[] = await this.ctagsManager.getSymbols(document);
+    let symbols: Symbol[] = await this.ctagsManager.getCtags(document).getSymbols();
     symbols.forEach((symbol) => {
       let newItem: vscode.CompletionItem = new vscode.CompletionItem(
         symbol.name,
