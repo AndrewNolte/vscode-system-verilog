@@ -23,6 +23,43 @@
   ],
   "icon": "images/icon.png",
   "main": "./dist/main.js",
+  "prettier": {
+    "trailingComma": "es5",
+    "singleQuote": true,
+    "printWidth": 100
+  },
+  "eslintConfig": {
+    "root": true,
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+      "ecmaVersion": 6,
+      "sourceType": "module"
+    },
+    "plugins": [
+      "@typescript-eslint"
+    ],
+    "rules": {
+      "@typescript-eslint/naming-convention": "warn",
+      "@typescript-eslint/semi": "warn",
+      "curly": "warn",
+      "eqeqeq": "warn",
+      "no-throw-literal": "warn",
+      "semi": "off",
+      "no-unused-vars": "off",
+      "no-undef": "warn",
+      "no-constant-condition": "warn"
+    },
+    "ignorePatterns": [
+      "out",
+      "dist",
+      "**/*.d.ts",
+      "src/test"
+    ],
+    "extends": [
+      "eslint:recommended",
+      "prettier"
+    ]
+  },
   "contributes": {
     "languages": [
       {
