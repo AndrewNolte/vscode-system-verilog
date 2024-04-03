@@ -555,8 +555,6 @@
     "pretest": "npm run compile-tests && npm run compile && npm run lint"
   },
   "dependencies": {
-    "antlr4": "^4.13.1-patch-1",
-    "antlr4ts": "^0.5.0-alpha.4",
     "semver": "^7.6.0",
     "vscode-languageclient": "^9.0.1",
     "which": "^4.0.0"
@@ -586,7 +584,7 @@
   },
   "__metadata": {
     "id": "feb7e3b5-7d35-4f95-a3d2-61eeaa12efa5",
-    "publisherDisplayName": "mshr-h",
+    "publisherDisplayName": "AndrewNolte",
     "publisherId": "fcf32c99-a624-437b-9f47-9333ea128623"
   }
 }
