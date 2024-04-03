@@ -89,11 +89,9 @@ export class CtagsManager {
           }
         }, insts[0]);
 
-        if (latestInst.typeRef === null) {
-          return [];
+        if (latestInst.typeRef !== null) {
+          return await this.findDefinitionByName(latestInst.typeRef, targetText);
         }
-
-        return await this.findDefinitionByName(latestInst.typeRef, targetText);
       }
     }
 
