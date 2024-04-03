@@ -15,7 +15,7 @@ import * as HoverProvider from './providers/HoverProvider';
 
 export var logger: Logger; // Global logger
 var ctagsManager: CtagsManager;
-let extensionID: string = 'mshr-h.veriloghdl';
+let extensionID: string = 'AndrewNolte.vscode-system-verilog';
 
 let lintManager: LintManager;
 let languageClients = new Map<string, LanguageClient>();
