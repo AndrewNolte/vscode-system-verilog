@@ -38,7 +38,7 @@ export async function instantiateModule(
   let output = await ctags.execCtags(srcpath);
   await ctags.buildSymbolsList(output);
 
-  let modules: Symbol[] = ctags.symbols.filter((tag) => tag.type === 'module');
+  let modules: Symbol[] = ctags.symbols.filter((tag) => tag.type === 'module' || tag.type === 'interface');
   // No modules found
   if (modules.length <= 0) {
     vscode.window.showErrorMessage('Verilog-HDL/SystemVerilog: No modules found in the file');
@@ -73,7 +73,7 @@ export async function moduleFromFile(srcpath: string): Promise<vscode.SnippetStr
   let output = await ctags.execCtags(srcpath);
   await ctags.buildSymbolsList(output);
 
-  let modules: Symbol[] = ctags.symbols.filter((tag) => tag.type === 'module');
+  let modules: Symbol[] = ctags.symbols.filter((tag) => tag.type === 'module' ||  tag.type === 'interface');
   // No modules found
   if (modules.length <= 0) {
     vscode.window.showErrorMessage('Verilog-HDL/SystemVerilog: No modules found in the file');
@@ -89,11 +89,11 @@ export async function moduleSnippet(ctags: CtagsParser, module: Symbol, fullModu
 
   let scope = module.parentScope !== '' ? module.parentScope + '.' + module.name : module.name;
   let ports: Symbol[] = ctags.symbols.filter(
-    (tag) => tag.type === 'port' && tag.parentType === 'module' && tag.parentScope === scope
+    (tag) => tag.type === 'port' && tag.parentScope === scope
   );
   portsName = ports.map((tag) => tag.name);
   let params: Symbol[] = ctags.symbols.filter(
-    (tag) => tag.type === 'parameter' && tag.parentType === 'module' && tag.parentScope === scope
+    (tag) => tag.type === 'parameter' && tag.parentScope === scope
   );
   parametersName = params.map((tag) => tag.name);
   logger.info('Module name: ' + module.name);
@@ -217,7 +217,7 @@ class ModuleTags extends CtagsParser {
           return;
         }
         // add only modules and ports
-        if (tag.type === 'module' || tag.type === 'port' || tag.type === 'parameter') {
+        if (tag.type === 'interface' || tag.type === 'module' || tag.type === 'port' || tag.type === 'parameter') {
           this.symbols.push(tag);
         }
       }

@@ -6,7 +6,6 @@ import { Logger } from '../logger';
 export class Symbol {
   name: string;
   type: string;
-  pattern: string;
   line: number;
   // range of identifier
   idRange: vscode.Range | undefined;
@@ -22,7 +21,6 @@ export class Symbol {
     doc: vscode.TextDocument,
     name: string,
     type: string,
-    pattern: string,
     startLine: number,
     parentScope: string,
     parentType: string,
@@ -32,13 +30,23 @@ export class Symbol {
     this.doc = doc;
     this.name = name;
     this.type = type;
-    this.pattern = pattern;
     this.line = startLine;
     this.startPosition = new vscode.Position(startLine, 0);
     this.parentScope = parentScope;
     this.parentType = parentType;
     this.isValid = Boolean(isValid);
     this.typeRef = typeRef;
+  }
+
+  prettyPrint(): string {
+    let ret = `${this.name}(${this.type}):${this.line}`;
+    if (this.parentScope !== '') {
+      ret += ` parent=${this.parentScope}(${this.parentType})`;
+    }
+    if (this.typeRef !== null) {
+      ret += ` typeref=${this.typeRef}`;
+    }
+    return ret;
   }
 
   getIdRange(): vscode.Range {
@@ -239,7 +247,6 @@ export class CtagsParser {
       let lineNo: number;
       let parts: string[] = line.split('\t');
       name = parts[0];
-      pattern = parts[2];
       type = parts[3];
       // override "type" for parameters (See #102)
       if (parts.length === 6) {
@@ -266,7 +273,6 @@ export class CtagsParser {
         this.doc,
         name,
         type,
-        pattern,
         lineNo,
         parentScope,
         parentType,
@@ -335,6 +341,10 @@ export class CtagsParser {
     } catch (e) {
       this.logger.error((e as Error).toString());
     }
+    // print all syms
+    // this.symbols.forEach((sym) => {
+    //   this.logger.info(sym.prettyPrint());
+    // });
   }
 
   async index(): Promise<void> {
