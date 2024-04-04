@@ -108,12 +108,14 @@ export function activate(context: vscode.ExtensionContext) {
   // Register Lint Manager, runs selected linters
   /////////////////////////////////////////////
   lintManager = new LintManager(logger.getChild('LintManager'));
-  context.subscriptions.push(vscode.workspace.onDidOpenTextDocument(lintManager.lint));
-  context.subscriptions.push(vscode.workspace.onDidSaveTextDocument(lintManager.lint));
+  context.subscriptions.push(vscode.workspace.onDidOpenTextDocument(lintManager.lint, lintManager));
+  context.subscriptions.push(vscode.workspace.onDidSaveTextDocument(lintManager.lint, lintManager));
   context.subscriptions.push(
-    vscode.workspace.onDidCloseTextDocument(lintManager.removeFileDiagnostics)
+    vscode.workspace.onDidCloseTextDocument(lintManager.removeFileDiagnostics, lintManager)
   );
-  context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(lintManager.configLinter));
+  context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(lintManager.configLinter, lintManager));
+
+
 
   /////////////////////////////////////////////
   // Register Commands
