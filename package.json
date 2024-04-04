@@ -2,7 +2,7 @@
   "name": "vscode-system-verilog",
   "displayName": "vscode-system-verilog",
   "description": "SystemVerilog, Verilog, and VHDL support for VS Code",
-  "version": "0.9.1",
+  "version": "0.9.2",
   "publisher": "AndrewNolte",
   "homepage": "https://github.com/AndrewNolte/vscode-verilog",
   "repository": {
