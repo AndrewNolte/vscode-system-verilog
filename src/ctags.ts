@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 import { Logger } from './logger';
 import { CtagsParser, Symbol } from './parsers/ctagsParser';
 import { getParentText, getPrevChar, getWorkspaceFolder } from './utils';
+import { Config } from './config';
 
 // Internal representation of a symbol
 
@@ -10,6 +11,9 @@ export class CtagsManager {
   private filemap: Map<vscode.TextDocument, CtagsParser> = new Map();
   private logger: Logger;
   private searchPrefix: string;
+
+  // top level 
+  private symbolMap: Map<string, Symbol[]> = new Map();
 
   constructor(logger: Logger, hdlDir: string) {
     this.logger = logger;
@@ -22,6 +26,34 @@ export class CtagsManager {
 
     vscode.workspace.onDidSaveTextDocument(this.onSave.bind(this));
     vscode.workspace.onDidCloseTextDocument(this.onClose.bind(this));
+    this.indexIncludes();
+    vscode.workspace.onDidChangeConfiguration(async (e) => {
+      if (e.affectsConfiguration('verilog.includes')) {
+        this.indexIncludes();
+      }
+    });
+
+  }
+
+  async indexIncludes(): Promise<void> {
+    this.logger.info('indexIncludes');
+    Config.getIncludePaths().forEach(async (path: string) => {
+      let files: vscode.Uri[] = await this.findFiles(`${path}/*.{sv,svh}`);
+  
+      files.forEach(async (file: vscode.Uri) => {
+        this.logger.info(`indexing ${file}`);
+        let doc = await vscode.workspace.openTextDocument(file);
+        let syms = await this.getCtags(doc).getSymbols();
+        syms.forEach((element: Symbol) => {
+          // this.logger.info(`adding ${element.name}`);
+          if(this.symbolMap.has(element.name)) {
+            this.symbolMap.get(element.name)?.push(element);
+          } else {
+            this.symbolMap.set(element.name, [element]);
+          }
+        });
+      });
+    });
   }
 
   getCtags(doc: vscode.TextDocument): CtagsParser {
@@ -42,13 +74,17 @@ export class CtagsManager {
     ctags.clearSymbols();
   }
 
-  async findModule(moduleName: string): Promise<vscode.TextDocument | undefined> {
+  async findFiles(pattern: string): Promise<vscode.Uri[]> {
     let ws = getWorkspaceFolder();
     if (ws === undefined) {
-      return undefined;
+      return [];
     }
-    let searchPattern = new vscode.RelativePattern(ws, `${this.searchPrefix}/${moduleName}.{sv,v}`);
-    let files = await vscode.workspace.findFiles(searchPattern);
+    let searchPattern = new vscode.RelativePattern(ws, pattern);
+    return await vscode.workspace.findFiles(searchPattern);
+  }
+
+  async findModule(moduleName: string): Promise<vscode.TextDocument | undefined> {
+    let files = await this.findFiles(`${this.searchPrefix}/${moduleName}.{sv,v}`);
     if (files.length === 0) {
       return undefined;
     }
@@ -93,6 +129,10 @@ export class CtagsManager {
           return await this.findDefinitionByName(latestInst.typeRef, targetText);
         }
       }
+    }
+
+    if (this.symbolMap.has(targetText)){
+      return this.symbolMap.get(targetText) ?? [];
     }
 
     const results: Symbol[][] = await Promise.all([

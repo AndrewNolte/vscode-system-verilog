@@ -227,6 +227,15 @@
     "configuration": {
       "title": "Verilog configuration",
       "properties": {
+        "verilog.includes": {
+          "scope": "machine-overridable",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": "",
+          "description": "verilog include directories, applied to each tool"
+        },
         "verilog.subdir": {
           "scope": "window",
           "type": "string",

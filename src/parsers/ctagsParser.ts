@@ -1,5 +1,4 @@
-import * as child_process from 'child_process';
-import { ExecException } from 'child_process';
+import * as child from 'child_process';
 import * as vscode from 'vscode';
 import { Logger } from '../logger';
 
@@ -76,7 +75,33 @@ export class Symbol {
     );
   }
 
+  isMacro(): boolean {
+    let charnum = this.getIdRange().start.character;
+    if (charnum === undefined) {
+      return false;
+    }
+    let firstchar = this.doc.lineAt(this.line).firstNonWhitespaceCharacterIndex;
+    if(this.doc.getText(new vscode.Range(this.line, firstchar, this.line, firstchar+7)) === '`define'){
+      return true;
+    }
+    return false;
+  }
+  
   getHoverText(): string {
+    if (this.isMacro()){
+      // macro definitions should show the whole macro
+      let code = '';
+      for (let i = this.line; i < this.doc.lineCount; i++) {
+        const lineText = this.doc.lineAt(i).text;
+        code += lineText;
+        if (!lineText.endsWith('\\')) {
+          break;
+        }
+        code += '\n';
+      }
+      return code;
+    }
+
     let code = this.doc
       .lineAt(this.line)
       .text.trim()
@@ -86,6 +111,7 @@ export class Symbol {
       .trim();
     return code;
   }
+
 
   getDefinitionLink(): vscode.DefinitionLink {
     return {
@@ -222,6 +248,11 @@ export class CtagsParser {
     return this.symbols;
   }
 
+  async getModules(): Promise<Symbol[]> {
+    let syms = await this.getSymbols();
+    return syms.filter((tag) => tag.type === 'module' || tag.type === 'interface');
+  }
+
   async execCtags(filepath: string): Promise<string> {
     let command: string =
       this.binPath +
@@ -230,9 +261,9 @@ export class CtagsParser {
       '"';
     this.logger.info('Executing Command: ' + command);
     return new Promise((resolve, _reject) => {
-      child_process.exec(
+      child.exec(
         command,
-        (_error: ExecException | null, stdout: string, _stderr: string) => {
+        (_error: child.ExecException | null, stdout: string, _stderr: string) => {
           resolve(stdout);
         }
       );
@@ -319,11 +350,11 @@ export class CtagsParser {
           }
 
           endPosition = this.doc.positionAt(match.index + match[0].length - 1);
-          let m_type: string = match[1];
+          let type: string = match[1];
           // get the starting symbols of the same type
           // doesn't check for begin...end blocks
           let s = this.symbols.filter((sym) => {
-            return sym.type === m_type && sym.startPosition.isBefore(endPosition) && !sym.isValid;
+            return sym.type === type && sym.startPosition.isBefore(endPosition) && !sym.isValid;
           });
           if (s.length === 0) {
             continue;
@@ -352,4 +383,69 @@ export class CtagsParser {
     let output = await this.execCtags(this.doc.uri.fsPath);
     await this.buildSymbolsList(output);
   }
+
+
+  getModuleSnippet(module: Symbol, fullModule: boolean) {
+    let portsName: string[] = [];
+    let parametersName: string[] = [];
+  
+    let scope = module.parentScope !== '' ? module.parentScope + '.' + module.name : module.name;
+    let ports: Symbol[] = this.symbols.filter(
+      (tag) => tag.type === 'port' && tag.parentScope === scope
+    );
+    portsName = ports.map((tag) => tag.name);
+    let params: Symbol[] = this.symbols.filter(
+      (tag) => tag.type === 'parameter' && tag.parentScope === scope
+    );
+    parametersName = params.map((tag) => tag.name);
+    let paramString = ``;
+    if (parametersName.length > 0) {
+      paramString = `\n${instantiatePort(parametersName)}`;
+    }
+  
+    if (fullModule) {
+      return new vscode.SnippetString()
+        .appendText(module.name + ' ')
+        .appendText('#(')
+        .appendText(paramString)
+        .appendText(') ')
+        .appendPlaceholder('u_')
+        .appendPlaceholder(`${module.name} (\n`)
+        .appendText(instantiatePort(portsName))
+        .appendText(');\n');
+    }
+    return (
+      new vscode.SnippetString()
+        // .appendText('#(')
+        .appendText(paramString)
+        .appendText(') ')
+        .appendPlaceholder('u_')
+        .appendPlaceholder(`${module.name} (\n`)
+        .appendText(instantiatePort(portsName))
+    );
+  }
+}
+
+
+
+function instantiatePort(ports: string[]): string {
+  let port = '';
+  let maxLen = 0;
+  for (let i = 0; i < ports.length; i++) {
+    if (ports[i].length > maxLen) {
+      maxLen = ports[i].length;
+    }
+  }
+  // .NAME(NAME)
+  for (let i = 0; i < ports.length; i++) {
+    let element = ports[i];
+    let padding = maxLen - element.length;
+    element = element + ' '.repeat(padding);
+    port += `\t.${element}(${ports[i]})`;
+    if (i !== ports.length - 1) {
+      port += ',';
+    }
+    port += '\n';
+  }
+  return port;
 }

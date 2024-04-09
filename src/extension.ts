@@ -12,6 +12,7 @@ import * as DefinitionProvider from './providers/DefinitionProvider';
 import * as DocumentSymbolProvider from './providers/DocumentSymbolProvider';
 import * as FormatProvider from './providers/FormatPrivider';
 import * as HoverProvider from './providers/HoverProvider';
+import { CommandExcecutor } from './commands/ModuleInstantiation';
 
 export var logger: Logger; // Global logger
 var ctagsManager: CtagsManager;
@@ -113,18 +114,21 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.workspace.onDidCloseTextDocument(lintManager.removeFileDiagnostics, lintManager)
   );
-  context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(lintManager.configLinter, lintManager));
-
-
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeConfiguration(lintManager.configLinter, lintManager)
+  );
 
   /////////////////////////////////////////////
   // Register Commands
   /////////////////////////////////////////////
+
+  let commandExcecutor = new CommandExcecutor(logger.getChild('CommandExcecutor'), ctagsManager);
   vscode.commands.registerCommand(
     'verilog.instantiateModule',
-    ModuleInstantiation.instantiateModuleInteract
+    commandExcecutor.instantiateModuleInteract,
+    commandExcecutor
   );
-  vscode.commands.registerCommand('verilog.lint', lintManager.runLintTool);
+  vscode.commands.registerCommand('verilog.lint', lintManager.runLintTool, lintManager);
 
   /////////////////////////////////////////////
   // Language Servers

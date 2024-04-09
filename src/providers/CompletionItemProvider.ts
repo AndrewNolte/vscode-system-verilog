@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 import * as vscode from 'vscode';
-import { moduleFromFile } from '../commands/ModuleInstantiation';
 import { CtagsManager } from '../ctags';
 import { Logger } from '../logger';
 import { Symbol } from '../parsers/ctagsParser';
+
 
 export class VerilogCompletionItemProvider implements vscode.CompletionItemProvider {
   private logger: Logger;
@@ -22,20 +22,26 @@ export class VerilogCompletionItemProvider implements vscode.CompletionItemProvi
     this.logger.info('Module Completion requested');
     let items: vscode.CompletionItem[] = [];
 
-    let newItem: vscode.CompletionItem = new vscode.CompletionItem(
-      'module label',
-      vscode.CompletionItemKind.Module
-    );
-
+    
     let moduleRange = document.getWordRangeAtPosition(_position.translate(0, -3));
     let moduleName = document.getText(moduleRange);
-
+    
     let moduleDoc = await this.ctagsManager.findModule(moduleName);
     if (moduleDoc === undefined) {
       return [];
     }
-    let snippet = await moduleFromFile(moduleDoc.fileName);
-    newItem.insertText = snippet;
+
+    let ctags = this.ctagsManager.getCtags(moduleDoc);
+    let modules = await ctags.getModules();
+    if (modules.length === 0) {
+      return [];
+    }
+    let module = modules[0];
+    let newItem: vscode.CompletionItem = new vscode.CompletionItem(
+      module.getHoverText(),
+      vscode.CompletionItemKind.Module
+    );
+    newItem.insertText = ctags.getModuleSnippet(module, false);
     items.push(newItem);
 
     return items;
