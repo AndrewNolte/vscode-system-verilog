@@ -423,107 +423,115 @@
           "scope": "window",
           "type": "boolean",
           "default": false,
-          "description": "[Experimental] Enable svls Language Server for SystemVerilog."
+          "description": "Enable svls Language Server for SystemVerilog."
         },
         "verilog.languageServer.svls.path": {
           "scope": "window",
           "type": "string",
           "default": "svls",
-          "description": "[Experimental] A path to the Svls Language Server binary."
+          "description": "A path to the Svls Language Server binary."
         },
         "verilog.languageServer.veridian.enabled": {
           "scope": "window",
           "type": "boolean",
           "default": false,
-          "description": "[Experimental] Enable veridian Language Server for SystemVerilog."
+          "description": "Enable veridian Language Server for SystemVerilog."
         },
         "verilog.languageServer.veridian.path": {
           "scope": "window",
           "type": "string",
           "default": "veridian",
-          "description": "[Experimental] A path to the Veridian Language Server binary."
+          "description": "A path to the Veridian Language Server binary."
         },
         "verilog.languageServer.hdlChecker.enabled": {
           "scope": "window",
           "type": "boolean",
           "default": false,
-          "description": "[Experimental] Enable HDL Checker Language Server for Verilog-HDL, SystemVerilog, and VHDL."
+          "description": "Enable HDL Checker Language Server for Verilog-HDL, SystemVerilog, and VHDL."
         },
         "verilog.languageServer.veribleVerilogLs.enabled": {
           "scope": "window",
           "type": "boolean",
           "default": false,
-          "description": "[Experimental] Enable verible-verilog-ls Language Server for SystemVerilog."
+          "description": "Enable verible-verilog-ls Language Server for SystemVerilog."
         },
         "verilog.languageServer.veribleVerilogLs.path": {
           "scope": "window",
           "type": "string",
           "default": "verible-verilog-ls",
-          "description": "[Experimental] A path to the verible-verilog-ls Language Server binary."
+          "description": "A path to the verible-verilog-ls Language Server binary."
         },
         "verilog.languageServer.hdlChecker.path": {
           "scope": "window",
           "type": "string",
           "default": "hdl_checker",
-          "description": "[Experimental] A path to the HDL Checker Language Server binary."
+          "description": "A path to the HDL Checker Language Server binary."
         },
         "verilog.languageServer.rustHdl.enabled": {
           "scope": "window",
           "type": "boolean",
           "default": false,
-          "description": "[Experimental] Enable Rust hdl Language Server for VHDL."
+          "description": "Enable Rust hdl Language Server for VHDL."
         },
         "verilog.languageServer.rustHdl.path": {
           "scope": "window",
           "type": "string",
           "default": "vhdl_ls",
-          "description": "[Experimental] A path to the Rust hdl Language Server binary."
+          "description": "A path to the Rust hdl Language Server binary."
         },
-        "verilog.formatting.verilogHDL.formatter": {
+        "verilog.format.verilogFormatter": {
           "scope": "window",
           "type": "string",
           "enum": [
             "verilog-format",
-            "iStyle",
+            "istyle-format",
             "verible-verilog-format"
           ],
           "default": "verilog-format",
-          "description": "[Experimental] Choose a Verilog-HDL formatter."
+          "description": "Choose a Verilog (.v) formatter."
         },
-        "verilog.formatting.systemVerilog.formatter": {
+        "verilog.format.svFormatter": {
           "scope": "window",
           "type": "string",
           "enum": [
             "verible-verilog-format"
           ],
           "default": "verible-verilog-format",
-          "description": "[Experimental] Choose a SystemVerilog formatter."
+          "description": "Choose a SystemVerilog (.sv) formatter."
         },
-        "verilog.formatting.verilogFormat.path": {
+        "verilog.format.dirs": {
+          "scope": "window",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of paths to format on save."
+        },
+        "verilog.verilogFormat.path": {
           "scope": "window",
           "type": "string",
           "default": "verilog-format",
-          "description": "[Experimental] A path to the verilog-format binary."
+          "description": "A path to the verilog-format binary."
         },
-        "verilog.formatting.verilogFormat.settings": {
+        "verilog.format.verilogFormat.settings": {
           "scope": "window",
           "type": "string",
           "default": "${env:HOME}/.verilog-format.properties",
-          "description": "[Experimental] A path to the verilog-format settings file."
+          "description": "A path to the verilog-format settings file."
         },
-        "verilog.formatting.iStyleVerilogFormatter.path": {
+        "verilog.format.istyleFormat.path": {
           "scope": "window",
           "type": "string",
           "default": "iStyle",
-          "description": "[Experimental] A path to the iStyle Verilog Formatter binary."
+          "description": "A path to the iStyle Verilog Formatter binary."
         },
-        "verilog.formatting.iStyleVerilogFormatter.arguments": {
+        "verilog.format.istyleFormat.args": {
           "scope": "window",
           "type": "string",
           "default": "",
-          "description": "[Experimental] Add custom arguments to iStyle Verilog Formatter for formatting."
+          "description": "Add custom arguments to iStyle Verilog Formatter for formatting."
         },
-        "verilog.formatting.iStyleVerilogFormatter.style": {
+        "verilog.format.istyleFormat.style": {
           "scope": "window",
           "type": "string",
           "enum": [
@@ -533,19 +541,19 @@
             "Indent only"
           ],
           "default": "Indent only",
-          "description": "[Experimental] Choose styling options from ANSI/K&R/GNU."
+          "description": "Choose styling options from ANSI/K&R/GNU."
         },
-        "verilog.formatting.veribleVerilogFormatter.path": {
+        "verilog.format.verible.path": {
           "scope": "window",
           "type": "string",
           "default": "verible-verilog-format",
-          "description": "[Experimental] A path to the verible-verilog-format binary."
+          "description": "A path to the verible-verilog-format binary."
         },
-        "verilog.formatting.veribleVerilogFormatter.arguments": {
+        "verilog.format.verible.args": {
           "scope": "window",
           "type": "string",
           "default": "",
-          "description": "[Experimental] Add custom arguments to verible-verilog-format for formatting."
+          "description": "Add custom arguments to verible-verilog-format for formatting."
         }
       }
     },

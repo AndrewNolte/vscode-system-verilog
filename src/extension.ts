@@ -114,6 +114,19 @@ export function activate(context: vscode.ExtensionContext) {
       new FormatProvider.SystemVerilogFormatProvider(logger.getChild('SystemVerilogFormatProvider'))
     )
   );
+  context.subscriptions.push(
+    vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
+      if (document.languageId === 'systemverilog' || document.languageId === 'verilog') {
+        let dirs: string[] = vscode.workspace.getConfiguration().get('verilog.format.dirs', []);
+        for (let dir of dirs) {
+          if (vscode.workspace.asRelativePath(document.uri.fsPath).startsWith(dir)) {
+            vscode.commands.executeCommand('editor.action.formatDocument');
+            return;
+          }
+        }
+      }
+    })
+  );
 
   /////////////////////////////////////////////
   // Register Commands
