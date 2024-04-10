@@ -22,34 +22,41 @@ export default class SlangLinter extends BaseLinter {
     let diags: FileDiagnostic[] = []
 
     const re = /(.+?):(\d+):(\d+):\s(note|warning|error):\s(.*?)(\[-W(.*)\]|$)/
-    args.stderr.split(/\r?\n/g).forEach((line, _) => {
+    let lines = args.stderr.split(/\r?\n/g)
+    for (let n = 0; n < lines.length; n++) {
+      let line = lines[n]
       if (line.search(re) === -1) {
-        return
+        continue
       }
 
       let rex = line.match(re)
       if (rex === null) {
-        return
+        continue
       }
 
       if (!rex || rex[0].length === 0) {
         this.logger.warn('[slang] failed to parse error: ' + line)
-        return
+        continue
       }
 
       let filePath = this.wslAdjust(rex[1])
       let lineNum = Number(rex[2]) - 1
       let colNum = Number(rex[3]) - 1
 
+      let pline = lines[n + 2]
+      let pindex = pline.indexOf('^')
+      let elen = pline.length - pindex
+      n += 2
+
       diags.push({
         file: filePath,
         severity: this.convertToSeverity(rex[4]),
-        range: new vscode.Range(lineNum, colNum, lineNum, Number.MAX_VALUE),
+        range: new vscode.Range(lineNum, colNum, lineNum, colNum + elen),
         message: rex[5],
         code: rex[7] ? rex[7] : 'error',
         source: 'slang',
       })
-    })
+    }
 
     return diags
   }

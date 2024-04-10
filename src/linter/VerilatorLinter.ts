@@ -26,40 +26,47 @@ export default class VerilatorLinter extends BaseLinter {
 
   protected parseDiagnostics(args: { stdout: string; stderr: string }): FileDiagnostic[] {
     let diagnostics: FileDiagnostic[] = []
-    args.stderr.split(/\r?\n/g).forEach((line, _) => {
+    // this.logger.info('stdout: ' + args.stdout)
+    // this.logger.info('stderr: ' + args.stderr)
+    // let lines = args.stderr.split(/\n/, 20)
+    let lines = args.stderr.split(/\r?\n/g)
+    for (let n = 0; n < lines.length; n++) {
+      let line: string = lines[n]
       if (!line.startsWith('%')) {
-        return
+        continue
       }
 
       // alternate:
       // "%Error(-[A-Z0-9]+)?: ((\\S+):(\\d+):((\\d+):)? )?(.*)$",
-      let rex = line.match(
-        /%(\w+)(-[A-Z0-9_]+)?:(\S+)(\w+:)?(?:[^:]+):\s*(\d+):(?:\s*(\d+):)?\s*(\s*.+)/
-      )
+      let rex = line.match(/%(\w+)(-\w+)?: (\S+):(\d+):(\d+): (.+)/)
 
       if (!rex || rex[0].length === 0) {
-        return
+        continue
       }
+      let severity = rex[1]
+      let warningType = rex[2] !== undefined ? rex[2].substring(1) : ''
+      let file = rex[3]
+      let lineNum = Number(rex[4]) - 1
+      let colNum = Number(rex[5]) - 1
+      let msg = rex[6]
 
-      let warningType = rex[1]
-      let file = rex[2]
-      let lineNum = Number(rex[5]) - 1
-      let colNum = Number(rex[6]) - 1
-      let msg = rex[7]
-      // Type of warning is in rex[2]
-      colNum = isNaN(colNum) ? 0 : colNum // for older Verilator versions (< 4.030 ~ish)
+      let pline = lines[n + 2]
+      let pindex = pline.indexOf('^')
+      let elen = pline.length - pindex
+      n += 2
+      /// right index
 
       if (!isNaN(lineNum)) {
         diagnostics.push({
           file: file,
-          severity: this.convertToSeverity(rex[2]),
-          range: new vscode.Range(lineNum, colNum, lineNum, Number.MAX_VALUE),
+          severity: this.convertToSeverity(severity),
+          range: new vscode.Range(lineNum, colNum, lineNum, colNum + elen),
           message: msg,
           code: warningType,
           source: 'verilator',
         })
       }
-    })
+    }
     return diagnostics
   }
 }

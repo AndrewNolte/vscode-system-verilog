@@ -96,7 +96,7 @@ export default abstract class BaseLinter {
     let docFolder: string = this.wslAdjust(path.dirname(docUri))
 
     let args: string[] = []
-
+    args.push(...this.toolArgs(doc))
     args.push(this.formatIncludes([docFolder].concat(this.linterOptions.includes)))
     args.push(this.linterOptions.args)
     args.push(`"${docUri}"`)
@@ -131,7 +131,7 @@ export default abstract class BaseLinter {
   }
 
   protected formatIncludes(includes: string[]): string {
-    return includes.map((path: string) => ` -I "${getAbsPath(path)}" `).join(' ')
+    return includes.map((path: string) => ` -I"${getAbsPath(path)}" `).join(' ')
   }
 
   protected toolArgs(_doc: vscode.TextDocument): string[] {
