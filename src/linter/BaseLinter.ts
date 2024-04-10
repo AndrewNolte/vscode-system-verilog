@@ -30,11 +30,17 @@ export default abstract class BaseLinter {
   }
 
   private getSubConfig<T>(attr: string, defaultValue: T): T {
-    return vscode.workspace.getConfiguration().get(`verilog.${this.name}.${attr}`) ?? defaultValue
+    return (
+      vscode.workspace.getConfiguration().get(`verilog.lint.${this.name}.${attr}`) ?? defaultValue
+    )
   }
   private updateConfig() {
     this.linterOptions.enabled = this.getSubConfig('enabled', false)
     this.linterOptions.includes = this.getSubConfig('includes', this.generalOptions.includes)
+    if (this.linterOptions.includes.length === 0) {
+      this.linterOptions.includes = this.generalOptions.includes
+    }
+    this.logger.info('general includes: ' + this.generalOptions.includes)
     this.linterOptions.includes.forEach((inc) => {
       if (inc === '${includes}') {
         this.linterOptions.includes = this.linterOptions.includes
@@ -42,6 +48,7 @@ export default abstract class BaseLinter {
           .concat(this.generalOptions.includes)
       }
     })
+    this.logger.info('specific includes: ' + this.linterOptions.includes)
     this.linterOptions.args = this.getSubConfig('args', '')
     this.linterOptions.useWsl = this.getSubConfig('useWsl', false)
     this.linterOptions.path = this.getSubConfig('path', this.name)

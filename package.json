@@ -295,131 +295,140 @@
           "uniqueItems": true,
           "description": "Include paths for all tools. Individual tools can override and add ${includes} as one of the paths to add these."
         },
-        "verilog.slang.path": {
+        "verilog.lint.slang.path": {
           "scope": "window",
           "type": "string",
           "default": "slang",
           "description": "Path to tool binary"
         },
-        "verilog.slang.enabled": {
+        "verilog.lint.slang.enabled": {
           "scope": "window",
           "type": "boolean",
           "default": false,
           "description": "Tools is enabled"
         },
-        "verilog.slang.args": {
+        "verilog.lint.slang.args": {
           "scope": "window",
           "type": "string",
           "default": "",
           "description": "Add Slang arguments here (like macros). They will be added to Slang while linting (The command \"-I=<document folder>\" will be added by the linter by default)."
         },
-        "verilog.linting.slang.includes": {
+        "verilog.lint.slang.includes": {
           "scope": "window",
           "type": "array",
           "items": {
             "type": "string"
           },
           "uniqueItems": true,
-          "description": "A list of directory paths to use while Slang linting."
+          "description": "Include paths override"
         },
-        "verilog.linting.iverilog.path": {
+        "verilog.lint.iverilog.path": {
           "scope": "window",
           "type": "string",
           "default": "slang",
           "description": "Path to tool binary"
         },
-        "verilog.linting.iverilog.enabled": {
+        "verilog.lint.iverilog.enabled": {
           "scope": "window",
           "type": "boolean",
           "default": false,
           "description": "Tools is enabled"
         },
-        "verilog.linting.iverilog.args": {
+        "verilog.lint.iverilog.args": {
           "scope": "window",
           "type": "string",
           "default": "",
           "description": "Add Icarus Verilog arguments here (like macros). They will be added to Icarus Verilog while linting (The command \"-t null\" will be added by the linter by default)."
         },
-        "verilog.linting.iverilog.includes": {
+        "verilog.lint.iverilog.includes": {
           "scope": "window",
           "type": "array",
           "items": {
             "type": "string"
           },
           "uniqueItems": true,
-          "description": "A list of directory paths to use while Icarus Verilog linting."
+          "description": "Include paths override"
         },
-        "verilog.linting.modelsim.path": {
+        "verilog.lint.modelsim.path": {
           "scope": "window",
           "type": "string",
           "default": "modelsim",
           "description": "Path to tool binary"
         },
-        "verilog.linting.modelsim.enabled": {
+        "verilog.lint.modelsim.enabled": {
           "scope": "window",
           "type": "boolean",
           "default": false,
           "description": "Tools is enabled"
         },
-        "verilog.linting.modelsim.args": {
+        "verilog.lint.modelsim.args": {
           "scope": "window",
           "type": "string",
           "default": "",
           "description": "Add Modelsim arguments here. They will be added to Modelsim while linting."
         },
-        "verilog.linting.modelsim.work": {
+        "verilog.lint.modelsim.includes": {
+          "scope": "window",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true,
+          "description": "Include paths override"
+        },
+        "verilog.lint.modelsim.work": {
           "scope": "window",
           "type": "string",
           "default": "",
           "description": "Add Modelsim work library here."
         },
-        "verilog.linting.verilator.path": {
+        "verilog.lint.verilator.path": {
           "scope": "window",
           "type": "string",
           "default": "verilator",
           "description": "Path to tool binary"
         },
-        "verilog.linting.verilator.enabled": {
+        "verilog.lint.verilator.enabled": {
           "scope": "window",
           "type": "boolean",
           "default": false,
           "description": "Tools is enabled"
         },
-        "verilog.linting.verilator.args": {
+        "verilog.lint.verilator.args": {
           "scope": "window",
           "type": "string",
           "default": "",
           "description": "Add Verilator arguments here (like macros). They will be added to Verilator while linting (The command \"--lint-only -I<document folder>\" will be added by the linter by default)."
         },
-        "verilog.linting.verilator.includes": {
+        "verilog.lint.verilator.includes": {
           "scope": "window",
           "type": "array",
           "items": {
             "type": "string"
           },
           "uniqueItems": true,
-          "description": "A list of directory paths to use while Verilator linting."
+          "description": "Include paths override"
         },
-        "verilog.linting.xvlog.enabled": {
+        "verilog.lint.xvlog.enabled": {
           "scope": "window",
           "type": "boolean",
           "default": false,
           "description": "Tools is enabled"
         },
-        "verilog.linting.xvlog.args": {
+        "verilog.lint.xvlog.args": {
           "scope": "window",
           "type": "string",
           "default": "",
           "description": "Add xvlog arguments here. They will be added to xvlog while linting."
         },
-        "verilog.linting.xvlog.includes": {
+        "verilog.lint.xvlog.includes": {
           "scope": "window",
           "type": "array",
           "items": {
             "type": "string"
           },
           "uniqueItems": true,
-          "description": "A list of directory paths to use while xvlog linting."
+          "description": "Include paths override"
         },
         "verilog.languageServer.svls.enabled": {
           "scope": "window",

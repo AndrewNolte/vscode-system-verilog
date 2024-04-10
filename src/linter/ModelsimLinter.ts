@@ -7,7 +7,7 @@ export default class ModelsimLinter extends BaseLinter {
   protected toolArgs(_doc: vscode.TextDocument): string[] {
     let args = ['-nologo']
     args.push('-work')
-    args.push(vscode.workspace.getConfiguration().get('verilog.linting.modelsim.work') ?? 'work')
+    args.push(vscode.workspace.getConfiguration().get('verilog.lint.modelsim.work') ?? 'work')
     return args
   }
 
