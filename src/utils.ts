@@ -27,3 +27,20 @@ export function getParentText(document: vscode.TextDocument, textRange: vscode.R
   }
   return document.getText(range);
 }
+
+
+function filterPromise<T>(promise: Promise<Array<T>>): Promise<Array<T>> {
+  return new Promise((resolve, reject) => {
+      promise.then(value => {
+          if (value.length > 0) {
+              resolve(value); // Resolve only if value is valid
+          }
+          // If the value is not valid, do not resolve or reject,
+          // effectively taking this promise out of the race.
+      }).catch(reject); // Propagate rejection
+  });
+}
+
+export function raceArrays<T>(promises: Array<Promise<Array<T>>>): Promise<Array<T>> {
+  return Promise.race(promises.map(filterPromise));
+}

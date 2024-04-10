@@ -54,10 +54,17 @@ export class Symbol {
         new vscode.Position(this.line, this.doc.lineAt(this.line).text.indexOf(this.name))
       );
       if (this.idRange === undefined) {
-        this.idRange = new vscode.Range(this.line, 0, this.line, Number.MAX_VALUE);
+        this.idRange = this.getFullRange();
       }
     }
     return this.idRange;
+  }
+
+  getFullRange(): vscode.Range {
+    if (this.fullRange === undefined) {
+      this.fullRange = this.doc.lineAt(this.line).range;
+    }
+    return this.fullRange;
   }
 
   setEndPosition(endLine: number) {
@@ -81,14 +88,38 @@ export class Symbol {
       return false;
     }
     let firstchar = this.doc.lineAt(this.line).firstNonWhitespaceCharacterIndex;
-    if(this.doc.getText(new vscode.Range(this.line, firstchar, this.line, firstchar+7)) === '`define'){
+    if (
+      this.doc.getText(new vscode.Range(this.line, firstchar, this.line, firstchar + 7)) ===
+      '`define'
+    ) {
       return true;
     }
     return false;
   }
-  
+
+  isModuleType(): boolean {
+    return this.type === 'module' || this.type === 'interface';
+  }
+
+  getHoverRange(): vscode.Range {
+    if (this.isMacro()) {
+      let range = this.getFullRange();
+      let endline = range.end.line;
+      for (; endline < this.doc.lineCount; endline++) {
+        if (!this.doc.lineAt(endline).text.endsWith('\\')) {
+          break;
+        }
+      }
+      this.fullRange = new vscode.Range(
+        range.start,
+        new vscode.Position(endline, Number.MAX_VALUE)
+      );
+    }
+    return this.getFullRange();
+  }
+
   getHoverText(): string {
-    if (this.isMacro()){
+    if (this.isMacro()) {
       // macro definitions should show the whole macro
       let code = '';
       for (let i = this.line; i < this.doc.lineCount; i++) {
@@ -111,7 +142,6 @@ export class Symbol {
       .trim();
     return code;
   }
-
 
   getDefinitionLink(): vscode.DefinitionLink {
     return {
@@ -253,6 +283,11 @@ export class CtagsParser {
     return syms.filter((tag) => tag.type === 'module' || tag.type === 'interface');
   }
 
+  async getPackageSymbols(): Promise<Symbol[]> {
+    let syms = await this.getSymbols();
+    return syms.filter((tag) => tag.type !== 'member' && tag.type !== 'register');
+  }
+
   async execCtags(filepath: string): Promise<string> {
     let command: string =
       this.binPath +
@@ -261,12 +296,9 @@ export class CtagsParser {
       '"';
     this.logger.info('Executing Command: ' + command);
     return new Promise((resolve, _reject) => {
-      child.exec(
-        command,
-        (_error: child.ExecException | null, stdout: string, _stderr: string) => {
-          resolve(stdout);
-        }
-      );
+      child.exec(command, (_error: child.ExecException | null, stdout: string, _stderr: string) => {
+        resolve(stdout);
+      });
     });
   }
 
@@ -300,16 +332,7 @@ export class CtagsParser {
       lineNoStr = parts[2];
       lineNo = Number(lineNoStr.slice(0, -2)) - 1;
       // pretty print symbol
-      return new Symbol(
-        this.doc,
-        name,
-        type,
-        lineNo,
-        parentScope,
-        parentType,
-        typeref,
-        false
-      );
+      return new Symbol(this.doc, name, type, lineNo, parentScope, parentType, typeref, false);
     } catch (e) {
       this.logger.error('Line Parser: ' + e);
       this.logger.error('Line: ' + line);
@@ -384,11 +407,37 @@ export class CtagsParser {
     await this.buildSymbolsList(output);
   }
 
+  async getNestedHoverText(sym: Symbol): Promise<Array<string>> {
+    // TODO: maybe go deeper
+    let ret: string[] = [];
+    ret.push(sym.getHoverText());
+    if (sym.isModuleType()) {
+      return ret;
+    }
+    // find other words with definitions in the hover text, and add them
+    let range = sym.getHoverRange();
+    let words = new Set(this.doc.getText(range).match(/\b[a-zA-Z_]\w*\b/g) || []);
+    words.delete(sym.name);
+
+    let docsyms = await this.getSymbols();
+    let syms = docsyms.filter((sym) => words.has(sym.name));
+    let defs = await Promise.all(
+      syms.map(async (s: Symbol) => {
+        return s.getHoverText();
+      })
+    );
+
+    if (defs.length > 0) {
+      ret.push(defs.join('\n'));
+    }
+
+    return ret;
+  }
 
   getModuleSnippet(module: Symbol, fullModule: boolean) {
     let portsName: string[] = [];
     let parametersName: string[] = [];
-  
+
     let scope = module.parentScope !== '' ? module.parentScope + '.' + module.name : module.name;
     let ports: Symbol[] = this.symbols.filter(
       (tag) => tag.type === 'port' && tag.parentScope === scope
@@ -402,15 +451,15 @@ export class CtagsParser {
     if (parametersName.length > 0) {
       paramString = `\n${instantiatePort(parametersName)}`;
     }
-  
+
     if (fullModule) {
       return new vscode.SnippetString()
         .appendText(module.name + ' ')
         .appendText('#(')
         .appendText(paramString)
         .appendText(') ')
-        .appendPlaceholder('u_')
-        .appendPlaceholder(`${module.name} (\n`)
+        .appendPlaceholder(`${module.name.toLowerCase()}`)
+        .appendText(' (\n')
         .appendText(instantiatePort(portsName))
         .appendText(');\n');
     }
@@ -419,14 +468,12 @@ export class CtagsParser {
         // .appendText('#(')
         .appendText(paramString)
         .appendText(') ')
-        .appendPlaceholder('u_')
-        .appendPlaceholder(`${module.name} (\n`)
+        .appendPlaceholder(`${module.name.toLowerCase()}`)
+        .appendText(' (\n')
         .appendText(instantiatePort(portsName))
     );
   }
 }
-
-
 
 function instantiatePort(ports: string[]): string {
   let port = '';
@@ -448,4 +495,23 @@ function instantiatePort(ports: string[]): string {
     port += '\n';
   }
   return port;
+}
+
+function positionsFromRange(doc: vscode.TextDocument, range: vscode.Range): vscode.Position[] {
+  let ret: vscode.Position[] = [];
+  for (let i = range.start.line; i <= range.end.line; i++) {
+    const line = doc.lineAt(i);
+    const words = line.text.match(/\b(\w+)\b/g);
+    let match;
+
+    if (words) {
+      // Use a regex to find words and their indices within the line
+      const regex = /\b(\w+)\b/g;
+      while ((match = regex.exec(line.text)) !== null) {
+        // Calculate the start and end positions of each word
+        ret.push(new vscode.Position(i, match.index));
+      }
+    }
+  }
+  return ret;
 }

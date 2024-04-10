@@ -2,18 +2,18 @@
 import * as vscode from 'vscode';
 import { Logger } from './logger';
 import { CtagsParser, Symbol } from './parsers/ctagsParser';
-import { getParentText, getPrevChar, getWorkspaceFolder } from './utils';
+import { getParentText, getPrevChar, getWorkspaceFolder, raceArrays } from './utils';
 import { Config } from './config';
-
-// Internal representation of a symbol
 
 export class CtagsManager {
   private filemap: Map<vscode.TextDocument, CtagsParser> = new Map();
-  private logger: Logger;
+  logger: Logger;
   private searchPrefix: string;
 
-  // top level 
+  /// symbols from include files
   private symbolMap: Map<string, Symbol[]> = new Map();
+  /// module name to file, we assumed name.sv containes name module
+  private moduleMap: Map<string, vscode.Uri> = new Map();
 
   constructor(logger: Logger, hdlDir: string) {
     this.logger = logger;
@@ -26,34 +26,62 @@ export class CtagsManager {
 
     vscode.workspace.onDidSaveTextDocument(this.onSave.bind(this));
     vscode.workspace.onDidCloseTextDocument(this.onClose.bind(this));
+
+    this.index();
     this.indexIncludes();
     vscode.workspace.onDidChangeConfiguration(async (e) => {
       if (e.affectsConfiguration('verilog.includes')) {
         this.indexIncludes();
       }
     });
-
   }
 
   async indexIncludes(): Promise<void> {
-    this.logger.info('indexIncludes');
-    Config.getIncludePaths().forEach(async (path: string) => {
-      let files: vscode.Uri[] = await this.findFiles(`${path}/*.{sv,svh}`);
-  
-      files.forEach(async (file: vscode.Uri) => {
-        this.logger.info(`indexing ${file}`);
-        let doc = await vscode.workspace.openTextDocument(file);
-        let syms = await this.getCtags(doc).getSymbols();
-        syms.forEach((element: Symbol) => {
-          // this.logger.info(`adding ${element.name}`);
-          if(this.symbolMap.has(element.name)) {
-            this.symbolMap.get(element.name)?.push(element);
-          } else {
-            this.symbolMap.set(element.name, [element]);
-          }
+    vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Window,
+        title: 'Indexing Verilog Includes',
+        cancellable: true,
+      },
+      async () => {
+        Config.getIncludePaths().forEach(async (path: string) => {
+          let files: vscode.Uri[] = await this.findFiles(`${path}/*.{svh}`);
+
+          files.forEach(async (file: vscode.Uri) => {
+            let doc = await vscode.workspace.openTextDocument(file);
+            let syms = await this.getCtags(doc).getPackageSymbols();
+            syms.forEach((element: Symbol) => {
+              if (this.symbolMap.has(element.name)) {
+                this.symbolMap.get(element.name)?.push(element);
+              } else {
+                this.symbolMap.set(element.name, [element]);
+              }
+            });
+          });
         });
-      });
-    });
+        this.logger.info(`indexed ${Config.getIncludePaths().length} include paths`);
+      }
+    );
+  }
+
+  async index(): Promise<void> {
+    vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Window,
+        title: 'Indexing Verilog',
+        cancellable: true,
+      },
+      async () => {
+        this.logger.info('indexing');
+        // We want to do a shallow index
+        let files: vscode.Uri[] = await this.findFiles(`${this.searchPrefix}/*.{sv,v}`);
+        files.forEach(async (file: vscode.Uri) => {
+          let name = file.path.split('/').pop()?.split('.').shift() ?? '';
+          this.moduleMap.set(name, file);
+        });
+        this.logger.info(`indexed ${this.moduleMap.size} verilog files`);
+      }
+    );
   }
 
   getCtags(doc: vscode.TextDocument): CtagsParser {
@@ -84,11 +112,11 @@ export class CtagsManager {
   }
 
   async findModule(moduleName: string): Promise<vscode.TextDocument | undefined> {
-    let files = await this.findFiles(`${this.searchPrefix}/${moduleName}.{sv,v}`);
-    if (files.length === 0) {
+    let file = this.moduleMap.get(moduleName);
+    if (file === undefined) {
       return undefined;
     }
-    return await vscode.workspace.openTextDocument(files[0]);
+    return await vscode.workspace.openTextDocument(file);
   }
 
   async findDefinitionByName(moduleName: string, targetText: string): Promise<Symbol[]> {
@@ -106,13 +134,18 @@ export class CtagsManager {
     if (!textRange || textRange.isEmpty) {
       return [];
     }
+    let parser = this.getCtags(document);
     let targetText = document.getText(textRange);
+    let symPromise = parser.getSymbols({ name: targetText });
+    let syms: Symbol[] | undefined = undefined;
 
     let parentScope = getParentText(document, textRange);
+    // let modulePromise = this.findDefinitionByName(parentScope, targetText);
     // If we're at a port, .<text> plus no parent
-    let parser = this.getCtags(document);
     if (getPrevChar(document, textRange) === '.' && parentScope === targetText) {
-      let insts = await parser.getSymbols({ type: 'instance' });
+      syms = await symPromise;
+
+      let insts = syms.filter((sym) => sym.type === 'instance');
       if (insts.length > 0) {
         let latestInst = insts.reduce((latest, inst) => {
           if (
@@ -131,16 +164,13 @@ export class CtagsManager {
       }
     }
 
-    if (this.symbolMap.has(targetText)){
+    if (this.symbolMap.has(targetText)) {
       return this.symbolMap.get(targetText) ?? [];
     }
 
-    const results: Symbol[][] = await Promise.all([
-      // find def in current document
-      parser.getSymbols({ name: targetText }),
-      // search for module.sv or interface.sv
-      this.findDefinitionByName(parentScope, targetText),
-    ]);
-    return results.reduce((acc, val) => acc.concat(val), []);
+    if (this.moduleMap.has(targetText)) {
+      return await this.findDefinitionByName(parentScope, targetText);
+    }
+    return await symPromise;
   }
 }

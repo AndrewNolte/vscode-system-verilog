@@ -50,20 +50,16 @@ export class VerilogHoverProvider implements vscode.HoverProvider {
       return undefined;
     }
 
-    let code = syms[0].getHoverText();
-
-    let hoverText: vscode.MarkdownString = new vscode.MarkdownString();
-    hoverText.appendCodeblock(code, document.languageId);
-
-    // TODO: provide hover defs for other ids in the hover
-
-    // console.log(
-    //   this.getWordRanges(
-    //     match.doc,
-    //     new vscode.Position(match.line, match.doc.lineAt(match.line).text.length)
-    //   )
-    // );
+    let sym = syms[0];
+    let ctags = this.ctagsManager.getCtags(sym.doc);
+    let hovers = await ctags.getNestedHoverText(sym);
+    // let hovers = await syms[0].getHoverTextRecursive(this.ctagsManager, 1);
+    let mds = hovers.reverse().map((hover) => {
+      let md = new vscode.MarkdownString();
+      md.appendCodeblock(hover, document.languageId);
+      return md;
+    });
     this.logger.info('Hover object returned');
-    return new vscode.Hover(hoverText);
+    return new vscode.Hover(mds);
   }
 }
