@@ -1,39 +1,14 @@
 // SPDX-License-Identifier: MIT
-import * as child from 'child_process';
-import { ExecException } from 'child_process';
 import * as vscode from 'vscode';
-import { Logger } from '../logger';
-import { getWorkspaceFolder } from '../utils';
 import BaseLinter from './BaseLinter';
-
-var isWindows = process.platform === 'win32';
+import { FileDiagnostic } from './ToolOptions';
 
 export default class ModelsimLinter extends BaseLinter {
-  private modelsimPath!: string;
-  private modelsimArgs!: string;
-  private modelsimWork!: string;
-  private runAtFileLocation!: boolean;
-
-  constructor(diagnosticCollection: vscode.DiagnosticCollection, logger: Logger) {
-    super('modelsim', diagnosticCollection, logger);
-    vscode.workspace.onDidChangeConfiguration(() => {
-      this.getConfig();
-    });
-    this.getConfig();
-  }
-
-  private getConfig() {
-    this.modelsimPath = <string>vscode.workspace.getConfiguration().get('verilog.linting.path');
-    //get custom arguments
-    this.modelsimArgs = <string>(
-      vscode.workspace.getConfiguration().get('verilog.linting.modelsim.arguments')
-    );
-    this.modelsimWork = <string>(
-      vscode.workspace.getConfiguration().get('verilog.linting.modelsim.work')
-    );
-    this.runAtFileLocation = <boolean>(
-      vscode.workspace.getConfiguration().get('verilog.linting.modelsim.runAtFileLocation')
-    );
+  protected toolArgs(_doc: vscode.TextDocument): string[] {
+    let args = ['-nologo'];
+    args.push('-work');
+    args.push(vscode.workspace.getConfiguration().get('verilog.linting.modelsim.work') ?? 'work');
+    return args;
   }
 
   protected convertToSeverity(severityString: string): vscode.DiagnosticSeverity {
@@ -46,67 +21,39 @@ export default class ModelsimLinter extends BaseLinter {
     return vscode.DiagnosticSeverity.Information;
   }
 
-  protected lint(doc: vscode.TextDocument) {
-    this.logger.info('modelsim lint requested');
-    let docUri: string = doc.uri.fsPath; //path of current doc
-    let lastIndex: number = isWindows === true ? docUri.lastIndexOf('\\') : docUri.lastIndexOf('/');
-    let docFolder = docUri.substr(0, lastIndex); //folder of current doc
-    let runLocation: string | undefined =
-      this.runAtFileLocation === true ? docFolder : getWorkspaceFolder(); //choose correct location to run
-    // no change needed for systemverilog
-    let command: string =
-      this.modelsimPath +
-      'vlog -nologo -work ' +
-      this.modelsimWork +
-      ' "' +
-      doc.fileName +
-      '" ' +
-      this.modelsimArgs; //command to execute
-    child.exec(
-      command,
-      { cwd: runLocation },
-      (_error: ExecException | null, stdout: string, _stderr: string) => {
-        let diagnostics: vscode.Diagnostic[] = [];
-        let lines = stdout.split(/\r?\n/g);
+  protected parseDiagnostics(args: { stdout: string; stderr: string }): FileDiagnostic[] {
+    let diagnostics: FileDiagnostic[] = [];
+    let lines = args.stdout.split(/\r?\n/g);
 
-        // ^\*\* (((Error)|(Warning))( \(suppressible\))?: )(\([a-z]+-[0-9]+\) )?([^\(]*\(([0-9]+)\): )(\([a-z]+-[0-9]+\) )?((((near|Unknown identifier|Undefined variable):? )?["']([\w:;\.]+)["'][ :.]*)?.*)
-        // From https://github.com/dave2pi/SublimeLinter-contrib-vlog/blob/master/linter.py
-        let regexExp =
-          '^\\*\\* (((Error)|(Warning))( \\(suppressible\\))?: )(\\([a-z]+-[0-9]+\\) )?([^\\(]*)\\(([0-9]+)\\): (\\([a-z]+-[0-9]+\\) )?((((near|Unknown identifier|Undefined variable):? )?["\']([\\w:;\\.]+)["\'][ :.]*)?.*)';
-        // Parse output lines
-        lines.forEach((line, _) => {
-          if (line.startsWith('**')) {
-            try {
-              let m = line.match(regexExp);
-              if (m === null) {
-                return;
-              }
-              if (m[7] !== doc.fileName) {
-                return;
-              }
-              let lineNum = parseInt(m[8]) - 1;
-              let msg = m[10];
-              diagnostics.push({
-                severity: this.convertToSeverity(m[2]),
-                range: new vscode.Range(lineNum, 0, lineNum, Number.MAX_VALUE),
-                message: msg,
-                code: 'modelsim',
-                source: 'modelsim',
-              });
-            } catch (e) {
-              diagnostics.push({
-                severity: vscode.DiagnosticSeverity.Information,
-                range: new vscode.Range(0, 0, 0, Number.MAX_VALUE),
-                message: line,
-                code: 'modelsim',
-                source: 'modelsim',
-              });
-            }
-          }
-        });
-        this.logger.info(diagnostics.length + ' errors/warnings returned');
-        this.diagnosticCollection.set(doc.uri, diagnostics);
+    // ^\*\* (((Error)|(Warning))( \(suppressible\))?: )(\([a-z]+-[0-9]+\) )?([^\(]*\(([0-9]+)\): )(\([a-z]+-[0-9]+\) )?((((near|Unknown identifier|Undefined variable):? )?["']([\w:;\.]+)["'][ :.]*)?.*)
+    // From https://github.com/dave2pi/SublimeLinter-contrib-vlog/blob/master/linter.py
+    let regexExp =
+      '^\\*\\* (((Error)|(Warning))( \\(suppressible\\))?: )(\\([a-z]+-[0-9]+\\) )?([^\\(]*)\\(([0-9]+)\\): (\\([a-z]+-[0-9]+\\) )?((((near|Unknown identifier|Undefined variable):? )?["\']([\\w:;\\.]+)["\'][ :.]*)?.*)';
+    // Parse output lines
+    lines.forEach((line: string, _: any) => {
+      if (!line.startsWith('**')) {
+        return;
       }
-    );
+
+      try {
+        let m = line.match(regexExp);
+        if (m === null) {
+          return;
+        }
+        let lineNum = parseInt(m[8]) - 1;
+        let msg = m[10];
+        diagnostics.push({
+          file: m[7],
+          severity: this.convertToSeverity(m[2]),
+          range: new vscode.Range(lineNum, 0, lineNum, Number.MAX_VALUE),
+          message: msg,
+          code: 'modelsim',
+          source: 'modelsim',
+        });
+      } catch (e) {
+        this.logger.error(`failed to parse line: ${line}`);
+      }
+    });
+    return diagnostics;
   }
 }

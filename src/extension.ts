@@ -2,7 +2,7 @@
 import * as vscode from 'vscode';
 import { LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient/node';
 
-import * as ModuleInstantiation from './commands/ModuleInstantiation';
+import { CommandExcecutor } from './commands/ModuleInstantiation';
 import { CtagsManager } from './ctags';
 import { ExtensionManager } from './extensionManager';
 import LintManager from './linter/LintManager';
@@ -12,7 +12,6 @@ import * as DefinitionProvider from './providers/DefinitionProvider';
 import * as DocumentSymbolProvider from './providers/DocumentSymbolProvider';
 import * as FormatProvider from './providers/FormatPrivider';
 import * as HoverProvider from './providers/HoverProvider';
-import { CommandExcecutor } from './commands/ModuleInstantiation';
 
 export var logger: Logger; // Global logger
 var ctagsManager: CtagsManager;
@@ -25,9 +24,20 @@ export function activate(context: vscode.ExtensionContext) {
   logger = createLogger('Verilog');
   logger.info(extensionID + ' is now active.');
 
+  /////////////////////////////////////////////
+  // Register Lint Manager, runs selected linters
+  /////////////////////////////////////////////
+  // need to lint open files before ctags opens up documents
+  lintManager = new LintManager(logger.getChild('LintManager'));
+  context.subscriptions.push(vscode.workspace.onDidOpenTextDocument(lintManager.lint, lintManager));
+  context.subscriptions.push(vscode.workspace.onDidSaveTextDocument(lintManager.lint, lintManager));
+  context.subscriptions.push(
+    vscode.workspace.onDidCloseTextDocument(lintManager.removeFileDiagnostics, lintManager)
+  );
+
   ctagsManager = new CtagsManager(
     logger,
-    vscode.workspace.getConfiguration().get('verilog.subdir', '')
+    vscode.workspace.getConfiguration().get('verilog.directory', '')
   );
 
   let extMgr = new ExtensionManager(context, extensionID, logger.getChild('ExtensionManager'));
@@ -103,19 +113,6 @@ export function activate(context: vscode.ExtensionContext) {
       { scheme: 'file', language: 'systemverilog' },
       new FormatProvider.SystemVerilogFormatProvider(logger.getChild('SystemVerilogFormatProvider'))
     )
-  );
-
-  /////////////////////////////////////////////
-  // Register Lint Manager, runs selected linters
-  /////////////////////////////////////////////
-  lintManager = new LintManager(logger.getChild('LintManager'));
-  context.subscriptions.push(vscode.workspace.onDidOpenTextDocument(lintManager.lint, lintManager));
-  context.subscriptions.push(vscode.workspace.onDidSaveTextDocument(lintManager.lint, lintManager));
-  context.subscriptions.push(
-    vscode.workspace.onDidCloseTextDocument(lintManager.removeFileDiagnostics, lintManager)
-  );
-  context.subscriptions.push(
-    vscode.workspace.onDidChangeConfiguration(lintManager.configLinter, lintManager)
   );
 
   /////////////////////////////////////////////

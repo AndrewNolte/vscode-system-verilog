@@ -227,57 +227,19 @@
     "configuration": {
       "title": "Verilog configuration",
       "properties": {
-        "verilog.includes": {
-          "scope": "machine-overridable",
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "default": "",
-          "description": "verilog include directories, applied to each tool"
-        },
-        "verilog.subdir": {
+        "verilog.directory": {
           "scope": "window",
           "type": "string",
           "default": "",
           "description": "The directory containing all hardware files"
         },
-        "verilog.linting.path": {
+        "verilog.ctags.path": {
           "scope": "window",
           "type": "string",
-          "default": "",
-          "description": "A path to the installation of linter."
-        },
-        "verilog.linting.linter": {
-          "scope": "window",
-          "type": "string",
-          "enum": [
-            "xvlog",
-            "iverilog",
-            "verilator",
-            "modelsim",
-            "slang",
-            "none"
-          ],
           "default": "none",
-          "description": "Select the verilog linter. Possible values are 'iverilog', 'verilator', 'modelsim', 'xvlog', 'slang' or 'none'."
+          "description": "A path to the installation of Universal Ctags."
         },
-        "verilog.linting.iverilog.arguments": {
-          "scope": "window",
-          "type": "string",
-          "default": "",
-          "description": "Add Icarus Verilog arguments here (like macros). They will be added to Icarus Verilog while linting (The command \"-t null\" will be added by the linter by default)."
-        },
-        "verilog.linting.iverilog.includePath": {
-          "scope": "window",
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "uniqueItems": true,
-          "description": "A list of directory paths to use while Icarus Verilog linting."
-        },
-        "verilog.linting.iverilog.verilogHDL.standard": {
+        "verilog.tools.general.verilogStandard": {
           "scope": "window",
           "type": "string",
           "enum": [
@@ -286,42 +248,118 @@
             "Verilog-2005"
           ],
           "enumDescriptions": [
-            "IEEE1364-1995, specified by -g1995 option in Icarus Verilog",
-            "IEEE1364-2001, specified by -g2001 option in Icarus Verilog",
-            "IEEE1364-2005, specified by -g2005 option in Icarus Verilog"
+            "IEEE1364-1995",
+            "IEEE1364-2001",
+            "IEEE1364-2005",
+            "IEEE1364-2012"
           ],
           "default": "Verilog-2005",
-          "description": "Select the standard rule to be used when Icarus Verilog linting for Verilog-HDL files."
+          "description": "Verilog Language standard to use."
         },
-        "verilog.linting.iverilog.systemVerilog.standard": {
+        "verilog.tools.general.svStandard": {
           "scope": "window",
           "type": "string",
           "enum": [
-            "SystemVerilog2005",
-            "SystemVerilog2009",
-            "SystemVerilog2012"
+            "SystemVerilog-2005",
+            "SystemVerilog-2009",
+            "SystemVerilog-2012"
           ],
           "enumDescriptions": [
-            "IEEE1800-2005, specified by -g2005-sv option in Icarus Verilog",
-            "IEEE1800-2009, specified by -g2009 option in Icarus Verilog",
-            "IEEE1800-2012, specified by -g2012 option in Icarus Verilog"
+            "IEEE1800-2005",
+            "IEEE1800-2009",
+            "IEEE1800-2012"
           ],
-          "default": "SystemVerilog2012",
-          "description": "Select the standard rule to be used when Icarus Verilog linting for SystemVerilog files."
+          "default": "SystemVerilog-2012",
+          "description": "SystemVerilog Language standard to use"
         },
-        "verilog.linting.iverilog.runAtFileLocation": {
+        "verilog.tools.general.runAtFileLocation": {
           "scope": "window",
           "type": "boolean",
           "default": false,
-          "description": "If enabled, Icarus Verilog will be run at the file location for linting. Else it will be run at workspace folder. Disabled by default."
+          "description": "Run tool at the file location. Runs at workspace root by default."
         },
-        "verilog.linting.modelsim.runAtFileLocation": {
+        "verilog.tools.general.useWSL": {
           "scope": "window",
           "type": "boolean",
           "default": false,
-          "description": "If enabled, Modelsim will be run at the file location for linting. Else it will be run at workspace folder. Disabled by default."
+          "description": "If enabled, run tools in wsl"
         },
-        "verilog.linting.modelsim.arguments": {
+        "verilog.includes": {
+          "scope": "window",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true,
+          "description": "Include paths for all tools. Individual tools can override and add ${includes} as one of the paths to add these."
+        },
+        "verilog.slang.path": {
+          "scope": "window",
+          "type": "string",
+          "default": "slang",
+          "description": "Path to tool binary"
+        },
+        "verilog.slang.enabled": {
+          "scope": "window",
+          "type": "boolean",
+          "default": false,
+          "description": "Tools is enabled"
+        },
+        "verilog.slang.args": {
+          "scope": "window",
+          "type": "string",
+          "default": "",
+          "description": "Add Slang arguments here (like macros). They will be added to Slang while linting (The command \"-I=<document folder>\" will be added by the linter by default)."
+        },
+        "verilog.linting.slang.includes": {
+          "scope": "window",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true,
+          "description": "A list of directory paths to use while Slang linting."
+        },
+        "verilog.linting.iverilog.path": {
+          "scope": "window",
+          "type": "string",
+          "default": "slang",
+          "description": "Path to tool binary"
+        },
+        "verilog.linting.iverilog.enabled": {
+          "scope": "window",
+          "type": "boolean",
+          "default": false,
+          "description": "Tools is enabled"
+        },
+        "verilog.linting.iverilog.args": {
+          "scope": "window",
+          "type": "string",
+          "default": "",
+          "description": "Add Icarus Verilog arguments here (like macros). They will be added to Icarus Verilog while linting (The command \"-t null\" will be added by the linter by default)."
+        },
+        "verilog.linting.iverilog.includes": {
+          "scope": "window",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true,
+          "description": "A list of directory paths to use while Icarus Verilog linting."
+        },
+        "verilog.linting.modelsim.path": {
+          "scope": "window",
+          "type": "string",
+          "default": "modelsim",
+          "description": "Path to tool binary"
+        },
+        "verilog.linting.modelsim.enabled": {
+          "scope": "window",
+          "type": "boolean",
+          "default": false,
+          "description": "Tools is enabled"
+        },
+        "verilog.linting.modelsim.args": {
           "scope": "window",
           "type": "string",
           "default": "",
@@ -333,40 +371,25 @@
           "default": "",
           "description": "Add Modelsim work library here."
         },
-        "verilog.linting.slang.arguments": {
+        "verilog.linting.verilator.path": {
           "scope": "window",
           "type": "string",
-          "default": "",
-          "description": "Add Slang arguments here (like macros). They will be added to Slang while linting (The command \"-I=<document folder>\" will be added by the linter by default)."
+          "default": "verilator",
+          "description": "Path to tool binary"
         },
-        "verilog.linting.slang.includePath": {
-          "scope": "window",
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "uniqueItems": true,
-          "description": "A list of directory paths to use while Slang linting."
-        },
-        "verilog.linting.slang.runAtFileLocation": {
+        "verilog.linting.verilator.enabled": {
           "scope": "window",
           "type": "boolean",
           "default": false,
-          "description": "If enabled, Slang will be run at the file location for linting. Else it will be run at workspace folder. Disabled by default."
+          "description": "Tools is enabled"
         },
-        "verilog.linting.slang.useWSL": {
-          "scope": "window",
-          "type": "boolean",
-          "default": false,
-          "description": "If enabled, run slang in WSL."
-        },
-        "verilog.linting.verilator.arguments": {
+        "verilog.linting.verilator.args": {
           "scope": "window",
           "type": "string",
           "default": "",
           "description": "Add Verilator arguments here (like macros). They will be added to Verilator while linting (The command \"--lint-only -I<document folder>\" will be added by the linter by default)."
         },
-        "verilog.linting.verilator.includePath": {
+        "verilog.linting.verilator.includes": {
           "scope": "window",
           "type": "array",
           "items": {
@@ -375,25 +398,19 @@
           "uniqueItems": true,
           "description": "A list of directory paths to use while Verilator linting."
         },
-        "verilog.linting.verilator.runAtFileLocation": {
+        "verilog.linting.xvlog.enabled": {
           "scope": "window",
           "type": "boolean",
           "default": false,
-          "description": "If enabled, Verilator will be run at the file location for linting. Else it will be run at workspace folder. Disabled by default."
+          "description": "Tools is enabled"
         },
-        "verilog.linting.verilator.useWSL": {
-          "scope": "window",
-          "type": "boolean",
-          "default": false,
-          "description": "If enabled, run verilator in WSL."
-        },
-        "verilog.linting.xvlog.arguments": {
+        "verilog.linting.xvlog.args": {
           "scope": "window",
           "type": "string",
           "default": "",
           "description": "Add xvlog arguments here. They will be added to xvlog while linting."
         },
-        "verilog.linting.xvlog.includePath": {
+        "verilog.linting.xvlog.includes": {
           "scope": "window",
           "type": "array",
           "items": {
@@ -401,12 +418,6 @@
           },
           "uniqueItems": true,
           "description": "A list of directory paths to use while xvlog linting."
-        },
-        "verilog.ctags.path": {
-          "scope": "window",
-          "type": "string",
-          "default": "none",
-          "description": "A path to the installation of Universal Ctags."
         },
         "verilog.languageServer.svls.enabled": {
           "scope": "window",

@@ -3,93 +3,66 @@ import * as vscode from 'vscode';
 import { Logger } from '../logger';
 import BaseLinter from './BaseLinter';
 import IcarusLinter from './IcarusLinter';
-import ModelsimLinter from './ModelsimLinter';
 import SlangLinter from './SlangLinter';
+import { GeneralOptions } from './ToolOptions';
 import VerilatorLinter from './VerilatorLinter';
 import XvlogLinter from './XvlogLinter';
 
+enum Linter {
+  slang = 'slang',
+  verilator = 'verilator',
+  iverilog = 'iverilog',
+  xvlog = 'xvlog',
+  modelsim = 'modelsim',
+}
+
 export default class LintManager {
-  private linter: BaseLinter | null;
-  private diagnosticCollection: vscode.DiagnosticCollection;
   private logger: Logger;
+  private linters: Map<string, BaseLinter> = new Map();
+  private generalConfig;
 
   constructor(logger: Logger) {
-    this.linter = null;
-    this.diagnosticCollection = vscode.languages.createDiagnosticCollection();
     this.logger = logger;
 
-    this.configLinter();
-
+    this.generalConfig = new GeneralOptions();
+    this.linters.set(Linter.slang, new SlangLinter(Linter.slang, this.logger, this.generalConfig));
+    this.linters.set(
+      Linter.iverilog,
+      new IcarusLinter(Linter.iverilog, this.logger, this.generalConfig)
+    );
+    this.linters.set(
+      Linter.verilator,
+      new VerilatorLinter(Linter.verilator, this.logger, this.generalConfig)
+    );
+    this.linters.set(Linter.xvlog, new XvlogLinter(Linter.xvlog, this.logger, this.generalConfig));
+    this.linters.set(
+      Linter.modelsim,
+      new XvlogLinter(Linter.xvlog, this.logger, this.generalConfig)
+    );
     // Run linting for open documents on launch
     vscode.window.visibleTextEditors.forEach((editor) => {
       this.lint(editor.document);
     });
   }
 
-  getLinterFromString(name: string): BaseLinter | null {
-    switch (name) {
-      case 'iverilog':
-        return new IcarusLinter(this.diagnosticCollection, this.logger.getChild('IcarusLinter'));
-      case 'xvlog':
-        return new XvlogLinter(this.diagnosticCollection, this.logger.getChild('XvlogLinter'));
-      case 'modelsim':
-        return new ModelsimLinter(
-          this.diagnosticCollection,
-          this.logger.getChild('ModelsimLinter')
-        );
-      case 'verilator':
-        return new VerilatorLinter(
-          this.diagnosticCollection,
-          this.logger.getChild('VerilatorLinter')
-        );
-      case 'slang':
-        return new SlangLinter(this.diagnosticCollection, this.logger.getChild('SlangLinter'));
-      default:
-        return null;
-    }
-  }
-
-  configLinter() {
-    let linterName = vscode.workspace.getConfiguration('verilog.linting').get<string>('linter');
-
-    if (this.linter !== null) {
-      if (this.linter.name === linterName) {
-        return;
-      }
-    }
-    if (linterName === undefined) {
-      this.logger.warn('linterName is undefined');
-      return;
-    }
-
-    this.linter = this.getLinterFromString(linterName);
-    if (this.linter === null) {
-      this.logger.warn('Invalid linter name: ' + linterName);
-      return;
-    }
-
-    this.logger.info('Using linter: ' + this.linter.name);
-  }
-
-  lint(doc: vscode.TextDocument) {
-    if (this.linter === null) {
-      return;
-    }
+  async lint(doc: vscode.TextDocument) {
     switch (doc.languageId) {
       case 'verilog':
       case 'systemverilog':
-        this.linter.startLint(doc);
         break;
       default:
-        break;
+        return;
     }
+    let promises = Array.from(this.linters.values()).map((linter) => {
+      return linter.lint(doc);
+    });
+    await Promise.all(promises);
   }
 
   removeFileDiagnostics(doc: vscode.TextDocument) {
-    if (this.linter === null) {
-      return;
-    }
-    this.linter.removeFileDiagnostics(doc);
+    this.linters.forEach((linter) => {
+      linter.clear(doc);
+    });
   }
 
   async runLintTool() {
@@ -144,18 +117,18 @@ export default class LintManager {
         title: 'Verilog-HDL/SystemVerilog: Running lint tool...',
       },
       async (_progress, _token) => {
-        let linter: BaseLinter | null = this.getLinterFromString(chosenLinter.label);
-        if (linter === null) {
+        let linter: BaseLinter | undefined = this.linters.get(chosenLinter.label);
+        if (linter === undefined) {
           this.logger.error('Cannot find linter name: ' + chosenLinter.label);
           return;
         }
         this.logger.info('Using ' + linter.name + ' linter');
 
         if (vscode.window.activeTextEditor) {
-          linter.removeFileDiagnostics(vscode.window.activeTextEditor.document);
+          linter.clear(vscode.window.activeTextEditor.document);
         }
         if (vscode.window.activeTextEditor) {
-          linter.startLint(vscode.window.activeTextEditor.document);
+          linter.lint(vscode.window.activeTextEditor.document);
         }
       }
     );
