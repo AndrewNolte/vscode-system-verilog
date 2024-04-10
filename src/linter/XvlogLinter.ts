@@ -1,35 +1,33 @@
 // SPDX-License-Identifier: MIT
-import * as vscode from 'vscode';
-import BaseLinter from './BaseLinter';
-import { FileDiagnostic } from './ToolOptions';
+import * as vscode from 'vscode'
+import BaseLinter from './BaseLinter'
+import { FileDiagnostic } from './ToolOptions'
 
 export default class XvlogLinter extends BaseLinter {
   protected toolArgs(doc: vscode.TextDocument): string[] {
-    let args = ['-nolog'];
+    let args = ['-nolog']
     if (doc.languageId === 'systemverilog') {
-      args.push('-sv');
+      args.push('-sv')
     }
-    return args;
+    return args
   }
 
   protected formatIncludes(includes: string[]): string {
-    return includes.map((path: string) => ` -i "${path}" `).join(' ');
+    return includes.map((path: string) => ` -i "${path}" `).join(' ')
   }
 
   protected parseDiagnostics(args: { stdout: string; stderr: string }): FileDiagnostic[] {
-    let diagnostics: FileDiagnostic[] = [];
+    let diagnostics: FileDiagnostic[] = []
 
     args.stdout.split(/\r?\n/g).forEach((line) => {
-      let match = line.match(
-        /^(ERROR|WARNING):\s+\[(VRFC\b[^\]]*)\]\s+(.*\S)\s+\[(.*):(\d+)\]\s*$/
-      );
+      let match = line.match(/^(ERROR|WARNING):\s+\[(VRFC\b[^\]]*)\]\s+(.*\S)\s+\[(.*):(\d+)\]\s*$/)
       if (!match) {
-        return;
+        return
       }
 
       // Get filename and line number
-      let filename = match[4];
-      let lineno = parseInt(match[5]) - 1;
+      let filename = match[4]
+      let lineno = parseInt(match[5]) - 1
 
       let diagnostic: FileDiagnostic = {
         file: filename,
@@ -41,10 +39,10 @@ export default class XvlogLinter extends BaseLinter {
         message: '[' + match[2] + '] ' + match[3],
         range: new vscode.Range(lineno, 0, lineno, Number.MAX_VALUE),
         source: 'xvlog',
-      };
+      }
 
-      diagnostics.push(diagnostic);
-    });
-    return diagnostics;
+      diagnostics.push(diagnostic)
+    })
+    return diagnostics
   }
 }

@@ -1,28 +1,28 @@
 // SPDX-License-Identifier: MIT
-import * as vscode from 'vscode';
-import { CtagsManager } from '../ctags';
-import { Logger } from '../logger';
-import { Symbol } from '../parsers/ctagsParser';
+import * as vscode from 'vscode'
+import { CtagsManager } from '../ctags'
+import { Logger } from '../logger'
+import { Symbol } from '../parsers/ctagsParser'
 
 export class VerilogDocumentSymbolProvider implements vscode.DocumentSymbolProvider {
-  public docSymbols: vscode.DocumentSymbol[] = [];
+  public docSymbols: vscode.DocumentSymbol[] = []
 
-  private logger: Logger;
-  private ctagsManager: CtagsManager;
+  private logger: Logger
+  private ctagsManager: CtagsManager
   constructor(logger: Logger, ctagsManager: CtagsManager) {
-    this.logger = logger;
-    this.ctagsManager = ctagsManager;
+    this.logger = logger
+    this.ctagsManager = ctagsManager
   }
 
   async provideDocumentSymbols(
     document: vscode.TextDocument,
     _token: vscode.CancellationToken
   ): Promise<vscode.DocumentSymbol[]> {
-    this.logger.info('[VerilogSymbol] Symbols Requested: ' + document.uri);
-    let symbols: Symbol[] = await this.ctagsManager.getCtags(document).getSymbols();
-    this.docSymbols = this.buildDocumentSymbolList(symbols);
-    this.logger.info(this.docSymbols.length + ' top-level symbols returned');
-    return this.docSymbols;
+    this.logger.info('[VerilogSymbol] Symbols Requested: ' + document.uri)
+    let symbols: Symbol[] = await this.ctagsManager.getCtags(document).getSymbols()
+    this.docSymbols = this.buildDocumentSymbolList(symbols)
+    this.logger.info(this.docSymbols.length + ' top-level symbols returned')
+    return this.docSymbols
   }
 
   isContainer(type: vscode.SymbolKind): boolean {
@@ -41,7 +41,7 @@ export class VerilogDocumentSymbolProvider implements vscode.DocumentSymbolProvi
       case vscode.SymbolKind.String:
       case vscode.SymbolKind.TypeParameter:
       case vscode.SymbolKind.Variable:
-        return false;
+        return false
       case vscode.SymbolKind.Class:
       case vscode.SymbolKind.Constructor:
       case vscode.SymbolKind.Enum:
@@ -53,68 +53,68 @@ export class VerilogDocumentSymbolProvider implements vscode.DocumentSymbolProvi
       case vscode.SymbolKind.Namespace:
       case vscode.SymbolKind.Package:
       case vscode.SymbolKind.Struct:
-        return true;
+        return true
     }
-    return false;
+    return false
   }
 
   // find the appropriate container RECURSIVELY and add to its childrem
   // return true: if done
   // return false: if container not found
   findContainer(con: vscode.DocumentSymbol, sym: vscode.DocumentSymbol): boolean {
-    let res: boolean = false;
+    let res: boolean = false
     for (let i of con.children) {
       if (this.isContainer(i.kind) && i.range.contains(sym.range)) {
-        res = this.findContainer(i, sym);
+        res = this.findContainer(i, sym)
         if (res) {
-          return true;
+          return true
         }
       }
     }
     if (!res) {
-      con.children.push(sym);
-      return true;
+      con.children.push(sym)
+      return true
     }
-    return false;
+    return false
   }
 
   // Build heiarchial DocumentSymbol[] from linear symbolsList[] using start and end position
   // TODO: Use parentscope/parenttype of symbol to construct heirarchial vscode.DocumentSymbol []
   buildDocumentSymbolList(symbolsList: Symbol[]): vscode.DocumentSymbol[] {
-    let list: vscode.DocumentSymbol[] = [];
+    let list: vscode.DocumentSymbol[] = []
     symbolsList = symbolsList.sort((a, b): number => {
       if (a.startPosition.isBefore(b.startPosition)) {
-        return -1;
+        return -1
       }
       if (a.startPosition.isAfter(b.startPosition)) {
-        return 1;
+        return 1
       }
-      return 0;
-    });
+      return 0
+    })
     // Add each of the symbols in order
     for (let i of symbolsList) {
-      let sym: vscode.DocumentSymbol = i.getDocumentSymbol();
+      let sym: vscode.DocumentSymbol = i.getDocumentSymbol()
       // if no top level elements present
       if (list.length === 0) {
-        list.push(sym);
-        continue;
+        list.push(sym)
+        continue
       } else {
         // find a parent among the top level element
-        let done: boolean = false;
+        let done: boolean = false
         for (let j of list) {
           if (this.isContainer(j.kind) && j.range.contains(sym.range)) {
-            this.findContainer(j, sym);
-            done = true;
-            break;
+            this.findContainer(j, sym)
+            done = true
+            break
           }
         }
         // add a new top level element
         if (!done) {
-          list.push(sym);
+          list.push(sym)
         }
       }
     }
 
-    return list;
+    return list
   }
 }

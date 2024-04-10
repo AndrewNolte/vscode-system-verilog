@@ -1,21 +1,21 @@
-import * as child from 'child_process';
-import * as vscode from 'vscode';
-import { Logger } from '../logger';
+import * as child from 'child_process'
+import * as vscode from 'vscode'
+import { Logger } from '../logger'
 
 export class Symbol {
-  name: string;
-  type: string;
-  line: number;
+  name: string
+  type: string
+  line: number
   // range of identifier
-  idRange: vscode.Range | undefined;
-  startPosition: vscode.Position;
+  idRange: vscode.Range | undefined
+  startPosition: vscode.Position
   // range of whole object (type, begin/end, etc.)
-  fullRange: vscode.Range | undefined;
-  parentScope: string;
-  parentType: string;
-  isValid: boolean;
-  typeRef: string | null;
-  doc: vscode.TextDocument;
+  fullRange: vscode.Range | undefined
+  parentScope: string
+  parentType: string
+  isValid: boolean
+  typeRef: string | null
+  doc: vscode.TextDocument
   constructor(
     doc: vscode.TextDocument,
     name: string,
@@ -26,50 +26,50 @@ export class Symbol {
     typeRef: string | null,
     isValid?: boolean
   ) {
-    this.doc = doc;
-    this.name = name;
-    this.type = type;
-    this.line = startLine;
-    this.startPosition = new vscode.Position(startLine, 0);
-    this.parentScope = parentScope;
-    this.parentType = parentType;
-    this.isValid = Boolean(isValid);
-    this.typeRef = typeRef;
+    this.doc = doc
+    this.name = name
+    this.type = type
+    this.line = startLine
+    this.startPosition = new vscode.Position(startLine, 0)
+    this.parentScope = parentScope
+    this.parentType = parentType
+    this.isValid = Boolean(isValid)
+    this.typeRef = typeRef
   }
 
   prettyPrint(): string {
-    let ret = `${this.name}(${this.type}):${this.line}`;
+    let ret = `${this.name}(${this.type}):${this.line}`
     if (this.parentScope !== '') {
-      ret += ` parent=${this.parentScope}(${this.parentType})`;
+      ret += ` parent=${this.parentScope}(${this.parentType})`
     }
     if (this.typeRef !== null) {
-      ret += ` typeref=${this.typeRef}`;
+      ret += ` typeref=${this.typeRef}`
     }
-    return ret;
+    return ret
   }
 
   getIdRange(): vscode.Range {
     if (this.idRange === undefined) {
       this.idRange = this.doc.getWordRangeAtPosition(
         new vscode.Position(this.line, this.doc.lineAt(this.line).text.indexOf(this.name))
-      );
+      )
       if (this.idRange === undefined) {
-        this.idRange = this.getFullRange();
+        this.idRange = this.getFullRange()
       }
     }
-    return this.idRange;
+    return this.idRange
   }
 
   getFullRange(): vscode.Range {
     if (this.fullRange === undefined) {
-      this.fullRange = this.doc.lineAt(this.line).range;
+      this.fullRange = this.doc.lineAt(this.line).range
     }
-    return this.fullRange;
+    return this.fullRange
   }
 
   setEndPosition(endLine: number) {
-    this.fullRange = new vscode.Range(this.line, 0, endLine, Number.MAX_VALUE);
-    this.isValid = true;
+    this.fullRange = new vscode.Range(this.line, 0, endLine, Number.MAX_VALUE)
+    this.isValid = true
   }
 
   getDocumentSymbol(): vscode.DocumentSymbol {
@@ -79,58 +79,55 @@ export class Symbol {
       Symbol.getSymbolKind(this.type),
       this.fullRange ?? this.getIdRange(),
       this.getIdRange()
-    );
+    )
   }
 
   isMacro(): boolean {
-    let charnum = this.getIdRange().start.character;
+    let charnum = this.getIdRange().start.character
     if (charnum === undefined) {
-      return false;
+      return false
     }
-    let firstchar = this.doc.lineAt(this.line).firstNonWhitespaceCharacterIndex;
+    let firstchar = this.doc.lineAt(this.line).firstNonWhitespaceCharacterIndex
     if (
       this.doc.getText(new vscode.Range(this.line, firstchar, this.line, firstchar + 7)) ===
       '`define'
     ) {
-      return true;
+      return true
     }
-    return false;
+    return false
   }
 
   isModuleType(): boolean {
-    return this.type === 'module' || this.type === 'interface';
+    return this.type === 'module' || this.type === 'interface'
   }
 
   getHoverRange(): vscode.Range {
     if (this.isMacro()) {
-      let range = this.getFullRange();
-      let endline = range.end.line;
+      let range = this.getFullRange()
+      let endline = range.end.line
       for (; endline < this.doc.lineCount; endline++) {
         if (!this.doc.lineAt(endline).text.endsWith('\\')) {
-          break;
+          break
         }
       }
-      this.fullRange = new vscode.Range(
-        range.start,
-        new vscode.Position(endline, Number.MAX_VALUE)
-      );
+      this.fullRange = new vscode.Range(range.start, new vscode.Position(endline, Number.MAX_VALUE))
     }
-    return this.getFullRange();
+    return this.getFullRange()
   }
 
   getHoverText(): string {
     if (this.isMacro()) {
       // macro definitions should show the whole macro
-      let code = '';
+      let code = ''
       for (let i = this.line; i < this.doc.lineCount; i++) {
-        const lineText = this.doc.lineAt(i).text;
-        code += lineText;
+        const lineText = this.doc.lineAt(i).text
+        code += lineText
         if (!lineText.endsWith('\\')) {
-          break;
+          break
         }
-        code += '\n';
+        code += '\n'
       }
-      return code;
+      return code
     }
 
     let code = this.doc
@@ -139,8 +136,8 @@ export class Symbol {
       .replace(/\s{2,}/g, ' ') // trim long whitespace from formatting
       .replace(/,$/, '') // remove trailing commas
       .replace(/#\($/, '') // remove trailing #(
-      .trim();
-    return code;
+      .trim()
+    return code
   }
 
   getDefinitionLink(): vscode.DefinitionLink {
@@ -148,7 +145,7 @@ export class Symbol {
       targetUri: this.doc.uri,
       targetRange: this.getIdRange(),
       targetSelectionRange: this.fullRange,
-    };
+    }
   }
 
   static isContainer(type: string): boolean {
@@ -164,7 +161,7 @@ export class Symbol {
       case 'typedef':
       case 'property':
       case 'assert':
-        return false;
+        return false
       case 'function':
       case 'module':
       case 'task':
@@ -176,9 +173,9 @@ export class Symbol {
       case 'package':
       case 'program':
       case 'struct':
-        return true;
+        return true
     }
-    return false;
+    return false
   }
 
   // types used by ctags
@@ -186,52 +183,52 @@ export class Symbol {
   static getSymbolKind(name: String): vscode.SymbolKind {
     switch (name) {
       case 'constant':
-        return vscode.SymbolKind.Constant;
+        return vscode.SymbolKind.Constant
       case 'parameter':
-        return vscode.SymbolKind.Constant;
+        return vscode.SymbolKind.Constant
       case 'event':
-        return vscode.SymbolKind.Event;
+        return vscode.SymbolKind.Event
       case 'function':
-        return vscode.SymbolKind.Function;
+        return vscode.SymbolKind.Function
       case 'module':
-        return vscode.SymbolKind.Module;
+        return vscode.SymbolKind.Module
       case 'net':
-        return vscode.SymbolKind.Variable;
+        return vscode.SymbolKind.Variable
       // Boolean uses a double headed arrow as symbol (kinda looks like a port)
       case 'port':
-        return vscode.SymbolKind.Boolean;
+        return vscode.SymbolKind.Boolean
       case 'register':
-        return vscode.SymbolKind.Variable;
+        return vscode.SymbolKind.Variable
       case 'task':
-        return vscode.SymbolKind.Function;
+        return vscode.SymbolKind.Function
       case 'block':
-        return vscode.SymbolKind.Module;
+        return vscode.SymbolKind.Module
       case 'assert':
-        return vscode.SymbolKind.Variable; // No idea what to use
+        return vscode.SymbolKind.Variable // No idea what to use
       case 'class':
-        return vscode.SymbolKind.Class;
+        return vscode.SymbolKind.Class
       case 'covergroup':
-        return vscode.SymbolKind.Class; // No idea what to use
+        return vscode.SymbolKind.Class // No idea what to use
       case 'enum':
-        return vscode.SymbolKind.Enum;
+        return vscode.SymbolKind.Enum
       case 'interface':
-        return vscode.SymbolKind.Interface;
+        return vscode.SymbolKind.Interface
       case 'modport':
-        return vscode.SymbolKind.Boolean; // same as ports
+        return vscode.SymbolKind.Boolean // same as ports
       case 'package':
-        return vscode.SymbolKind.Package;
+        return vscode.SymbolKind.Package
       case 'program':
-        return vscode.SymbolKind.Module;
+        return vscode.SymbolKind.Module
       case 'prototype':
-        return vscode.SymbolKind.Function;
+        return vscode.SymbolKind.Function
       case 'property':
-        return vscode.SymbolKind.Property;
+        return vscode.SymbolKind.Property
       case 'struct':
-        return vscode.SymbolKind.Struct;
+        return vscode.SymbolKind.Struct
       case 'typedef':
-        return vscode.SymbolKind.TypeParameter;
+        return vscode.SymbolKind.TypeParameter
       default:
-        return vscode.SymbolKind.Variable;
+        return vscode.SymbolKind.Variable
     }
   }
 }
@@ -239,53 +236,53 @@ export class Symbol {
 // TODO: add a user setting to enable/disable all ctags based operations
 export class CtagsParser {
   /// Symbol definitions (no rhs)
-  symbols: Symbol[];
-  doc: vscode.TextDocument;
-  isDirty: boolean;
-  private logger: Logger;
-  binPath: string;
+  symbols: Symbol[]
+  doc: vscode.TextDocument
+  isDirty: boolean
+  private logger: Logger
+  binPath: string
 
   constructor(logger: Logger, document: vscode.TextDocument) {
-    this.symbols = [];
-    this.isDirty = true;
-    this.logger = logger;
-    this.doc = document;
+    this.symbols = []
+    this.isDirty = true
+    this.logger = logger
+    this.doc = document
 
     let binPath: string = <string>(
       vscode.workspace.getConfiguration().get('verilog.ctags.path', 'ctags')
-    );
+    )
     if (binPath === 'none') {
-      binPath = 'ctags';
+      binPath = 'ctags'
     }
-    this.binPath = binPath;
+    this.binPath = binPath
   }
 
   clearSymbols() {
-    this.isDirty = true;
-    this.symbols = [];
+    this.isDirty = true
+    this.symbols = []
   }
 
   async getSymbols({ name, type }: { name?: string; type?: string } = {}): Promise<Symbol[]> {
     if (this.isDirty) {
-      await this.index();
+      await this.index()
     }
     if (type !== undefined) {
-      return this.symbols.filter((sym) => sym.type === type);
+      return this.symbols.filter((sym) => sym.type === type)
     }
     if (name !== undefined) {
-      return this.symbols.filter((sym) => sym.name === name);
+      return this.symbols.filter((sym) => sym.name === name)
     }
-    return this.symbols;
+    return this.symbols
   }
 
   async getModules(): Promise<Symbol[]> {
-    let syms = await this.getSymbols();
-    return syms.filter((tag) => tag.type === 'module' || tag.type === 'interface');
+    let syms = await this.getSymbols()
+    return syms.filter((tag) => tag.type === 'module' || tag.type === 'interface')
   }
 
   async getPackageSymbols(): Promise<Symbol[]> {
-    let syms = await this.getSymbols();
-    return syms.filter((tag) => tag.type !== 'member' && tag.type !== 'register');
+    let syms = await this.getSymbols()
+    return syms.filter((tag) => tag.type !== 'member' && tag.type !== 'register')
   }
 
   async execCtags(filepath: string): Promise<string> {
@@ -293,107 +290,107 @@ export class CtagsParser {
       this.binPath +
       ' -f - --fields=+K --sort=no --excmd=n --fields-SystemVerilog=+{parameter} "' +
       filepath +
-      '"';
-    this.logger.info('Executing Command: ' + command);
+      '"'
+    this.logger.info('Executing Command: ' + command)
     return new Promise((resolve, _reject) => {
       child.exec(command, (_error: child.ExecException | null, stdout: string, _stderr: string) => {
-        resolve(stdout);
-      });
-    });
+        resolve(stdout)
+      })
+    })
   }
 
   parseTagLine(line: string): Symbol | undefined {
     try {
-      let name, type, pattern, lineNoStr, parentScope, parentType: string;
-      let typeref: string | null = null;
-      let scope: string[];
-      let lineNo: number;
-      let parts: string[] = line.split('\t');
-      name = parts[0];
-      type = parts[3];
+      let name, type, pattern, lineNoStr, parentScope, parentType: string
+      let typeref: string | null = null
+      let scope: string[]
+      let lineNo: number
+      let parts: string[] = line.split('\t')
+      name = parts[0]
+      type = parts[3]
       // override "type" for parameters (See #102)
       if (parts.length === 6) {
         if (parts[5] === 'parameter:') {
-          type = 'parameter';
+          type = 'parameter'
         }
 
         if (parts[5].startsWith('typeref')) {
-          typeref = parts[5].split(':')[2];
+          typeref = parts[5].split(':')[2]
         }
       }
       if (parts.length >= 5) {
-        scope = parts[4].split(':');
-        parentType = scope[0];
-        parentScope = scope[1];
+        scope = parts[4].split(':')
+        parentType = scope[0]
+        parentScope = scope[1]
       } else {
-        parentScope = '';
-        parentType = '';
+        parentScope = ''
+        parentType = ''
       }
-      lineNoStr = parts[2];
-      lineNo = Number(lineNoStr.slice(0, -2)) - 1;
+      lineNoStr = parts[2]
+      lineNo = Number(lineNoStr.slice(0, -2)) - 1
       // pretty print symbol
-      return new Symbol(this.doc, name, type, lineNo, parentScope, parentType, typeref, false);
+      return new Symbol(this.doc, name, type, lineNo, parentScope, parentType, typeref, false)
     } catch (e) {
-      this.logger.error('Line Parser: ' + e);
-      this.logger.error('Line: ' + line);
+      this.logger.error('Line Parser: ' + e)
+      this.logger.error('Line: ' + line)
     }
-    return undefined;
+    return undefined
   }
 
   async buildSymbolsList(tags: string): Promise<void> {
     try {
       if (this.isDirty) {
-        this.logger.info('building symbols');
+        this.logger.info('building symbols')
         if (tags === '') {
-          this.logger.error('No output from ctags');
-          return;
+          this.logger.error('No output from ctags')
+          return
         }
         // Parse ctags output
-        let lines: string[] = tags.split(/\r?\n/);
+        let lines: string[] = tags.split(/\r?\n/)
         lines.forEach((line) => {
           if (line !== '') {
-            let sym = this.parseTagLine(line);
+            let sym = this.parseTagLine(line)
             if (sym !== undefined) {
-              this.symbols.push(sym);
+              this.symbols.push(sym)
             }
           }
-        });
+        })
 
         // end tags are not supported yet in ctags. So, using regex
-        let match: RegExpExecArray | null = null;
-        let endPosition: vscode.Position;
-        let text = this.doc.getText();
-        let eRegex: RegExp = /^(?![\r\n])\s*end(\w*)*[\s:]?/gm;
+        let match: RegExpExecArray | null = null
+        let endPosition: vscode.Position
+        let text = this.doc.getText()
+        let eRegex: RegExp = /^(?![\r\n])\s*end(\w*)*[\s:]?/gm
         while ((match = eRegex.exec(text))) {
           if (match === null) {
-            break;
+            break
           }
           if (typeof match[1] === 'undefined') {
-            continue;
+            continue
           }
 
-          endPosition = this.doc.positionAt(match.index + match[0].length - 1);
-          let type: string = match[1];
+          endPosition = this.doc.positionAt(match.index + match[0].length - 1)
+          let type: string = match[1]
           // get the starting symbols of the same type
           // doesn't check for begin...end blocks
           let s = this.symbols.filter((sym) => {
-            return sym.type === type && sym.startPosition.isBefore(endPosition) && !sym.isValid;
-          });
+            return sym.type === type && sym.startPosition.isBefore(endPosition) && !sym.isValid
+          })
           if (s.length === 0) {
-            continue;
+            continue
           }
           // get the symbol nearest to the end tag
           let max: Symbol = s.reduce(
             (max, current) =>
               current.getIdRange().start.isAfter(max.startPosition) ? current : max,
             s[0]
-          );
-          max.setEndPosition(endPosition.line);
+          )
+          max.setEndPosition(endPosition.line)
         }
-        this.isDirty = false;
+        this.isDirty = false
       }
     } catch (e) {
-      this.logger.error((e as Error).toString());
+      this.logger.error((e as Error).toString())
     }
     // print all syms
     // this.symbols.forEach((sym) => {
@@ -402,54 +399,54 @@ export class CtagsParser {
   }
 
   async index(): Promise<void> {
-    this.logger.info('indexing ', this.doc.uri.fsPath);
-    let output = await this.execCtags(this.doc.uri.fsPath);
-    await this.buildSymbolsList(output);
+    this.logger.info('indexing ', this.doc.uri.fsPath)
+    let output = await this.execCtags(this.doc.uri.fsPath)
+    await this.buildSymbolsList(output)
   }
 
   async getNestedHoverText(sym: Symbol): Promise<Array<string>> {
     // TODO: maybe go deeper
-    let ret: string[] = [];
-    ret.push(sym.getHoverText());
+    let ret: string[] = []
+    ret.push(sym.getHoverText())
     if (sym.isModuleType()) {
-      return ret;
+      return ret
     }
     // find other words with definitions in the hover text, and add them
-    let range = sym.getHoverRange();
-    let words = new Set(this.doc.getText(range).match(/\b[a-zA-Z_]\w*\b/g) || []);
-    words.delete(sym.name);
+    let range = sym.getHoverRange()
+    let words = new Set(this.doc.getText(range).match(/\b[a-zA-Z_]\w*\b/g) || [])
+    words.delete(sym.name)
 
-    let docsyms = await this.getSymbols();
-    let syms = docsyms.filter((sym) => words.has(sym.name));
+    let docsyms = await this.getSymbols()
+    let syms = docsyms.filter((sym) => words.has(sym.name))
     let defs = await Promise.all(
       syms.map(async (s: Symbol) => {
-        return s.getHoverText();
+        return s.getHoverText()
       })
-    );
+    )
 
     if (defs.length > 0) {
-      ret.push(defs.join('\n'));
+      ret.push(defs.join('\n'))
     }
 
-    return ret;
+    return ret
   }
 
   getModuleSnippet(module: Symbol, fullModule: boolean) {
-    let portsName: string[] = [];
-    let parametersName: string[] = [];
+    let portsName: string[] = []
+    let parametersName: string[] = []
 
-    let scope = module.parentScope !== '' ? module.parentScope + '.' + module.name : module.name;
+    let scope = module.parentScope !== '' ? module.parentScope + '.' + module.name : module.name
     let ports: Symbol[] = this.symbols.filter(
       (tag) => tag.type === 'port' && tag.parentScope === scope
-    );
-    portsName = ports.map((tag) => tag.name);
+    )
+    portsName = ports.map((tag) => tag.name)
     let params: Symbol[] = this.symbols.filter(
       (tag) => tag.type === 'parameter' && tag.parentScope === scope
-    );
-    parametersName = params.map((tag) => tag.name);
-    let paramString = ``;
+    )
+    parametersName = params.map((tag) => tag.name)
+    let paramString = ``
     if (parametersName.length > 0) {
-      paramString = `\n${instantiatePort(parametersName)}`;
+      paramString = `\n${instantiatePort(parametersName)}`
     }
 
     if (fullModule) {
@@ -461,7 +458,7 @@ export class CtagsParser {
         .appendPlaceholder(`${module.name.toLowerCase()}`)
         .appendText(' (\n')
         .appendText(instantiatePort(portsName))
-        .appendText(');\n');
+        .appendText(');\n')
     }
     return (
       new vscode.SnippetString()
@@ -471,47 +468,47 @@ export class CtagsParser {
         .appendPlaceholder(`${module.name.toLowerCase()}`)
         .appendText(' (\n')
         .appendText(instantiatePort(portsName))
-    );
+    )
   }
 }
 
 function instantiatePort(ports: string[]): string {
-  let port = '';
-  let maxLen = 0;
+  let port = ''
+  let maxLen = 0
   for (let i = 0; i < ports.length; i++) {
     if (ports[i].length > maxLen) {
-      maxLen = ports[i].length;
+      maxLen = ports[i].length
     }
   }
   // .NAME(NAME)
   for (let i = 0; i < ports.length; i++) {
-    let element = ports[i];
-    let padding = maxLen - element.length;
-    element = element + ' '.repeat(padding);
-    port += `\t.${element}(${ports[i]})`;
+    let element = ports[i]
+    let padding = maxLen - element.length
+    element = element + ' '.repeat(padding)
+    port += `\t.${element}(${ports[i]})`
     if (i !== ports.length - 1) {
-      port += ',';
+      port += ','
     }
-    port += '\n';
+    port += '\n'
   }
-  return port;
+  return port
 }
 
 function positionsFromRange(doc: vscode.TextDocument, range: vscode.Range): vscode.Position[] {
-  let ret: vscode.Position[] = [];
+  let ret: vscode.Position[] = []
   for (let i = range.start.line; i <= range.end.line; i++) {
-    const line = doc.lineAt(i);
-    const words = line.text.match(/\b(\w+)\b/g);
-    let match;
+    const line = doc.lineAt(i)
+    const words = line.text.match(/\b(\w+)\b/g)
+    let match
 
     if (words) {
       // Use a regex to find words and their indices within the line
-      const regex = /\b(\w+)\b/g;
+      const regex = /\b(\w+)\b/g
       while ((match = regex.exec(line.text)) !== null) {
         // Calculate the start and end positions of each word
-        ret.push(new vscode.Position(i, match.index));
+        ret.push(new vscode.Position(i, match.index))
       }
     }
   }
-  return ret;
+  return ret
 }

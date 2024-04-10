@@ -1,4 +1,4 @@
-import * as vscode from 'vscode';
+import * as vscode from 'vscode'
 
 /* Wrapper for vscode.LogOutputChannel.
 Example usage:
@@ -12,54 +12,54 @@ Example usage:
 */
 
 export class Logger {
-  private name: string;
-  private parentLogger: vscode.LogOutputChannel | Logger;
+  private name: string
+  private parentLogger: vscode.LogOutputChannel | Logger
 
   constructor(name: string, parentLogger: vscode.LogOutputChannel | Logger) {
-    this.name = name;
-    this.parentLogger = parentLogger;
+    this.name = name
+    this.parentLogger = parentLogger
   }
 
   getChild(name: string) {
-    return new Logger(name, this);
+    return new Logger(name, this)
   }
 
   private log(level: keyof Logger, message: string, data?: unknown): void {
     let formattedMessage =
-      this.parentLogger instanceof Logger ? `[${this.name}] ${message}` : `${message}`;
+      this.parentLogger instanceof Logger ? `[${this.name}] ${message}` : `${message}`
     if (data) {
-      formattedMessage += JSON.stringify(data);
+      formattedMessage += JSON.stringify(data)
     }
 
-    // @ts-ignore    
-    this.parentLogger[level](formattedMessage); 
+    // @ts-ignore
+    this.parentLogger[level](formattedMessage)
   }
 
   trace(message: string, data?: unknown): void {
-    this.log('trace', message, data);
+    this.log('trace', message, data)
   }
 
   info(message: string, data?: unknown): void {
-    this.log('info', message, data);
+    this.log('info', message, data)
   }
 
   debug(message: string, data?: unknown): void {
-    this.log('debug', message, data);
+    this.log('debug', message, data)
   }
 
   warn(message: string, data?: unknown): void {
-    this.log('warn', message, data);
+    this.log('warn', message, data)
   }
 
   error(message: string, data?: unknown): void {
-    this.log('error', message, data);
+    this.log('error', message, data)
   }
 
   show(): void {
-    this.parentLogger.show();
+    this.parentLogger.show()
   }
 }
 
 export function createLogger(name: string): Logger {
-  return new Logger(name, vscode.window.createOutputChannel(name, { log: true }));
+  return new Logger(name, vscode.window.createOutputChannel(name, { log: true }))
 }
