@@ -9,7 +9,7 @@ SystemVerilog support for VS Code with Syntax Highlighting, Snippets, Linting, F
 
 ## Installation
 
-Install it from the [VS Code Marketplace](https://marketplace.visualstudio.com/items/mshr-h.VerilogHDL)
+Install it from the [VS Code Marketplace](https://marketplace.visualstudio.com/items/AndrewNolte.vscode-system-verilog)
 
 ## Features
 
@@ -49,6 +49,8 @@ Install it from the [VS Code Marketplace](https://marketplace.visualstudio.com/i
 
 ### Install [universal-ctags](https://github.com/universal-ctags/ctags)
 
+This is used for definition support, hover support, and most of the analysis features.
+
 Use >= 6.1 for port definition support
 
 - Windows - Release are [here](https://github.com/universal-ctags/ctags-win32/releases)
@@ -61,9 +63,25 @@ This is the best linter to use, as it's the [fastest and most compliant](https:/
 
 ### Example Configuration
 
-```
-
-
+```json
+"verilog.includes": [
+    "hdl/lib",
+    "hdl/includes"
+],
+"verilog.directory": "hdl",
+"verilog.ctags.path": "/usr/local/bin/ctags-universal",
+"verilog.lint.slang.enabled": true,
+"verilog.lint.slang.args": "-y hdl/sv_index ",
+"verilog.lint.slang.path": "/usr/local/bin/slang",
+"verilog.lint.verilator.enabled": true,
+"verilog.lint.verilator.args": "-y hdl/sv_index",
+// tools will use the default name on the path if not path is given
+"verilog.format.svFormatter": "verible-verilog-format",
+"verilog.format.verible.args": "--flagfile=myflags.txt",
+"verilog.format.verible.path": "/usr/local/bin/verible-verilog-format",
+"verilog.format.dirs": [
+    "hdl/myproject"
+],
 ```
 
 Explore all configuation options [here](CONFIG.md)
