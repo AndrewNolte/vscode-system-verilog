@@ -170,7 +170,11 @@ export class CtagsManager {
 
     if (this.moduleMap.has(targetText) || this.moduleMap.has(parentScope)) {
       // find parentScope.sv of parentScope::targetText
-      return await this.findDefinitionByName(parentScope, targetText)
+      let sym = (await this.findDefinitionByName(parentScope, targetText)).at(0)
+      // Sometimes package::x is found multiple times, return just the top level package
+      if (sym !== undefined) {
+        return [sym]
+      }
     }
     return await symPromise
   }
