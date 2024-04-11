@@ -36,7 +36,7 @@ export function activate(context: vscode.ExtensionContext) {
   )
 
   ctagsManager = new CtagsManager(
-    logger,
+    logger.getChild('Ctags'),
     vscode.workspace.getConfiguration().get('verilog.directory', '')
   )
 

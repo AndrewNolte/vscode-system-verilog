@@ -40,7 +40,6 @@ export default abstract class BaseLinter {
     if (this.linterOptions.includes.length === 0) {
       this.linterOptions.includes = this.generalOptions.includes
     }
-    this.logger.info('general includes: ' + this.generalOptions.includes)
     this.linterOptions.includes.forEach((inc) => {
       if (inc === '${includes}') {
         this.linterOptions.includes = this.linterOptions.includes
@@ -48,7 +47,6 @@ export default abstract class BaseLinter {
           .concat(this.generalOptions.includes)
       }
     })
-    this.logger.info('specific includes: ' + this.linterOptions.includes)
     this.linterOptions.args = this.getSubConfig('args', '')
     this.linterOptions.useWsl = this.getSubConfig('useWsl', false)
     this.linterOptions.path = this.getSubConfig('path', this.name)

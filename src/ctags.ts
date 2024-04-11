@@ -97,7 +97,6 @@ export class CtagsManager {
   }
 
   onSave(doc: vscode.TextDocument) {
-    this.logger.info('on save')
     let ctags: CtagsParser = this.getCtags(doc)
     ctags.clearSymbols()
   }

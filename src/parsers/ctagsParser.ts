@@ -354,7 +354,7 @@ export class CtagsParser {
   async buildSymbolsList(tags: string): Promise<void> {
     try {
       if (this.isDirty) {
-        this.logger.info('building symbols')
+        this.logger.info('building symbols for ' + this.doc.uri.fsPath)
         if (tags === '') {
           this.logger.error('No output from ctags')
           return
