@@ -62,6 +62,15 @@ export class Symbol {
 
   getFullRange(): vscode.Range {
     if (this.fullRange === undefined) {
+      if (this.type === 'typedef') {
+        let sOffset = this.doc.offsetAt(this.getIdRange().start)
+        const index = this.doc.getText().lastIndexOf('typedef', sOffset)
+        if (index >= 0) {
+          let pos = this.doc.positionAt(index)
+          this.fullRange = new vscode.Range(pos, this.getIdRange().end)
+          return this.fullRange
+        }
+      }
       this.fullRange = this.doc.lineAt(this.line).range
     }
     return this.fullRange
@@ -127,6 +136,11 @@ export class Symbol {
         }
         code += '\n'
       }
+      return code
+    }
+
+    if (this.type === 'typedef') {
+      let code = this.doc.getText(this.getFullRange())
       return code
     }
 
@@ -408,7 +422,7 @@ export class CtagsParser {
     // TODO: maybe go deeper
     let ret: string[] = []
     ret.push(sym.getHoverText())
-    if (sym.isModuleType()) {
+    if (sym.isModuleType() || sym.type === 'typedef' || sym.type === 'package') {
       return ret
     }
     // find other words with definitions in the hover text, and add them
