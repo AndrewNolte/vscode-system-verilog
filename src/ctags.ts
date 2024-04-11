@@ -168,7 +168,8 @@ export class CtagsManager {
       return this.symbolMap.get(targetText) ?? []
     }
 
-    if (this.moduleMap.has(targetText)) {
+    if (this.moduleMap.has(targetText) || this.moduleMap.has(parentScope)) {
+      // find parentScope.sv of parentScope::targetText
       return await this.findDefinitionByName(parentScope, targetText)
     }
     return await symPromise
