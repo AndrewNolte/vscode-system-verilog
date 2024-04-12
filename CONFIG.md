@@ -37,7 +37,7 @@ This may be out of date, I'm changing quite a bit right now.
 
     If enabled, Slang will be run at the file location for linting. Else it will be run at workspace folder. Disabled by default.
 
-- `verilog.lint.slang.useWSL` (Default: `false` )
+- `verilog.lint.slang.useWsl` (Default: `false` )
 
     Run verilator under WSL. Paths generated automatically by the extension (the path to the Verilog file as well as
     the auto-generated document folder for `-I` ) are translated to WSL paths using the `wslpath` program.
@@ -57,7 +57,7 @@ This may be out of date, I'm changing quite a bit right now.
 
     By default, the linter will be run at the workspace directory. Enable this option to run at the file location. If enabled, `` ` include`` directives should contain file paths relative to the current file.
 
-- `verilog.lint.verilator.useWSL` (Default: `false` )
+- `verilog.lint.verilator.useWsl` (Default: `false` )
 
     Run verilator under WSL (use `apg-get install verilator` to install). Paths generated automatically by the
     extension (the path to the Verilog file as well as the auto-generated document folder for `-I` ) are translated
@@ -160,47 +160,3 @@ This may be out of date, I'm changing quite a bit right now.
 - `verilog.format.veribleFormatter.args` (Default: nothing)
 
      Add custom arguments to verible-verilog-format for formatting.
-
-## Compatibility
-
-| Feature                           |  Windows   |    Linux     |    macOS    |
-| --------------------------------- | :--------: | :----------: | :---------: |
-| Basics (like Syntax highlighting) | Windows 10 | Ubuntu 20.04 | macOS 10.15 |
-| Icarus Verilog                    | Windows 10 | Ubuntu 18.04 |     Yes     |
-| Vivado Logical Simulation         | Windows 10 |  Not Tested  | Not Tested  |
-| Modelsim                          | Windows 10 | Ubuntu 18.04 | Not Tested  |
-| Verilator                         | Windows 10 |   Debian 9   | Not Tested  |
-| Ctags Integration                 | Windows 10 | Ubuntu 18.10 | Not Tested  |
-| Language Server                   | Windows 10 | Ubuntu 20.04 | macOS 10.15 |
-| Formatting                        | Not tested | Ubuntu 20.04 | Not tested  |
-
-If you have tested the linters in new platforms or have issues with them, feel free to file an issue.
-
-## [Guidelines for Contributing](./CONTRIBUTING.md)
-
-## Logs
-
-Logs are outputted to LogOutputChannel in th VS Code.
-You can check it by opening the **Output** pane in VS Code and choose _Verilog_ in the drop-down menu.
-
-## Helpful links
-
-- [Verilog in VSCode With Linting (Using Modelsim) - YouTube](https://www.youtube.com/watch?v=-DTGf3Z6v_o)
-
-## Thanks
-
-- To all our [Contributors](https://github.com/mshr-h/vscode-verilog-hdl-support/graphs/contributors)
-- [Textmate Package for Verilog](https://github.com/textmate/verilog.tmbundle)
-- [SublimeLinter-contrib-iverilog](https://github.com/jfcherng/SublimeLinter-contrib-iverilog)
-- [SublimeLinter-contrib-vlog](https://github.com/dave2pi/SublimeLinter-contrib-vlog)
-- [yangsu/sublime-vhdl](https://github.com/yangsu/sublime-vhdl)
-- [Sublime EDA](https://github.com/tschinz/sublime_eda)
-- [dalance/svls](https://github.com/dalance/svls)
-- [vivekmalneedi/veridian](https://github.com/vivekmalneedi/veridian)
-- [suoto/hdl_checkerChecker](https://github.com/suoto/hdl_checker)
-- [chipsalliance/verible](https://github.com/chipsalliance/verible)
-- [ericsonj/verilog-format](https://github.com/ericsonj/verilog-format)
-- [thomasrussellmurphy/istyle-verilog-formatter](https://github.com/thomasrussellmurphy/istyle-verilog-formatter)
-- [slang C++ docs](https://sv-lang.com/)
-- [bitwisecook/vscode-tcl: Tcl for Visual Studio Code](https://github.com/bitwisecook/vscode-tcl)
-  - `configs/tcl.configuration.json` and `syntaxes/tcl.tmlanguage.json` are obtained from the repo.

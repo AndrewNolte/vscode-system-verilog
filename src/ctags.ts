@@ -3,37 +3,37 @@ import * as vscode from 'vscode'
 import { Logger } from './logger'
 import { CtagsParser, Symbol } from './parsers/ctagsParser'
 import { getParentText, getPrevChar, getWorkspaceFolder, raceArrays } from './utils'
-import { Config } from './config'
+import { config } from './extension'
+import { ConfigNode, ConfigObject } from './libconfig'
 
-export class CtagsManager {
+export class CtagsManager extends ConfigNode {
+  // file -> parser
   private filemap: Map<vscode.TextDocument, CtagsParser> = new Map()
-  logger: Logger
-  private searchPrefix: string
-
-  /// symbols from include files
+  /// symbol name -> symbols (from includes)
   private symbolMap: Map<string, Symbol[]> = new Map()
-  /// module name to file, we assumed name.sv containes name module
+  /// module name -> file, we assumed name.sv containes name module
   private moduleMap: Map<string, vscode.Uri> = new Map()
 
-  constructor(logger: Logger, hdlDir: string) {
-    this.logger = logger
-    this.logger.info('ctags manager configure')
-    if (hdlDir.length !== 0) {
-      this.searchPrefix = `${hdlDir}/**`
-    } else {
-      this.searchPrefix = '**'
-    }
+  path: ConfigObject<string> = new ConfigObject({
+    default: 'ctags',
+    description: 'Path to ctags universal executable',
+  })
 
-    vscode.workspace.onDidSaveTextDocument(this.onSave.bind(this))
+  activate(_context: vscode.ExtensionContext): void {
+    this.logger.info('activating')
+    config.includes.onConfigUpdate(() => this.indexIncludes())
     vscode.workspace.onDidCloseTextDocument(this.onClose.bind(this))
 
     this.index()
     this.indexIncludes()
-    vscode.workspace.onDidChangeConfiguration(async (e) => {
-      if (e.affectsConfiguration('verilog.includes')) {
-        this.indexIncludes()
-      }
-    })
+  }
+
+  getSearchPrefix() {
+    let dir = config.directory.getValue()
+    if (dir !== undefined) {
+      return `${dir}/**`
+    }
+    return '**'
   }
 
   async indexIncludes(): Promise<void> {
@@ -44,7 +44,8 @@ export class CtagsManager {
         cancellable: true,
       },
       async () => {
-        Config.getIncludePaths().forEach(async (path: string) => {
+        let incs = config.includes.getValue()
+        incs.forEach(async (path: string) => {
           let files: vscode.Uri[] = await this.findFiles(`${path}/*.{svh}`)
 
           files.forEach(async (file: vscode.Uri) => {
@@ -59,7 +60,7 @@ export class CtagsManager {
             })
           })
         })
-        this.logger.info(`indexed ${Config.getIncludePaths().length} include paths`)
+        this.logger.info(`indexed ${incs.length} include paths`)
       }
     )
   }
@@ -72,9 +73,10 @@ export class CtagsManager {
         cancellable: true,
       },
       async () => {
-        this.logger.info('indexing')
+        let pattern = `${this.getSearchPrefix()}/*.{sv,v}`
+        this.logger.info('indexing ' + pattern)
         // We want to do a shallow index
-        let files: vscode.Uri[] = await this.findFiles(`${this.searchPrefix}/*.{sv,v}`)
+        let files: vscode.Uri[] = await this.findFiles(`${this.getSearchPrefix()}/*.{sv,v}`)
         files.forEach(async (file: vscode.Uri) => {
           let name = file.path.split('/').pop()?.split('.').shift() ?? ''
           this.moduleMap.set(name, file)

@@ -2,7 +2,7 @@
 import * as process from 'process'
 import * as vscode from 'vscode'
 import BaseLinter from './BaseLinter'
-import { FileDiagnostic } from './ToolOptions'
+import { FileDiagnostic } from '../utils'
 
 let isWindows = process.platform === 'win32'
 

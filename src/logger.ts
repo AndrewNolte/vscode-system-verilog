@@ -11,7 +11,40 @@ Example usage:
   [ChildA] Message from child"
 */
 
-export class Logger {
+export interface Logger {
+  getChild(name: string): Logger
+
+  trace(message: string, data?: unknown): void
+
+  info(message: string, data?: unknown): void
+
+  debug(message: string, data?: unknown): void
+
+  warn(message: string, data?: unknown): void
+
+  error(message: string, data?: unknown): void
+
+  show(): void
+}
+
+export class StubLogger implements Logger {
+  getChild(name: string): Logger {
+    return new StubLogger()
+  }
+
+  trace(message: string, data?: unknown): void {}
+
+  info(message: string, data?: unknown): void {}
+
+  debug(message: string, data?: unknown): void {}
+
+  warn(message: string, data?: unknown): void {}
+
+  error(message: string, data?: unknown): void {}
+
+  show(): void {}
+}
+export class OutputLogger {
   private name: string
   private parentLogger: vscode.LogOutputChannel | Logger
 
@@ -20,13 +53,13 @@ export class Logger {
     this.parentLogger = parentLogger
   }
 
-  getChild(name: string) {
-    return new Logger(name, this)
+  getChild(name: string): Logger {
+    return new OutputLogger(name, this)
   }
 
   private log(level: keyof Logger, message: string, data?: unknown): void {
     let formattedMessage =
-      this.parentLogger instanceof Logger ? `[${this.name}] ${message}` : `${message}`
+      this.parentLogger instanceof OutputLogger ? `[${this.name}] ${message}` : `${message}`
     if (data) {
       formattedMessage += JSON.stringify(data)
     }
@@ -61,5 +94,5 @@ export class Logger {
 }
 
 export function createLogger(name: string): Logger {
-  return new Logger(name, vscode.window.createOutputChannel(name, { log: true }))
+  return new OutputLogger(name, vscode.window.createOutputChannel(name, { log: true }))
 }

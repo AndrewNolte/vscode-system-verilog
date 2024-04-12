@@ -1,6 +1,7 @@
 import * as child from 'child_process'
 import * as vscode from 'vscode'
 import { Logger } from '../logger'
+import { config } from '../extension'
 
 export class Symbol {
   name: string
@@ -262,9 +263,7 @@ export class CtagsParser {
     this.logger = logger
     this.doc = document
 
-    let binPath: string = <string>(
-      vscode.workspace.getConfiguration().get('verilog.ctags.path', 'ctags')
-    )
+    let binPath: string = config.ctags.path.getValue()
     if (binPath === 'none') {
       binPath = 'ctags'
     }

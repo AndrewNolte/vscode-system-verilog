@@ -1,13 +1,18 @@
 // SPDX-License-Identifier: MIT
 import * as vscode from 'vscode'
 import BaseLinter from './BaseLinter'
-import { FileDiagnostic } from './ToolOptions'
+import { FileDiagnostic } from '../utils'
+import { ConfigObject } from '../libconfig'
 
 export default class ModelsimLinter extends BaseLinter {
+  work: ConfigObject<string> = new ConfigObject({
+    default: 'work',
+    description: 'Modelsim work library',
+  })
   protected toolArgs(_doc: vscode.TextDocument): string[] {
     let args = ['-nologo']
     args.push('-work')
-    args.push(vscode.workspace.getConfiguration().get('verilog.lint.modelsim.work') ?? 'work')
+    args.push(this.work.getValue())
     return args
   }
 

@@ -4,9 +4,10 @@ import { Logger } from '../logger'
 import BaseLinter from './BaseLinter'
 import IcarusLinter from './IcarusLinter'
 import SlangLinter from './SlangLinter'
-import { GeneralOptions } from './ToolOptions'
 import VerilatorLinter from './VerilatorLinter'
 import XvlogLinter from './XvlogLinter'
+import ModelsimLinter from './ModelsimLinter'
+import { ConfigNode } from '../libconfig'
 
 enum Linter {
   slang = 'slang',
@@ -16,29 +17,27 @@ enum Linter {
   modelsim = 'modelsim',
 }
 
-export default class LintManager {
-  private logger: Logger
+export default class LintManager extends ConfigNode {
   private linters: Map<string, BaseLinter> = new Map()
-  private generalConfig
 
-  constructor(logger: Logger) {
-    this.logger = logger
+  slang: SlangLinter = new SlangLinter(Linter.slang)
+  modelsim: ModelsimLinter = new ModelsimLinter(Linter.modelsim)
+  iverilog: IcarusLinter = new IcarusLinter(Linter.iverilog)
+  verilator: VerilatorLinter = new VerilatorLinter(Linter.verilator)
+  xvlog: XvlogLinter = new XvlogLinter(Linter.xvlog)
 
-    this.generalConfig = new GeneralOptions()
-    this.linters.set(Linter.slang, new SlangLinter(Linter.slang, this.logger, this.generalConfig))
-    this.linters.set(
-      Linter.iverilog,
-      new IcarusLinter(Linter.iverilog, this.logger, this.generalConfig)
-    )
-    this.linters.set(
-      Linter.verilator,
-      new VerilatorLinter(Linter.verilator, this.logger, this.generalConfig)
-    )
-    this.linters.set(Linter.xvlog, new XvlogLinter(Linter.xvlog, this.logger, this.generalConfig))
-    this.linters.set(
-      Linter.modelsim,
-      new XvlogLinter(Linter.xvlog, this.logger, this.generalConfig)
-    )
+  constructor() {
+    super()
+    this.linters.set(Linter.slang, this.slang)
+    this.linters.set(Linter.verilator, this.verilator)
+    this.linters.set(Linter.iverilog, this.iverilog)
+    this.linters.set(Linter.xvlog, this.xvlog)
+    this.linters.set(Linter.modelsim, this.modelsim)
+  }
+
+  activate(context: vscode.ExtensionContext): void {
+    super.activate(context)
+    this.logger.info('activating lint manager')
     // Run linting for open documents on launch
     vscode.window.visibleTextEditors.forEach((editor) => {
       this.lint(editor.document)

@@ -64,3 +64,16 @@ export function getWslPath(inputPath: string): string {
   let cmd: string = `wsl wslpath '${inputPath}'`
   return child.execSync(cmd, {}).toString().replace(/\r?\n/g, '')
 }
+
+export class FileDiagnostic extends vscode.Diagnostic {
+  file: string
+  constructor(
+    file: string,
+    range: vscode.Range,
+    message: string,
+    severity?: vscode.DiagnosticSeverity
+  ) {
+    super(range, message, severity)
+    this.file = file
+  }
+}

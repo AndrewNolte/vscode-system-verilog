@@ -10,221 +10,191 @@ import { createLogger, Logger } from './logger'
 import * as CompletionItemProvider from './providers/CompletionItemProvider'
 import * as DefinitionProvider from './providers/DefinitionProvider'
 import * as DocumentSymbolProvider from './providers/DocumentSymbolProvider'
-import * as FormatProvider from './providers/FormatPrivider'
 import * as HoverProvider from './providers/HoverProvider'
+import { ConfigNode, ConfigObject } from './libconfig'
+import { SystemVerilogFormatProvider, VerilogFormatProvider } from './providers/FormatPrivider'
+import { LanguageServerManager } from './LSManager'
 
-export var logger: Logger // Global logger
-var ctagsManager: CtagsManager
-let extensionID: string = 'AndrewNolte.vscode-system-verilog'
+export var config: VerilogExtension // Global config
 
-let lintManager: LintManager
-let languageClients = new Map<string, LanguageClient>()
+export enum SvStandard {
+  sv2005 = 'SystemVerilog-2005',
+  sv2009 = 'SystemVerilog-2009',
+  sv2012 = 'SystemVerilog-2012',
+  //   sv2017 = 'SystemVerilog2017',
+  //   sv2023 = 'SystemVerilog2023',
+}
 
-export function activate(context: vscode.ExtensionContext) {
-  logger = createLogger('Verilog')
-  logger.info(extensionID + ' is now active.')
+// eslint-disable-next-line @typescript-eslint/naming-convention
+export enum VerilogStandard {
+  v1995 = 'Verilog-95',
+  v2001 = 'Verilog-2001',
+  v2005 = 'Verilog-2005',
+}
 
-  /////////////////////////////////////////////
-  // Register Lint Manager, runs selected linters
-  /////////////////////////////////////////////
-  // need to lint open files before ctags opens up documents
-  lintManager = new LintManager(logger.getChild('LintManager'))
-  context.subscriptions.push(vscode.workspace.onDidOpenTextDocument(lintManager.lint, lintManager))
-  context.subscriptions.push(vscode.workspace.onDidSaveTextDocument(lintManager.lint, lintManager))
-  context.subscriptions.push(
-    vscode.workspace.onDidCloseTextDocument(lintManager.removeFileDiagnostics, lintManager)
-  )
+export class VerilogExtension extends ConfigNode {
+  ctags: CtagsManager = new CtagsManager()
+  includes: ConfigObject<string[]> = new ConfigObject({
+    default: [],
+    description: 'Include Paths for tools',
+  })
+  directory: ConfigObject<string> = new ConfigObject({
+    default: '',
+    description: 'The directory containing all hardware files',
+  })
 
-  ctagsManager = new CtagsManager(
-    logger.getChild('Ctags'),
-    vscode.workspace.getConfiguration().get('verilog.directory', '')
-  )
+  lint: LintManager = new LintManager()
 
-  let extMgr = new ExtensionManager(context, extensionID, logger.getChild('ExtensionManager'))
-  if (extMgr.isVersionUpdated()) {
-    extMgr.showChangelogNotification()
-  }
+  svFormat: SystemVerilogFormatProvider = new SystemVerilogFormatProvider()
+  verilogFormat: VerilogFormatProvider = new VerilogFormatProvider()
+  formatDirs: ConfigObject<string[]> = new ConfigObject({
+    default: [],
+    description: 'Directories to format',
+  })
 
-  /////////////////////////////////////////////
-  // Configure Providers
-  /////////////////////////////////////////////
+  languageServer: LanguageServerManager = new LanguageServerManager()
 
-  let verilogDocumentSymbolProvider = new DocumentSymbolProvider.VerilogDocumentSymbolProvider(
-    logger.getChild('VerilogDocumentSymbolProvider'),
-    ctagsManager
-  )
-
-  let verilogCompletionItemProvider = new CompletionItemProvider.VerilogCompletionItemProvider(
-    logger.getChild('VerilogCompletionItemProvider'),
-    ctagsManager
-  )
-
-  let verilogHoverProvider = new HoverProvider.VerilogHoverProvider(
-    logger.getChild('VerilogHoverProvider'),
-    ctagsManager
-  )
-
-  let verilogDefinitionProvider = new DefinitionProvider.VerilogDefinitionProvider(
-    logger.getChild('VerilogDefinitionProvider'),
-    ctagsManager
-  )
-
-  // push provider subs to .v and .sv files
-  const selectors = [
-    { scheme: 'file', language: 'verilog' },
-    { scheme: 'file', language: 'systemverilog' },
-  ]
-  selectors.forEach((selector) => {
+  extensionID: string = 'AndrewNolte.vscode-system-verilog'
+  activate(context: vscode.ExtensionContext) {
+    super.activate(context)
+    /////////////////////////////////////////////
+    // Register Lint Manager, runs selected linters
+    /////////////////////////////////////////////
+    // need to lint open files before ctags opens up documents
+    context.subscriptions.push(vscode.workspace.onDidOpenTextDocument(this.lint.lint, this.lint))
+    context.subscriptions.push(vscode.workspace.onDidSaveTextDocument(this.lint.lint, this.lint))
     context.subscriptions.push(
-      vscode.languages.registerDocumentSymbolProvider(selector, verilogDocumentSymbolProvider)
+      vscode.workspace.onDidCloseTextDocument(this.lint.removeFileDiagnostics, this.lint)
     )
 
+    let extMgr = new ExtensionManager(
+      context,
+      this.extensionID,
+      this.logger.getChild('ExtensionManager')
+    )
+    if (extMgr.isVersionUpdated()) {
+      extMgr.showChangelogNotification()
+    }
+
+    /////////////////////////////////////////////
+    // Configure Providers
+    /////////////////////////////////////////////
+
+    let verilogDocumentSymbolProvider = new DocumentSymbolProvider.VerilogDocumentSymbolProvider(
+      this.logger.getChild('VerilogDocumentSymbolProvider'),
+      this.ctags
+    )
+
+    let verilogCompletionItemProvider = new CompletionItemProvider.VerilogCompletionItemProvider(
+      this.logger.getChild('VerilogCompletionItemProvider'),
+      this.ctags
+    )
+
+    let verilogHoverProvider = new HoverProvider.VerilogHoverProvider(
+      this.logger.getChild('VerilogHoverProvider'),
+      this.ctags
+    )
+
+    let verilogDefinitionProvider = new DefinitionProvider.VerilogDefinitionProvider(
+      this.logger.getChild('VerilogDefinitionProvider'),
+      this.ctags
+    )
+
+    // push provider subs to .v and .sv files
+    const selectors = [
+      { scheme: 'file', language: 'verilog' },
+      { scheme: 'file', language: 'systemverilog' },
+    ]
+    selectors.forEach((selector) => {
+      context.subscriptions.push(
+        vscode.languages.registerDocumentSymbolProvider(selector, verilogDocumentSymbolProvider)
+      )
+
+      context.subscriptions.push(
+        vscode.languages.registerCompletionItemProvider(
+          selector,
+          verilogCompletionItemProvider,
+          '.',
+          '(',
+          '='
+        )
+      )
+
+      context.subscriptions.push(
+        vscode.languages.registerHoverProvider(selector, verilogHoverProvider)
+      )
+
+      context.subscriptions.push(
+        vscode.languages.registerDefinitionProvider(selector, verilogDefinitionProvider)
+      )
+    })
+
+    /////////////////////////////////////////////
+    // Configure Formatters
+    /////////////////////////////////////////////
+
     context.subscriptions.push(
-      vscode.languages.registerCompletionItemProvider(
-        selector,
-        verilogCompletionItemProvider,
-        '.',
-        '(',
-        '='
+      vscode.languages.registerDocumentFormattingEditProvider(
+        { scheme: 'file', language: 'verilog' },
+        this.verilogFormat
       )
     )
-
     context.subscriptions.push(
-      vscode.languages.registerHoverProvider(selector, verilogHoverProvider)
+      vscode.languages.registerDocumentFormattingEditProvider(
+        { scheme: 'file', language: 'systemverilog' },
+        this.svFormat
+      )
     )
-
     context.subscriptions.push(
-      vscode.languages.registerDefinitionProvider(selector, verilogDefinitionProvider)
-    )
-  })
-
-  /////////////////////////////////////////////
-  // Configure Formatters
-  /////////////////////////////////////////////
-
-  context.subscriptions.push(
-    vscode.languages.registerDocumentFormattingEditProvider(
-      { scheme: 'file', language: 'verilog' },
-      new FormatProvider.VerilogFormatProvider(logger.getChild('VerilogFormatProvider'))
-    )
-  )
-  context.subscriptions.push(
-    vscode.languages.registerDocumentFormattingEditProvider(
-      { scheme: 'file', language: 'systemverilog' },
-      new FormatProvider.SystemVerilogFormatProvider(logger.getChild('SystemVerilogFormatProvider'))
-    )
-  )
-  context.subscriptions.push(
-    vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
-      if (document.languageId === 'systemverilog' || document.languageId === 'verilog') {
-        let dirs: string[] = vscode.workspace.getConfiguration().get('verilog.format.dirs', [])
-        for (let dir of dirs) {
-          if (vscode.workspace.asRelativePath(document.uri.fsPath).startsWith(dir)) {
-            vscode.commands.executeCommand('editor.action.formatDocument')
-            return
+      vscode.workspace.onDidSaveTextDocument(async (document: vscode.TextDocument) => {
+        if (document.languageId === 'systemverilog' || document.languageId === 'verilog') {
+          let dirs: string[] = this.formatDirs.getValue() ?? []
+          for (let dir of dirs) {
+            if (vscode.workspace.asRelativePath(document.uri.fsPath).startsWith(dir)) {
+              await vscode.commands.executeCommand('editor.action.formatDocument')
+              return
+            }
           }
         }
-      }
+      })
+    )
+    /////////////////////////////////////////////
+    // Register Commands
+    /////////////////////////////////////////////
+
+    let commandExcecutor = new CommandExcecutor(
+      this.logger.getChild('CommandExcecutor'),
+      this.ctags
+    )
+    vscode.commands.registerCommand(
+      'verilog.instantiateModule',
+      commandExcecutor.instantiateModuleInteract,
+      commandExcecutor
+    )
+    vscode.commands.registerCommand('verilog.lint', this.lint.runLintTool, this.lint)
+
+    vscode.commands.registerCommand('verilog.dev.dumpConfig', () => {
+      vscode.workspace.openTextDocument({
+        content: JSON.stringify(config.getConfigJson(), null, 2),
+        language: 'json',
+      })
     })
-  )
 
-  /////////////////////////////////////////////
-  // Register Commands
-  /////////////////////////////////////////////
+    /////////////////////////////////////////////
+    // Language Servers
+    /////////////////////////////////////////////
 
-  let commandExcecutor = new CommandExcecutor(logger.getChild('CommandExcecutor'), ctagsManager)
-  vscode.commands.registerCommand(
-    'verilog.instantiateModule',
-    commandExcecutor.instantiateModuleInteract,
-    commandExcecutor
-  )
-  vscode.commands.registerCommand('verilog.lint', lintManager.runLintTool, lintManager)
-
-  /////////////////////////////////////////////
-  // Language Servers
-  /////////////////////////////////////////////
-  vscode.workspace.onDidChangeConfiguration(async (event) => {
-    if (!event.affectsConfiguration('verilog.languageServer')) {
-      return
-    }
-    await stopAllLanguageClients()
-    initAllLanguageClients()
-  })
-
-  initAllLanguageClients()
-
-  logger.info(extensionID + ' activation finished.')
-}
-
-function setupLanguageClient(
-  name: string,
-  defaultPath: string,
-  serverArgs: string[],
-  serverDebugArgs: string[],
-  clientOptions: LanguageClientOptions
-) {
-  let settings = vscode.workspace.getConfiguration('verilog.languageServer.' + name)
-  let enabled: boolean = <boolean>settings.get('enabled', false)
-
-  let binPath = <string>settings.get('path', defaultPath)
-
-  let serverOptions: ServerOptions = {
-    run: { command: binPath, args: serverArgs },
-    debug: { command: binPath, args: serverDebugArgs },
+    this.logger.info(this.extensionID + ' activation finished.')
   }
-
-  let lc = new LanguageClient(name, name + ' language server', serverOptions, clientOptions)
-  languageClients.set(name, lc)
-  if (!enabled) {
-    return
-  }
-  lc.start()
-  logger.info('"' + name + '" language server started.')
-}
-
-function initAllLanguageClients() {
-  // init svls
-  setupLanguageClient('svls', 'svls', [], ['--debug'], {
-    documentSelector: [{ scheme: 'file', language: 'systemverilog' }],
-  })
-
-  // init veridian
-  setupLanguageClient('veridian', 'veridian', [], [], {
-    documentSelector: [{ scheme: 'file', language: 'systemverilog' }],
-  })
-
-  // init hdlChecker
-  setupLanguageClient('hdlChecker', 'hdl_checker', ['--lsp'], ['--lsp'], {
-    documentSelector: [
-      { scheme: 'file', language: 'verilog' },
-      { scheme: 'file', language: 'systemverilog' },
-      { scheme: 'file', language: 'vhdl' },
-    ],
-  })
-
-  // init verible-verilog-ls
-  setupLanguageClient('veribleVerilogLs', 'verible-verilog-ls', [], [], {
-    documentSelector: [{ scheme: 'file', language: 'systemverilog' }],
-  })
-
-  // init rustHdl
-  setupLanguageClient('rustHdl', 'vhdl_ls', [], [], {
-    documentSelector: [{ scheme: 'file', language: 'vhdl' }],
-  })
-}
-
-function stopAllLanguageClients(): Promise<any> {
-  var p = []
-  for (const [name, client] of languageClients) {
-    if (client.isRunning()) {
-      p.push(client.stop())
-      logger.info('"' + name + '" language server stopped.')
-    }
-  }
-  return Promise.all(p)
 }
 
 export function deactivate(): Promise<void> {
-  logger.info('Deactivated')
-  return stopAllLanguageClients()
+  config.logger.info('Deactivated')
+  return config.languageServer.stopAllLanguageClients()
+}
+
+export function activate(context: vscode.ExtensionContext) {
+  config = new VerilogExtension()
+  config.compile('verilog')
+  config.activate(context)
 }

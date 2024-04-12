@@ -1,18 +1,19 @@
 // SPDX-License-Identifier: MIT
 import * as vscode from 'vscode'
 import BaseLinter from './BaseLinter'
-import { FileDiagnostic, svStandard, verilogStandard } from './ToolOptions'
+import { FileDiagnostic } from '../utils'
+import { SvStandard, VerilogStandard } from '../extension'
 
 let verilogArgs: Map<string, string> = new Map([
-  [verilogStandard.v1995, '-g1995'],
-  [verilogStandard.v2001, '-g2001'],
-  [verilogStandard.v2005, '-g2005'],
+  [VerilogStandard.v1995, '-g1995'],
+  [VerilogStandard.v2001, '-g2001'],
+  [VerilogStandard.v2005, '-g2005'],
 ])
 
-let svArgs: Map<svStandard, string> = new Map([
-  [svStandard.sv2005, '-g2005-sv'],
-  [svStandard.sv2009, '-g2009'],
-  [svStandard.sv2012, '-g2012'],
+let svArgs: Map<SvStandard, string> = new Map([
+  [SvStandard.sv2005, '-g2005-sv'],
+  [SvStandard.sv2009, '-g2009'],
+  [SvStandard.sv2012, '-g2012'],
 ])
 export default class IcarusLinter extends BaseLinter {
   protected convertToSeverity(severityString: string): vscode.DiagnosticSeverity {
@@ -28,7 +29,7 @@ export default class IcarusLinter extends BaseLinter {
     let args = []
     args.push('-t null')
     if (doc.languageId === 'systemverilog') {
-      args.push(svArgs.get(this.generalOptions.svStandard) ?? '')
+      args.push(svArgs.get(this.generalOptions.SvStandard) ?? '')
     } else {
       args.push(verilogArgs.get(this.generalOptions.verilogStandard) ?? '')
     }

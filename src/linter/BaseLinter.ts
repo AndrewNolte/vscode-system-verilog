@@ -4,57 +4,60 @@ import { ExecException } from 'child_process'
 import * as path from 'path'
 import * as process from 'process'
 import * as vscode from 'vscode'
-import { Logger } from '../logger'
-import { getAbsPath, getWorkspaceFolder, getWslPath } from '../utils'
-import { FileDiagnostic, GeneralOptions, LinterOptions } from './ToolOptions'
+import { FileDiagnostic, getAbsPath, getWorkspaceFolder, getWslPath } from '../utils'
+import { ConfigNode, ConfigObject } from '../libconfig'
+import { ToolConfig } from '../runner'
+import { config } from '../extension'
 let isWindows = process.platform === 'win32'
 
-export default abstract class BaseLinter {
-  name: string
-  protected logger: Logger
-  protected generalOptions: GeneralOptions
-  protected linterOptions: LinterOptions
+export default abstract class BaseLinter extends ToolConfig {
   protected diagnostics: vscode.DiagnosticCollection
 
-  constructor(name: string, parentLogger: Logger, generalOptions: GeneralOptions) {
-    this.name = name
-    this.logger = parentLogger.getChild(this.name)
-    this.generalOptions = generalOptions
-    this.linterOptions = new LinterOptions(this.name)
-    this.diagnostics = vscode.languages.createDiagnosticCollection(this.name)
+  enabled: ConfigObject<boolean> = new ConfigObject({
+    default: false,
+    description: 'Enable this lint tool',
+  })
+  includes: ConfigObject<string[]> = new ConfigObject({
+    default: [],
+    description: 'Include Path Overrides. Use `${includes} to include default includes',
+  })
 
-    vscode.workspace.onDidChangeConfiguration((ev) => {
-      this.updateConfig()
-    })
-    this.updateConfig()
+  includeComputed: string[] = []
+
+  constructor(name: string) {
+    super(name)
+    this.diagnostics = vscode.languages.createDiagnosticCollection(this.toolName)
+    this.includeComputed = []
   }
 
-  private getSubConfig<T>(attr: string, defaultValue: T): T {
-    return (
-      vscode.workspace.getConfiguration().get(`verilog.lint.${this.name}.${attr}`) ?? defaultValue
-    )
-  }
-  private updateConfig() {
-    this.linterOptions.enabled = this.getSubConfig('enabled', false)
-    this.linterOptions.includes = this.getSubConfig('includes', this.generalOptions.includes)
-    if (this.linterOptions.includes.length === 0) {
-      this.linterOptions.includes = this.generalOptions.includes
-    }
-    this.linterOptions.includes.forEach((inc) => {
+  // Override
+  async configUpdated() {
+    super.configUpdated()
+    // We want to cache these values so we don't fetch every lint cycle
+    this.logger.info('linter config updated')
+    this.enabled.getValue()
+
+    this.includeComputed = this.includes.getValue()
+    this.includeComputed.forEach((inc: string) => {
       if (inc === '${includes}') {
-        this.linterOptions.includes = this.linterOptions.includes
+        this.includeComputed = this.includeComputed
           .filter((inc) => inc !== '${includes}')
-          .concat(this.generalOptions.includes)
+          .concat(config.includes.getValue())
       }
     })
-    this.linterOptions.args = this.getSubConfig('args', '')
-    this.linterOptions.useWsl = this.getSubConfig('useWsl', false)
-    this.linterOptions.path = this.getSubConfig('path', this.name)
+    if (this.includeComputed.length === 0) {
+      this.includeComputed = config.includes.getValue()
+    }
+
+    this.useWsl.getValue()
+    this.path.getValue()
+    this.args.getValue()
+    this.runAtFileLocation.getValue()
   }
 
   async lint(doc: vscode.TextDocument): Promise<void> {
-    this.updateConfig()
-    if (!this.linterOptions.enabled) {
+    this.logger.info('attempting to lint ' + doc.uri.fsPath)
+    if (this.enabled.cachedValue !== true) {
       return
     }
     this.logger.info(`linting ${doc.uri}...`)
@@ -77,7 +80,7 @@ export default abstract class BaseLinter {
 
   protected wslAdjust(path: string): string {
     if (isWindows) {
-      if (this.linterOptions.useWsl) {
+      if (this.useWsl.cachedValue) {
         return getWslPath(path)
       } else {
         return path.replace(/\\/g, '/')
@@ -95,14 +98,16 @@ export default abstract class BaseLinter {
 
     let args: string[] = []
     args.push(...this.toolArgs(doc))
-    args.push(this.formatIncludes([docFolder].concat(this.linterOptions.includes)))
-    args.push(this.linterOptions.args)
+    args.push(this.formatIncludes([docFolder].concat(this.includeComputed)))
+    if (this.args.cachedValue !== undefined) {
+      args.push(this.args.cachedValue)
+    }
     args.push(`"${docUri}"`)
-    let command: string = this.linterOptions.path + ' ' + args.join(' ')
+    let command: string = this.path.cachedValue + ' ' + args.join(' ')
 
     let cwd: string | undefined = getWorkspaceFolder()
 
-    if (this.generalOptions.runAtFileLocation) {
+    if (this.runAtFileLocation.cachedValue === true) {
       if (isWindows) {
         cwd = path.dirname(docUri)
       } else {
