@@ -12,7 +12,7 @@ import * as DefinitionProvider from './providers/DefinitionProvider'
 import * as DocumentSymbolProvider from './providers/DocumentSymbolProvider'
 import * as HoverProvider from './providers/HoverProvider'
 import { ExtensionComponent, ConfigObject } from './libconfig'
-import { SystemVerilogFormatProvider, VerilogFormatProvider } from './providers/FormatPrivider'
+import { SystemVerilogFormatProvider, VerilogFormatProvider } from './providers/FormatProvider'
 import { LanguageServerManager } from './LSManager'
 
 export var ext: VerilogExtension
