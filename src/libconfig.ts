@@ -8,9 +8,9 @@ class ExtensionNode {
   configPath: string | undefined
   _parentNode: ExtensionComponent | undefined
 
-  onConfigUpdated(func: () => void): void {
+  onConfigUpdated(func: () => void): vscode.Disposable {
     func()
-    vscode.workspace.onDidChangeConfiguration((e) => {
+    return vscode.workspace.onDidChangeConfiguration((e) => {
       if (e.affectsConfiguration(this.configPath!)) {
         func()
       }

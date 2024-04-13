@@ -58,7 +58,6 @@ export class VerilogCompletionItemProvider implements vscode.CompletionItemProvi
       let textBeforePosition = document.getText(
         new vscode.Range(new vscode.Position(_position.line, 0), _position.translate(0, -1))
       )
-      this.logger.info('text before ' + textBeforePosition)
       // Check if the last character is #f
       if (textBeforePosition.endsWith('#')) {
         this.logger.info('trigging module inst')
