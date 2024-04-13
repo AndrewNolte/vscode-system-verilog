@@ -6,6 +6,7 @@ import { CtagsParser, Symbol } from '../parsers/ctagsParser'
 import { getWorkspaceFolder } from '../utils'
 import { CtagsManager } from '../ctags'
 import { Logger } from '../logger'
+import { ext } from '../extension'
 
 export class CommandExcecutor {
   private logger: Logger
@@ -29,7 +30,7 @@ export class CommandExcecutor {
     let modules: Symbol[] = await ctags.getModules()
     // No modules found
     if (modules.length <= 0) {
-      vscode.window.showErrorMessage('Verilog-HDL/SystemVerilog: No modules found in the file')
+      ext.showErrorMessage('No modules found in the file')
       return undefined
     }
     let module: Symbol = modules[0]

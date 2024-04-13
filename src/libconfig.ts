@@ -109,6 +109,10 @@ export abstract class ExtensionComponent extends ExtensionNode {
     }
   }
 
+  showErrorMessage(msg: string) {
+    vscode.window.showErrorMessage(`[${this.configPath}] ${msg}`)
+  }
+
   /**
    * Override this. Activated in a preorder traversal
    */

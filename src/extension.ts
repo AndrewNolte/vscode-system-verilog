@@ -60,12 +60,6 @@ export class VerilogExtension extends ExtensionComponent {
     /////////////////////////////////////////////
     // Register Lint Manager, runs selected linters
     /////////////////////////////////////////////
-    // need to lint open files before ctags opens up documents
-    context.subscriptions.push(vscode.workspace.onDidOpenTextDocument(this.lint.lint, this.lint))
-    context.subscriptions.push(vscode.workspace.onDidSaveTextDocument(this.lint.lint, this.lint))
-    context.subscriptions.push(
-      vscode.workspace.onDidCloseTextDocument(this.lint.removeFileDiagnostics, this.lint)
-    )
 
     let extMgr = new ExtensionManager(
       context,
@@ -129,28 +123,22 @@ export class VerilogExtension extends ExtensionComponent {
       )
     })
 
+    // lint all open now that ctags is done
+    vscode.window.visibleTextEditors.forEach((editor) => {
+      this.lint.lint(editor.document)
+    })
+
     /////////////////////////////////////////////
-    // Configure Formatters
+    // Configure Format on save
     /////////////////////////////////////////////
 
-    context.subscriptions.push(
-      vscode.languages.registerDocumentFormattingEditProvider(
-        { scheme: 'file', language: 'verilog' },
-        this.verilogFormat
-      )
-    )
-    context.subscriptions.push(
-      vscode.languages.registerDocumentFormattingEditProvider(
-        { scheme: 'file', language: 'systemverilog' },
-        this.svFormat
-      )
-    )
     context.subscriptions.push(
       vscode.workspace.onDidSaveTextDocument(async (document: vscode.TextDocument) => {
         if (document.languageId === 'systemverilog' || document.languageId === 'verilog') {
           let dirs: string[] = this.formatDirs.getValue() ?? []
           for (let dir of dirs) {
             if (vscode.workspace.asRelativePath(document.uri.fsPath).startsWith(dir)) {
+              this.logger.info('Formatting on save due to directory ' + dir)
               await vscode.commands.executeCommand('editor.action.formatDocument')
               await document.save()
               return
@@ -159,6 +147,7 @@ export class VerilogExtension extends ExtensionComponent {
         }
       })
     )
+
     /////////////////////////////////////////////
     // Register Commands
     /////////////////////////////////////////////

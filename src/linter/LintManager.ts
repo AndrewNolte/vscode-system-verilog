@@ -35,12 +35,14 @@ export default class LintManager extends ExtensionComponent {
     this.linters.set(Linter.modelsim, this.modelsim)
   }
 
-  activate(_context: vscode.ExtensionContext): void {
+  activate(context: vscode.ExtensionContext): void {
     this.logger.info('activating lint manager')
     // Run linting for open documents on launch
-    vscode.window.visibleTextEditors.forEach((editor) => {
-      this.lint(editor.document)
-    })
+    context.subscriptions.push(vscode.workspace.onDidOpenTextDocument(this.lint, this))
+    context.subscriptions.push(vscode.workspace.onDidSaveTextDocument(this.lint, this))
+    context.subscriptions.push(
+      vscode.workspace.onDidCloseTextDocument(this.removeFileDiagnostics, this)
+    )
   }
 
   async lint(doc: vscode.TextDocument) {
@@ -71,7 +73,7 @@ export default class LintManager extends ExtensionComponent {
       vscode.window.activeTextEditor === undefined ||
       (lang !== 'verilog' && lang !== 'systemverilog')
     ) {
-      vscode.window.showErrorMessage('Verilog-HDL/SystemVerilog: No document opened')
+      this.showErrorMessage('No document opened')
       return
     }
 
@@ -112,7 +114,7 @@ export default class LintManager extends ExtensionComponent {
     await vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
-        title: 'Verilog-HDL/SystemVerilog: Running lint tool...',
+        title: 'Verilog: Running lint tool...',
       },
       async (_progress, _token) => {
         let linter: BaseLinter | undefined = this.linters.get(chosenLinter.label)
@@ -120,7 +122,7 @@ export default class LintManager extends ExtensionComponent {
           this.logger.error('Cannot find linter name: ' + chosenLinter.label)
           return
         }
-        this.logger.info('Using ' + linter.name + ' linter')
+        this.logger.info('Using ' + linter.toolName + ' linter')
 
         if (vscode.window.activeTextEditor) {
           linter.clear(vscode.window.activeTextEditor.document)

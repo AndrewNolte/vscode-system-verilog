@@ -36,8 +36,6 @@ class TemporaryFile {
     }
   }
 }
-
-// Base class
 abstract class FileBasedFormattingEditProvider
   extends ToolConfig
   implements vscode.DocumentFormattingEditProvider
@@ -106,12 +104,21 @@ class IStyleVerilogFormatterEditProvider extends FileBasedFormattingEditProvider
   }
 }
 
+class VeribleVerilogFormatEditProvider extends FileBasedFormattingEditProvider {
+  prepareArgument(tmpFilepath: string): string[] {
+    return ['--inplace', tmpFilepath]
+  }
+}
+
+/////////////////////////////////////////////
+// Verilog Formatter
+/////////////////////////////////////////////
+
 enum VerilogFormatter {
   verilogFormat = 'verilog-format',
   istyleFormat = 'istyle-format',
   verible = 'verible-verilog-format',
 }
-
 export class VerilogFormatProvider
   extends ExtensionComponent
   implements vscode.DocumentFormattingEditProvider
@@ -132,6 +139,15 @@ export class VerilogFormatProvider
     type: 'string',
     enum: [VerilogFormatter.verilogFormat, VerilogFormatter.istyleFormat, VerilogFormatter.verible],
   })
+
+  activate(context: vscode.ExtensionContext): void {
+    context.subscriptions.push(
+      vscode.languages.registerDocumentFormattingEditProvider(
+        { scheme: 'file', language: 'verilog' },
+        this
+      )
+    )
+  }
 
   provideDocumentFormattingEdits(
     document: vscode.TextDocument,
@@ -155,11 +171,9 @@ export class VerilogFormatProvider
   }
 }
 
-class VeribleVerilogFormatEditProvider extends FileBasedFormattingEditProvider {
-  prepareArgument(tmpFilepath: string): string[] {
-    return ['--inplace', tmpFilepath]
-  }
-}
+/////////////////////////////////////////////
+// Sv Formatter
+/////////////////////////////////////////////
 
 enum SvFormatter {
   veribleVerilogFormat = 'verible-verilog-format',
@@ -179,6 +193,15 @@ export class SystemVerilogFormatProvider
     type: 'string',
     enum: [SvFormatter.veribleVerilogFormat],
   })
+
+  activate(context: vscode.ExtensionContext): void {
+    context.subscriptions.push(
+      vscode.languages.registerDocumentFormattingEditProvider(
+        { scheme: 'file', language: 'systemverilog' },
+        this
+      )
+    )
+  }
 
   provideDocumentFormattingEdits(
     document: vscode.TextDocument,
