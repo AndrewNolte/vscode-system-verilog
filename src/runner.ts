@@ -1,6 +1,7 @@
-import { ConfigNode, ConfigObject } from './libconfig'
+import { ExtensionContext } from 'vscode'
+import { ExtensionComponent, ConfigObject } from './libconfig'
 
-export class Runner extends ConfigNode {
+export class Runner extends ExtensionComponent {
   runAtFileLocation: ConfigObject<boolean> = new ConfigObject({
     default: false,
     description: 'Run at file location',

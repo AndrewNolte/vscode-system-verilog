@@ -14,33 +14,33 @@ Example usage:
 export interface Logger {
   getChild(name: string): Logger
 
-  trace(message: string, data?: unknown): void
+  trace(message: string, _data?: unknown): void
 
-  info(message: string, data?: unknown): void
+  info(message: string, _data?: unknown): void
 
-  debug(message: string, data?: unknown): void
+  debug(message: string, _data?: unknown): void
 
-  warn(message: string, data?: unknown): void
+  warn(message: string, _data?: unknown): void
 
-  error(message: string, data?: unknown): void
+  error(message: string, _data?: unknown): void
 
   show(): void
 }
 
 export class StubLogger implements Logger {
-  getChild(name: string): Logger {
+  getChild(_name: string): Logger {
     return new StubLogger()
   }
 
-  trace(message: string, data?: unknown): void {}
+  trace(_message: string, _data?: unknown): void {}
 
-  info(message: string, data?: unknown): void {}
+  info(_message: string, _data?: unknown): void {}
 
-  debug(message: string, data?: unknown): void {}
+  debug(_message: string, _data?: unknown): void {}
 
-  warn(message: string, data?: unknown): void {}
+  warn(_message: string, _data?: unknown): void {}
 
-  error(message: string, data?: unknown): void {}
+  error(_message: string, _data?: unknown): void {}
 
   show(): void {}
 }

@@ -7,7 +7,7 @@ import SlangLinter from './SlangLinter'
 import VerilatorLinter from './VerilatorLinter'
 import XvlogLinter from './XvlogLinter'
 import ModelsimLinter from './ModelsimLinter'
-import { ConfigNode } from '../libconfig'
+import { ExtensionComponent } from '../libconfig'
 
 enum Linter {
   slang = 'slang',
@@ -17,7 +17,7 @@ enum Linter {
   modelsim = 'modelsim',
 }
 
-export default class LintManager extends ConfigNode {
+export default class LintManager extends ExtensionComponent {
   private linters: Map<string, BaseLinter> = new Map()
 
   slang: SlangLinter = new SlangLinter(Linter.slang)
@@ -35,8 +35,7 @@ export default class LintManager extends ConfigNode {
     this.linters.set(Linter.modelsim, this.modelsim)
   }
 
-  activate(context: vscode.ExtensionContext): void {
-    super.activate(context)
+  activate(_context: vscode.ExtensionContext): void {
     this.logger.info('activating lint manager')
     // Run linting for open documents on launch
     vscode.window.visibleTextEditors.forEach((editor) => {

@@ -3,37 +3,96 @@ import * as vscode from 'vscode'
 import { Logger, StubLogger, createLogger } from './logger'
 import { integer } from 'vscode-languageclient'
 
-type ConfigType = number | string | boolean | string[]
-
-export class ConfigNode {
-  // these need to be ignored
-  // set after compile
+class ExtensionNode {
   nodeName: string | undefined
   configPath: string | undefined
-  _parentNode: ConfigNode | undefined
-  logger: Logger
-  listeners: (() => void)[] = []
-  children: ConfigNode[]
-  constructor() {
-    this.logger = new StubLogger()
-    this.listeners = []
-    this.children = []
+  _parentNode: ExtensionComponent | undefined
+
+  onConfigUpdated(func: () => void): void {
+    func()
+    vscode.workspace.onDidChangeConfiguration((e) => {
+      if (e.affectsConfiguration(this.configPath!)) {
+        func()
+      }
+    })
   }
 
-  public compile(nodeName: string, parentNode?: ConfigNode): void {
+  compile(nodeName: string, parentNode?: ExtensionComponent): void {
     this._parentNode = parentNode
     this.nodeName = nodeName
 
     if (parentNode) {
-      console.assert(parentNode.configPath, 'configPath must be set on parentNode')
       this.configPath = [parentNode.configPath, this.nodeName].join('.')
-      this.logger = parentNode.logger?.getChild(this.nodeName!)
+      console.log(this.configPath)
     } else {
       // root node
       this.configPath = this.nodeName
+    }
+  }
+}
+
+type ConfigType = number | string | boolean | string[]
+export abstract class ExtensionComponent extends ExtensionNode {
+  /**
+   * Container for extensions functionality and config
+   */
+  logger: Logger
+  private children: ExtensionNode[]
+
+  constructor() {
+    super()
+    this.logger = new StubLogger()
+    this.children = []
+  }
+
+  public activateExtension(nodeName: string, context: vscode.ExtensionContext): void {
+    this.compile(nodeName)
+    this.preOrderTraverse((node: ExtensionNode) => {
+      if (node instanceof ExtensionComponent) {
+        node.activate(context)
+      }
+      if (node instanceof ConfigObject) {
+        node.getValue()
+      }
+    })
+  }
+
+  preOrderConfigTraverse<T extends ConfigType>(func: (obj: ConfigObject<T>) => void): void {
+    this.preOrderTraverse((obj: ExtensionNode) => {
+      if (obj instanceof ConfigObject) {
+        func(obj)
+      }
+    })
+  }
+
+  preOrderComponentTraverse(func: (obj: ExtensionComponent) => void): void {
+    this.preOrderTraverse((obj: ExtensionNode) => {
+      if (obj instanceof ExtensionComponent) {
+        func(obj)
+      }
+    })
+  }
+
+  preOrderTraverse(func: (obj: ExtensionNode) => void): void {
+    func(this)
+    this.children.forEach((obj: ExtensionNode) => {
+      if (obj instanceof ExtensionComponent) {
+        obj.preOrderTraverse(func)
+      } else {
+        func(obj)
+      }
+    })
+  }
+
+  compile(nodeName: string, parentNode?: ExtensionComponent): void {
+    super.compile(nodeName, parentNode)
+
+    if (parentNode) {
+      this.logger = parentNode.logger?.getChild(this.nodeName!)
+    } else {
+      // root node
       this.logger = createLogger(this.nodeName!)
     }
-    console.log(this.configPath)
 
     const subTypeProperties = Object.getOwnPropertyNames(this).filter(
       (childName) => !childName.startsWith('_')
@@ -41,77 +100,37 @@ export class ConfigNode {
     for (let childName of subTypeProperties) {
       // get the property values
       let obj: any = (this as any)[childName]
-      if (!(obj instanceof ConfigNode)) {
+      if (!(obj instanceof ExtensionNode)) {
         continue
       }
 
       obj.compile(childName, this)
       this.children.push(obj)
     }
-
-    vscode.workspace.onDidChangeConfiguration((e) => {
-      if (e.affectsConfiguration(this.configPath!)) {
-        this.configUpdated()
-      }
-    })
   }
 
-  // override this
-  activate(context: vscode.ExtensionContext): void {
-    this.configUpdated()
-    this.children.forEach((obj: ConfigNode) => {
-      obj.activate(context)
-    })
-  }
+  /**
+   * Override this. Activated in a preorder traversal
+   */
+  activate(_context: vscode.ExtensionContext): void {}
 
-  async configUpdated(): Promise<void> {
-    for (let listener of this.listeners) {
-      listener()
-    }
-  }
-
-  onConfigUpdate(func: () => void): void {
-    this.listeners.push(func)
-  }
-
-  forEachChild(func: (obj: ConfigObject<any>) => void): void {
-    this.children.forEach((obj: ConfigNode) => {
-      if (obj instanceof ConfigObject) {
-        func(obj)
-      }
-
-      obj.forEachChild(func)
-    })
-  }
   getConfigJson(): any {
-    let obj: any = { configuration: { title: `${this.nodeName} configuration` } }
-
     let props: any = {}
-    this.forEachChild((obj: ConfigObject<any>) => {
-      // console.log(obj.getConfigJson())
+    this.preOrderConfigTraverse((obj: ConfigObject<any>) => {
       props[obj.configPath!] = obj.getConfigJson()
     })
 
-    obj['properties'] = props
-
-    // console.log(JSON.stringify(obj, null, 2))
-    // write to file
-    return obj
-    // vscode.workspace.openTextDocument({
-    //   content: JSON.stringify(obj, null, 2),
-    //   language: 'json',
-    // })
+    return {
+      configuration: { title: `${this.nodeName} configuration` },
+      properties: props,
+    }
   }
-
-  // [key: string]: any
 }
 
-export class ConfigObject<T extends ConfigType> extends ConfigNode {
-  scope?: string
-  default?: T
-  description: string
+export class ConfigObject<T extends ConfigType> extends ExtensionNode {
+  private obj: any
+  default: T
   cachedValue: T
-  obj: any
 
   constructor(obj: {
     default: T
@@ -125,7 +144,6 @@ export class ConfigObject<T extends ConfigType> extends ConfigNode {
     this.obj = obj
     this.default = obj.default
     this.cachedValue = obj.default
-    this.description = obj.description
   }
 
   getValue(): T {
@@ -134,11 +152,11 @@ export class ConfigObject<T extends ConfigType> extends ConfigNode {
   }
 
   listen(): void {
-    this.onConfigUpdate(this.getValue.bind(this))
+    this.onConfigUpdated(() => this.getValue())
   }
 
   getConfigJson(): any {
-    // use reflection to get the right type
+    // TODO: use reflection to get the right type
     // type Inspect<T> = T extends infer R ? { type: R } : never
     if (this.obj['type'] === undefined) {
       if (typeof this.default === 'string') {
@@ -152,18 +170,9 @@ export class ConfigObject<T extends ConfigType> extends ConfigNode {
         this.obj['items'] = {
           type: 'string',
         }
-      } // check if enum
+      }
+      throw Error(`Was not able to deduce type for ${this.configPath}`)
     }
     return this.obj
-    // return JSON.stringify(obj)
   }
-}
-
-function isStringEnum(obj: any): boolean {
-  for (const value of Object.values(obj)) {
-    if (typeof value !== 'string') {
-      return false
-    }
-  }
-  return true
 }

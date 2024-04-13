@@ -11,7 +11,7 @@ import * as CompletionItemProvider from './providers/CompletionItemProvider'
 import * as DefinitionProvider from './providers/DefinitionProvider'
 import * as DocumentSymbolProvider from './providers/DocumentSymbolProvider'
 import * as HoverProvider from './providers/HoverProvider'
-import { ConfigNode, ConfigObject } from './libconfig'
+import { ExtensionComponent, ConfigObject } from './libconfig'
 import { SystemVerilogFormatProvider, VerilogFormatProvider } from './providers/FormatPrivider'
 import { LanguageServerManager } from './LSManager'
 
@@ -32,7 +32,7 @@ export enum VerilogStandard {
   v2005 = 'Verilog-2005',
 }
 
-export class VerilogExtension extends ConfigNode {
+export class VerilogExtension extends ExtensionComponent {
   ctags: CtagsManager = new CtagsManager()
   includes: ConfigObject<string[]> = new ConfigObject({
     default: [],
@@ -56,7 +56,6 @@ export class VerilogExtension extends ConfigNode {
 
   extensionID: string = 'AndrewNolte.vscode-system-verilog'
   activate(context: vscode.ExtensionContext) {
-    super.activate(context)
     /////////////////////////////////////////////
     // Register Lint Manager, runs selected linters
     /////////////////////////////////////////////
@@ -195,6 +194,5 @@ export function deactivate(): Promise<void> {
 
 export function activate(context: vscode.ExtensionContext) {
   config = new VerilogExtension()
-  config.compile('verilog')
-  config.activate(context)
+  config.activateExtension('verilog', context)
 }

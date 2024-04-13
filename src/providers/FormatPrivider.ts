@@ -8,7 +8,7 @@ import * as path from 'path'
 import * as vscode from 'vscode'
 import { getWorkspaceFolder } from '../utils'
 import { ToolConfig } from '../runner'
-import { ConfigNode, ConfigObject } from '../libconfig'
+import { ExtensionComponent, ConfigObject } from '../libconfig'
 // handle temporary file
 class TemporaryFile {
   public readonly path: string
@@ -113,7 +113,7 @@ enum VerilogFormatter {
 }
 
 export class VerilogFormatProvider
-  extends ConfigNode
+  extends ExtensionComponent
   implements vscode.DocumentFormattingEditProvider
 {
   verilogFormatter: VerilogFormatEditProvider = new VerilogFormatEditProvider('verilogFormat', '.v')
@@ -165,7 +165,7 @@ enum SvFormatter {
   veribleVerilogFormat = 'verible-verilog-format',
 }
 export class SystemVerilogFormatProvider
-  extends ConfigNode
+  extends ExtensionComponent
   implements vscode.DocumentFormattingEditProvider
 {
   verible: VeribleVerilogFormatEditProvider = new VeribleVerilogFormatEditProvider(

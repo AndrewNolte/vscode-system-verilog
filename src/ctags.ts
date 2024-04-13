@@ -4,9 +4,9 @@ import { Logger } from './logger'
 import { CtagsParser, Symbol } from './parsers/ctagsParser'
 import { getParentText, getPrevChar, getWorkspaceFolder, raceArrays } from './utils'
 import { config } from './extension'
-import { ConfigNode, ConfigObject } from './libconfig'
+import { ExtensionComponent, ConfigObject } from './libconfig'
 
-export class CtagsManager extends ConfigNode {
+export class CtagsManager extends ExtensionComponent {
   // file -> parser
   private filemap: Map<vscode.TextDocument, CtagsParser> = new Map()
   /// symbol name -> symbols (from includes)
@@ -21,11 +21,12 @@ export class CtagsManager extends ConfigNode {
 
   activate(_context: vscode.ExtensionContext): void {
     this.logger.info('activating')
-    config.includes.onConfigUpdate(() => this.indexIncludes())
-    vscode.workspace.onDidCloseTextDocument(this.onClose.bind(this))
+    vscode.workspace.onDidCloseTextDocument((doc: vscode.TextDocument) => {
+      this.filemap.delete(doc)
+    })
 
+    config.includes.onConfigUpdated(() => this.indexIncludes())
     this.index()
-    this.indexIncludes()
   }
 
   getSearchPrefix() {
@@ -93,9 +94,6 @@ export class CtagsManager extends ConfigNode {
       this.filemap.set(doc, ctags)
     }
     return ctags
-  }
-  onClose(doc: vscode.TextDocument) {
-    this.filemap.delete(doc)
   }
 
   onSave(doc: vscode.TextDocument) {

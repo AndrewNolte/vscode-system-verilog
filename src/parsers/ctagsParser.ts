@@ -255,19 +255,13 @@ export class CtagsParser {
   doc: vscode.TextDocument
   isDirty: boolean
   private logger: Logger
-  binPath: string
 
   constructor(logger: Logger, document: vscode.TextDocument) {
     this.symbols = []
     this.isDirty = true
     this.logger = logger
     this.doc = document
-
-    let binPath: string = config.ctags.path.getValue()
-    if (binPath === 'none') {
-      binPath = 'ctags'
-    }
-    this.binPath = binPath
+    config.ctags.path.listen()
   }
 
   clearSymbols() {
@@ -300,7 +294,7 @@ export class CtagsParser {
 
   async execCtags(filepath: string): Promise<string> {
     let command: string =
-      this.binPath +
+      config.ctags.path.getValue() +
       ' -f - --fields=+K --sort=no --excmd=n --fields-SystemVerilog=+{parameter} "' +
       filepath +
       '"'

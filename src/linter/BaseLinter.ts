@@ -5,7 +5,7 @@ import * as path from 'path'
 import * as process from 'process'
 import * as vscode from 'vscode'
 import { FileDiagnostic, getAbsPath, getWorkspaceFolder, getWslPath } from '../utils'
-import { ConfigNode, ConfigObject } from '../libconfig'
+import { ExtensionComponent, ConfigObject } from '../libconfig'
 import { ToolConfig } from '../runner'
 import { config } from '../extension'
 let isWindows = process.platform === 'win32'
@@ -30,29 +30,29 @@ export default abstract class BaseLinter extends ToolConfig {
     this.includeComputed = []
   }
 
-  // Override
-  async configUpdated() {
-    super.configUpdated()
-    // We want to cache these values so we don't fetch every lint cycle
-    this.logger.info('linter config updated')
-    this.enabled.getValue()
+  activate(_context: vscode.ExtensionContext) {
+    this.onConfigUpdated(() => {
+      // We want to cache these values so we don't fetch every lint cycle
+      this.logger.info('linter config updated')
+      this.enabled.getValue()
 
-    this.includeComputed = this.includes.getValue()
-    this.includeComputed.forEach((inc: string) => {
-      if (inc === '${includes}') {
-        this.includeComputed = this.includeComputed
-          .filter((inc) => inc !== '${includes}')
-          .concat(config.includes.getValue())
+      this.includeComputed = this.includes.getValue()
+      this.includeComputed.forEach((inc: string) => {
+        if (inc === '${includes}') {
+          this.includeComputed = this.includeComputed
+            .filter((inc) => inc !== '${includes}')
+            .concat(config.includes.getValue())
+        }
+      })
+      if (this.includeComputed.length === 0) {
+        this.includeComputed = config.includes.getValue()
       }
-    })
-    if (this.includeComputed.length === 0) {
-      this.includeComputed = config.includes.getValue()
-    }
 
-    this.useWsl.getValue()
-    this.path.getValue()
-    this.args.getValue()
-    this.runAtFileLocation.getValue()
+      this.useWsl.getValue()
+      this.path.getValue()
+      this.args.getValue()
+      this.runAtFileLocation.getValue()
+    })
   }
 
   async lint(doc: vscode.TextDocument): Promise<void> {

@@ -1,9 +1,9 @@
 import { LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient/node'
-import { ConfigNode, ConfigObject } from './libconfig'
+import { ExtensionComponent, ConfigObject } from './libconfig'
 import { ToggleToolConfig, ToolConfig } from './runner'
 import * as vscode from 'vscode'
 
-export class LanguageServerManager extends ConfigNode {
+export class LanguageServerManager extends ExtensionComponent {
   languageClients = new Map<string, LanguageClient>()
 
   svls: BaseLanguageServer = new BaseLanguageServer('svls')
@@ -12,14 +12,12 @@ export class LanguageServerManager extends ConfigNode {
   veribleVerilogLs: BaseLanguageServer = new BaseLanguageServer('verible-verilog-ls')
   rustHdl: BaseLanguageServer = new BaseLanguageServer('rust_hdl')
 
-  activate(context: vscode.ExtensionContext) {
-    super.activate(context)
+  activate(_context: vscode.ExtensionContext) {
     this.initAllLanguageClients()
-  }
-
-  async configUpdated(): Promise<void> {
-    await this.stopAllLanguageClients()
-    this.initAllLanguageClients()
+    this.onConfigUpdated(async () => {
+      await this.stopAllLanguageClients()
+      this.initAllLanguageClients()
+    })
   }
 
   initAllLanguageClients() {
@@ -64,7 +62,7 @@ export class LanguageServerManager extends ConfigNode {
     return Promise.all(p)
   }
 }
-class BaseLanguageServer extends ConfigNode {
+class BaseLanguageServer extends ExtensionComponent {
   enabled: ConfigObject<boolean> = new ConfigObject({
     default: false,
     description: 'Enable this Language Server',
@@ -79,6 +77,9 @@ class BaseLanguageServer extends ConfigNode {
       description: '',
     })
   }
+
+  activate(_context: vscode.ExtensionContext): void {}
+
   setupLanguageClient(
     serverArgs: string[],
     serverDebugArgs: string[],
