@@ -3,7 +3,7 @@ import * as vscode from 'vscode'
 import { Logger } from './logger'
 import { CtagsParser, Symbol } from './parsers/ctagsParser'
 import { getParentText, getPrevChar, getWorkspaceFolder, raceArrays } from './utils'
-import { config } from './extension'
+import { ext } from './extension'
 import { ExtensionComponent, ConfigObject } from './libconfig'
 
 export class CtagsManager extends ExtensionComponent {
@@ -25,12 +25,12 @@ export class CtagsManager extends ExtensionComponent {
       this.filemap.delete(doc)
     })
 
-    config.includes.onConfigUpdated(() => this.indexIncludes())
+    ext.includes.onConfigUpdated(() => this.indexIncludes())
     this.index()
   }
 
   getSearchPrefix() {
-    let dir = config.directory.getValue()
+    let dir = ext.directory.getValue()
     if (dir !== undefined) {
       return `${dir}/**`
     }
@@ -45,7 +45,7 @@ export class CtagsManager extends ExtensionComponent {
         cancellable: true,
       },
       async () => {
-        let incs = config.includes.getValue()
+        let incs = ext.includes.getValue()
         incs.forEach(async (path: string) => {
           let files: vscode.Uri[] = await this.findFiles(`${path}/*.{svh}`)
 

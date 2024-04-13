@@ -15,7 +15,7 @@ import { ExtensionComponent, ConfigObject } from './libconfig'
 import { SystemVerilogFormatProvider, VerilogFormatProvider } from './providers/FormatPrivider'
 import { LanguageServerManager } from './LSManager'
 
-export var config: VerilogExtension // Global config
+export var ext: VerilogExtension
 
 export enum SvStandard {
   sv2005 = 'SystemVerilog-2005',
@@ -55,6 +55,7 @@ export class VerilogExtension extends ExtensionComponent {
   languageServer: LanguageServerManager = new LanguageServerManager()
 
   extensionID: string = 'AndrewNolte.vscode-system-verilog'
+
   activate(context: vscode.ExtensionContext) {
     /////////////////////////////////////////////
     // Register Lint Manager, runs selected linters
@@ -175,25 +176,21 @@ export class VerilogExtension extends ExtensionComponent {
 
     vscode.commands.registerCommand('verilog.dev.dumpConfig', () => {
       vscode.workspace.openTextDocument({
-        content: JSON.stringify(config.getConfigJson(), null, 2),
+        content: JSON.stringify(ext.getConfigJson(), null, 2),
         language: 'json',
       })
     })
-
-    /////////////////////////////////////////////
-    // Language Servers
-    /////////////////////////////////////////////
 
     this.logger.info(this.extensionID + ' activation finished.')
   }
 }
 
 export function deactivate(): Promise<void> {
-  config.logger.info('Deactivated')
-  return config.languageServer.stopAllLanguageClients()
+  ext.logger.info('Deactivated')
+  return ext.languageServer.stopAllLanguageClients()
 }
 
 export function activate(context: vscode.ExtensionContext) {
-  config = new VerilogExtension()
-  config.activateExtension('verilog', context)
+  ext = new VerilogExtension()
+  ext.activateExtension('verilog', context)
 }

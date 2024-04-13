@@ -7,7 +7,7 @@ import * as vscode from 'vscode'
 import { FileDiagnostic, getAbsPath, getWorkspaceFolder, getWslPath } from '../utils'
 import { ExtensionComponent, ConfigObject } from '../libconfig'
 import { ToolConfig } from '../runner'
-import { config } from '../extension'
+import { ext } from '../extension'
 let isWindows = process.platform === 'win32'
 
 export default abstract class BaseLinter extends ToolConfig {
@@ -42,11 +42,11 @@ export default abstract class BaseLinter extends ToolConfig {
           if (inc === '${includes}') {
             this.includeComputed = this.includeComputed
               .filter((inc) => inc !== '${includes}')
-              .concat(config.includes.getValue())
+              .concat(ext.includes.getValue())
           }
         })
         if (this.includeComputed.length === 0) {
-          this.includeComputed = config.includes.getValue()
+          this.includeComputed = ext.includes.getValue()
         }
 
         this.useWsl.getValue()

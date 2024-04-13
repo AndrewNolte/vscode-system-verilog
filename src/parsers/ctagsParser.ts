@@ -1,7 +1,7 @@
 import * as child from 'child_process'
 import * as vscode from 'vscode'
 import { Logger } from '../logger'
-import { config } from '../extension'
+import { ext } from '../extension'
 
 export class Symbol {
   name: string
@@ -271,7 +271,7 @@ export class CtagsParser {
     this.isDirty = true
     this.logger = logger
     this.doc = document
-    config.ctags.path.listen()
+    ext.ctags.path.listen()
   }
 
   clearSymbols() {
@@ -304,7 +304,7 @@ export class CtagsParser {
 
   async execCtags(filepath: string): Promise<string> {
     let command: string =
-      config.ctags.path.getValue() +
+      ext.ctags.path.getValue() +
       ' -f - --fields=+K --sort=no --excmd=n --fields-SystemVerilog=+{parameter} "' +
       filepath +
       '"'
