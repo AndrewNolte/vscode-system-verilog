@@ -77,6 +77,17 @@ export class Symbol {
     return this.fullRange
   }
 
+  getUnindented(): string {
+    let range = this.getFullRange()
+    let leadingSpaces = this.doc.lineAt(range.start.line).text.match(/^ */)?.[0].length ?? 0
+
+    let outline = []
+    for (let line = range.start.line; line <= range.end.line; line++) {
+      outline.push(this.doc.lineAt(line).text.substring(leadingSpaces))
+    }
+    return outline.join('\n')
+  }
+
   setEndPosition(endLine: number) {
     this.fullRange = new vscode.Range(this.line, 0, endLine, Number.MAX_VALUE)
     this.isValid = true
@@ -141,8 +152,7 @@ export class Symbol {
     }
 
     if (this.type === 'typedef') {
-      let code = this.doc.getText(this.getFullRange())
-      return code
+      return this.getUnindented()
     }
 
     let code = this.doc
