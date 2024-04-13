@@ -151,6 +151,7 @@ export class VerilogExtension extends ExtensionComponent {
           for (let dir of dirs) {
             if (vscode.workspace.asRelativePath(document.uri.fsPath).startsWith(dir)) {
               await vscode.commands.executeCommand('editor.action.formatDocument')
+              await document.save()
               return
             }
           }
