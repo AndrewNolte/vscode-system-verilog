@@ -26,7 +26,11 @@ export default class ModelsimLinter extends BaseLinter {
     return vscode.DiagnosticSeverity.Information
   }
 
-  protected parseDiagnostics(args: { stdout: string; stderr: string }): FileDiagnostic[] {
+  protected parseDiagnostics(args: {
+    doc: vscode.TextDocument
+    stdout: string
+    stderr: string
+  }): FileDiagnostic[] {
     let diagnostics: FileDiagnostic[] = []
     let lines = args.stdout.split(/\r?\n/g)
 

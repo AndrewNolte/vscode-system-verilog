@@ -24,7 +24,11 @@ export default class VerilatorLinter extends BaseLinter {
     return args
   }
 
-  protected parseDiagnostics(args: { stdout: string; stderr: string }): FileDiagnostic[] {
+  protected parseDiagnostics(args: {
+    doc: vscode.TextDocument
+    stdout: string
+    stderr: string
+  }): FileDiagnostic[] {
     let diagnostics: FileDiagnostic[] = []
     // this.logger.info('stdout: ' + args.stdout)
     // this.logger.info('stderr: ' + args.stderr)

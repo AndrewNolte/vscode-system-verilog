@@ -3,6 +3,7 @@ import * as process from 'process'
 import * as vscode from 'vscode'
 import BaseLinter from './BaseLinter'
 import { FileDiagnostic } from '../utils'
+import { DocumentColorRequest } from 'vscode-languageserver-protocol'
 
 let isWindows = process.platform === 'win32'
 
@@ -16,7 +17,11 @@ export default class SlangLinter extends BaseLinter {
     return vscode.DiagnosticSeverity.Information
   }
 
-  protected parseDiagnostics(args: { stdout: string; stderr: string }): FileDiagnostic[] {
+  protected parseDiagnostics(args: {
+    doc: vscode.TextDocument
+    stdout: string
+    stderr: string
+  }): FileDiagnostic[] {
     /// TODO: reuse tasks/problem matchers for this
 
     let diags: FileDiagnostic[] = []
@@ -48,10 +53,19 @@ export default class SlangLinter extends BaseLinter {
       let elen = pline.length - pindex
       n += 2
 
+      let spos = new vscode.Position(lineNum, colNum)
+      let range = undefined
+      if (elen === 1) {
+        range = args.doc.getWordRangeAtPosition(spos)
+      }
+      if (range === undefined) {
+        range = new vscode.Range(spos, new vscode.Position(lineNum, colNum + elen))
+      }
+
       diags.push({
         file: filePath,
         severity: this.convertToSeverity(rex[4]),
-        range: new vscode.Range(lineNum, colNum, lineNum, colNum + elen),
+        range: range,
         message: rex[5],
         code: rex[7] ? rex[7] : 'error',
         source: 'slang',

@@ -16,7 +16,11 @@ export default class XvlogLinter extends BaseLinter {
     return includes.map((path: string) => ` -i "${path}" `).join(' ')
   }
 
-  protected parseDiagnostics(args: { stdout: string; stderr: string }): FileDiagnostic[] {
+  protected parseDiagnostics(args: {
+    doc: vscode.TextDocument
+    stdout: string
+    stderr: string
+  }): FileDiagnostic[] {
     let diagnostics: FileDiagnostic[] = []
 
     args.stdout.split(/\r?\n/g).forEach((line) => {

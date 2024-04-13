@@ -36,7 +36,11 @@ export default class IcarusLinter extends BaseLinter {
     return args
   }
 
-  protected parseDiagnostics(args: { stdout: string; stderr: string }): FileDiagnostic[] {
+  protected parseDiagnostics(args: {
+    doc: vscode.TextDocument
+    stdout: string
+    stderr: string
+  }): FileDiagnostic[] {
     let diagnostics: FileDiagnostic[] = []
     // Parse output lines
     // the message is something like this

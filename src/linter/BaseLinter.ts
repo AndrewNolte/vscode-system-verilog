@@ -61,8 +61,10 @@ export default abstract class BaseLinter extends ToolConfig {
       return
     }
     this.logger.info(`linting ${doc.uri}...`)
-    let output = await this.runTool(doc)
+    let output: any = await this.runTool(doc)
+    output.doc = doc
     let diags = this.parseDiagnostics(output)
+
     this.diagnostics.set(
       doc.uri,
       diags.filter((diag) => {
@@ -141,5 +143,9 @@ export default abstract class BaseLinter extends ToolConfig {
     return []
   }
 
-  protected abstract parseDiagnostics(args: { stdout: string; stderr: string }): FileDiagnostic[]
+  protected abstract parseDiagnostics(args: {
+    doc: vscode.TextDocument
+    stdout: string
+    stderr: string
+  }): FileDiagnostic[]
 }
