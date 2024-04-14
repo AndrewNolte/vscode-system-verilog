@@ -1,12 +1,10 @@
 // SPDX-License-Identifier: MIT
 import * as vscode from 'vscode'
-import { LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient/node'
 
 import { CommandExcecutor } from './commands/ModuleInstantiation'
 import { CtagsManager } from './ctags'
 import { ExtensionManager } from './extensionManager'
 import LintManager from './linter/LintManager'
-import { createLogger, Logger } from './logger'
 import * as CompletionItemProvider from './providers/CompletionItemProvider'
 import * as DefinitionProvider from './providers/DefinitionProvider'
 import * as DocumentSymbolProvider from './providers/DocumentSymbolProvider'

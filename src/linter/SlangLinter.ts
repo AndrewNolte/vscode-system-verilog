@@ -3,7 +3,6 @@ import * as process from 'process'
 import * as vscode from 'vscode'
 import BaseLinter from './BaseLinter'
 import { FileDiagnostic } from '../utils'
-import { DocumentColorRequest } from 'vscode-languageserver-protocol'
 
 let isWindows = process.platform === 'win32'
 

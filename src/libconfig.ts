@@ -1,7 +1,5 @@
-import { getVSCodeDownloadUrl } from '@vscode/test-electron/out/util'
 import * as vscode from 'vscode'
 import { Logger, StubLogger, createLogger } from './logger'
-import { integer } from 'vscode-languageclient'
 
 class ExtensionNode {
   nodeName: string | undefined

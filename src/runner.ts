@@ -1,4 +1,3 @@
-import { ExtensionContext } from 'vscode'
 import { ExtensionComponent, ConfigObject } from './libconfig'
 
 export class Runner extends ExtensionComponent {

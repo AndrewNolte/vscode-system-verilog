@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
 import * as vscode from 'vscode'
-import { Logger } from '../logger'
 import BaseLinter from './BaseLinter'
 import IcarusLinter from './IcarusLinter'
 import SlangLinter from './SlangLinter'

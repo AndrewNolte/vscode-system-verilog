@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 import * as vscode from 'vscode'
-import { Logger } from './logger'
 import { CtagsParser, Symbol } from './parsers/ctagsParser'
-import { getParentText, getPrevChar, getWorkspaceFolder, raceArrays } from './utils'
+import { getParentText, getPrevChar, getWorkspaceFolder } from './utils'
 import { ext } from './extension'
 import { ExtensionComponent, ConfigObject } from './libconfig'
 

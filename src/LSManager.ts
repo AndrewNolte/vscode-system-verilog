@@ -1,6 +1,5 @@
 import { LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient/node'
 import { ExtensionComponent, ConfigObject } from './libconfig'
-import { ToggleToolConfig, ToolConfig } from './runner'
 import * as vscode from 'vscode'
 
 export class LanguageServerManager extends ExtensionComponent {

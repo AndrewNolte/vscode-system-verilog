@@ -2,7 +2,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import * as vscode from 'vscode'
-import { CtagsParser, Symbol } from '../parsers/ctagsParser'
+import { Symbol } from '../parsers/ctagsParser'
 import { getWorkspaceFolder } from '../utils'
 import { CtagsManager } from '../ctags'
 import { Logger } from '../logger'

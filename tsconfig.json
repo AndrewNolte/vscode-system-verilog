@@ -5,6 +5,7 @@
     "outDir": "out",
     "lib": ["ES2020"],
     "sourceMap": true,
+    "types": ["node"],
     "rootDir": ".",
     "strict": true,   /* enable all strict type-checking options */
     "noImplicitReturns": true /* Report error when not all code paths in function return a value. */,
