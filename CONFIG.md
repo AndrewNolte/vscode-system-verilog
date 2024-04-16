@@ -1,162 +1,336 @@
-
 ## Configuration Settings
 
-This may be out of date, I'm changing quite a bit right now.
+- `verilog.ctags.path`: string = "ctags"
 
-- `verilog.lint.iverilog.args` (Default: nothing)
+    Path to ctags universal executable
 
-    Add custom arguments to Icarus Verilog for linting, like `-Wall` . The argument `-t null` will be added by the linter automatically.
 
-- `verilog.lint.iverilog.includes` (Default: nothing)
+- `verilog.includes`: array = []
 
-    A list of directory paths to use while Icarus Verilog linting.
-    All the paths are passed as arguments `-I <directory_path>`.
-    Paths can be specified either an absolute or a relate to the workspace directory.
+    Include Paths for tools
 
-- `verilog.lint.iverilog.runAtFileLocation` (Default: `false` )
 
-    By default, the linter will be run at the workspace directory. Enable this option to run at the file location. If enabled, `` ` include`` directives should contain file paths relative to the current file.
+- `verilog.directory`: string = ""
 
-- `verilog.lint.modelsim.args` (Default: nothing)
+    The directory containing all hardware files
 
-    Add custom arguments to Modelsim for linting.
 
-- `verilog.lint.modelsim.work` (Default: nothing)
+- `verilog.lint.slang.runAtFileLocation`: boolean = false
 
-    Add custom work library to Modelsim for linting.
+    Run at file location
 
-- `verilog.lint.slang.args` (Default: nothing)
 
-    Add Slang arguments here (like macros). They will be added to Slang while linting (The command \"-I=<document folder>\" will be added by the linter by default).
+- `verilog.lint.slang.useWsl`: boolean = false
 
-- `verilog.lint.slang.includes` (Default: nothing)
+    Run using wsl
 
-    A list of directory paths to use while Slang linting.
 
-- `verilog.lint.slang.runAtFileLocation` (Default: `false` )
+- `verilog.lint.slang.args`: string = ""
 
-    If enabled, Slang will be run at the file location for linting. Else it will be run at workspace folder. Disabled by default.
+    Arguments to pass to the tool
 
-- `verilog.lint.slang.useWsl` (Default: `false` )
 
-    Run verilator under WSL. Paths generated automatically by the extension (the path to the Verilog file as well as
-    the auto-generated document folder for `-I` ) are translated to WSL paths using the `wslpath` program.
-    Any other paths you specify in `verilog.lint.includes.args`
+- `verilog.lint.slang.path`: string = "slang"
 
-- `verilog.lint.verilator.args` (Default: nothing)
+    Path to the tool
 
-    Add custom arguments to Verilator for linting, like `-Wall` . The argument `--lint-only -I<document folder>` will be added by the linter automatically.
 
-- `verilog.lint.verilator.includes` (Default: nothing)
+- `verilog.lint.slang.enabled`: boolean = false
 
-    A list of directory paths to use while Verilator linting.
-    All the paths are passed as arguments `-I<directory_path>`.
-    Paths can be specified either an absolute or a relate to the workspace directory.
+    Enable this lint tool
 
-- `verilog.lint.verilator.runAtFileLocation` (Default: `false` )
 
-    By default, the linter will be run at the workspace directory. Enable this option to run at the file location. If enabled, `` ` include`` directives should contain file paths relative to the current file.
+- `verilog.lint.slang.includes`: array = []
 
-- `verilog.lint.verilator.useWsl` (Default: `false` )
+    Include Path Overrides. Use `${includes} to include default includes
 
-    Run verilator under WSL (use `apg-get install verilator` to install). Paths generated automatically by the
-    extension (the path to the Verilog file as well as the auto-generated document folder for `-I` ) are translated
-    to WSL paths using the `wslpath` program. Any other paths you specify in `verilog.lint.verilator.args`
 
-    must be manually converted.
+- `verilog.lint.modelsim.runAtFileLocation`: boolean = false
 
-- `verilog.lint.xvlog.args` (Default: nothing)
+    Run at file location
 
-    Add custom arguments to Xilinx xvlog for linting, like `-Wall` . The argument `--nolog` will be added by the linter automatically.
 
-- `verilog.lint.xvlog.includes` (Default: nothing)
+- `verilog.lint.modelsim.useWsl`: boolean = false
 
-    A list of directory paths to use while Xilinx xvlog linting.
-    All the paths are passed as arguments `-i <directory_path>`.
-    Paths can be specified either an absolute or a relate to the workspace directory.
+    Run using wsl
 
-- `verilog.ctags.path` (Default: `ctags` )
 
-    Path to your installation of Ctags if it isn't already present in your `PATH` environment variable.
+- `verilog.lint.modelsim.args`: string = ""
 
-- `verilog.languageServer.svls.enabled` (Default: `false`)
+    Arguments to pass to the tool
 
-     Enable svls Language Server for SystemVerilog.
 
-- `verilog.languageServer.svls.path` (Default: `svls`)
+- `verilog.lint.modelsim.path`: string = "modelsim"
 
-     A path to the svls Language Server binary.
+    Path to the tool
 
-- `verilog.languageServer.veridian.enabled` (Default: `false`)
 
-     Enable veridian Language Server for SystemVerilog.
+- `verilog.lint.modelsim.enabled`: boolean = false
 
-- `verilog.languageServer.veridian.path` (Default: `veridian`)
+    Enable this lint tool
 
-     A path to the veridian Language Server binary.
 
-- `verilog.languageServer.hdlChecker.enabled` (Default: `false`)
+- `verilog.lint.modelsim.includes`: array = []
 
-     Enable HDL Checker Language Server for Verilog-HDL, SystemVerilog, and VHDL.
+    Include Path Overrides. Use `${includes} to include default includes
 
-- `verilog.languageServer.hdlChecker.path` (Default: `hdl_checker`)
 
-     A path to the HDL Checker Language Server binary.
+- `verilog.lint.modelsim.work`: string = "work"
 
-- `verilog.languageServer.veribleVerilogLs.enabled` (Default: `false`)
+    Modelsim work library
 
-     Enable verible-verilog-ls Language Server for SystemVerilog.
 
-- `verilog.languageServer.veribleVerilogLs.path` (Default: `verible-verilog-ls`)
+- `verilog.lint.iverilog.runAtFileLocation`: boolean = false
 
-     A path to the verible-verilog-ls Language Server binary.
+    Run at file location
 
-- `verilog.languageServer.rustHdl.enabled` (Default: `false`)
 
-     Enable rust_hdl Language Server for VHDL.
+- `verilog.lint.iverilog.useWsl`: boolean = false
 
-- `verilog.languageServer.rustHdl.path` (Default: `vhdl_ls`)
+    Run using wsl
 
-     A path to the rust_hdl Language Server binary.
 
-- `verilog.format.verilogHDL.formatter` (Default: `verilog-format`)
+- `verilog.lint.iverilog.args`: string = ""
 
-     Choose the Verilog-HDL formatter. Possible values are:
+    Arguments to pass to the tool
 
-  - `verilog-format`
-  - `iStyle`
-  - `verible-verilog-format`
 
-- `verilog.format.systemVerilog.formatter` (Default: `verible-verilog-format`)
+- `verilog.lint.iverilog.path`: string = "iverilog"
 
-     Choose the Verilog-HDL formatter. Possible values are:
+    Path to the tool
 
-  - `verible-verilog-format`
 
-- `verilog.format.verilogFormat.path` (Default: `verilog-format`)
+- `verilog.lint.iverilog.enabled`: boolean = false
 
-     A path to the verilog-format binary.
+    Enable this lint tool
 
-- `verilog.format.verilogFormat.settings` (Default: `${env:HOME}/.verilog-format.properties`)
 
-     A path to the verilog-format settings file.
+- `verilog.lint.iverilog.includes`: array = []
 
-- `verilog.format.istyleFormatter.path` (Default: `iStyle`)
+    Include Path Overrides. Use `${includes} to include default includes
 
-     A path to the iStyle Verilog Formatter binary.
 
-- `verilog.format.istyleFormatter.args` (Default: nothing)
+- `verilog.lint.verilator.runAtFileLocation`: boolean = false
 
-     Add custom arguments to iStyle Verilog Formatter for formatting.
+    Run at file location
 
-- `verilog.format.istyleFormatter.style` (Default: `Indent only`)
 
-     Choose styling options from ANSI/K&R/GNU.
+- `verilog.lint.verilator.useWsl`: boolean = false
 
-- `verilog.format.veribleFormatter.path` (Default: `verible-verilog-format`)
+    Run using wsl
 
-     A path to the verible-verilog-format binary.
 
-- `verilog.format.veribleFormatter.args` (Default: nothing)
+- `verilog.lint.verilator.args`: string = ""
 
-     Add custom arguments to verible-verilog-format for formatting.
+    Arguments to pass to the tool
+
+
+- `verilog.lint.verilator.path`: string = "verilator"
+
+    Path to the tool
+
+
+- `verilog.lint.verilator.enabled`: boolean = false
+
+    Enable this lint tool
+
+
+- `verilog.lint.verilator.includes`: array = []
+
+    Include Path Overrides. Use `${includes} to include default includes
+
+
+- `verilog.lint.xvlog.runAtFileLocation`: boolean = false
+
+    Run at file location
+
+
+- `verilog.lint.xvlog.useWsl`: boolean = false
+
+    Run using wsl
+
+
+- `verilog.lint.xvlog.args`: string = ""
+
+    Arguments to pass to the tool
+
+
+- `verilog.lint.xvlog.path`: string = "xvlog"
+
+    Path to the tool
+
+
+- `verilog.lint.xvlog.enabled`: boolean = false
+
+    Enable this lint tool
+
+
+- `verilog.lint.xvlog.includes`: array = []
+
+    Include Path Overrides. Use `${includes} to include default includes
+
+
+- `verilog.svFormat.verible.runAtFileLocation`: boolean = false
+
+    Run at file location
+
+
+- `verilog.svFormat.verible.useWsl`: boolean = false
+
+    Run using wsl
+
+
+- `verilog.svFormat.verible.args`: string = ""
+
+    Arguments to pass to the tool
+
+
+- `verilog.svFormat.verible.path`: string = "verible-verilog-format"
+
+    Path to the tool
+
+
+- `verilog.svFormat.formatter`: string = "verible-verilog-format"
+
+    Formatter Selection
+
+
+- `verilog.verilogFormat.verilogFormatter.runAtFileLocation`: boolean = false
+
+    Run at file location
+
+
+- `verilog.verilogFormat.verilogFormatter.useWsl`: boolean = false
+
+    Run using wsl
+
+
+- `verilog.verilogFormat.verilogFormatter.args`: string = ""
+
+    Arguments to pass to the tool
+
+
+- `verilog.verilogFormat.verilogFormatter.path`: string = "verilogFormat"
+
+    Path to the tool
+
+
+- `verilog.verilogFormat.iStyleFormatter.runAtFileLocation`: boolean = false
+
+    Run at file location
+
+
+- `verilog.verilogFormat.iStyleFormatter.useWsl`: boolean = false
+
+    Run using wsl
+
+
+- `verilog.verilogFormat.iStyleFormatter.args`: string = ""
+
+    Arguments to pass to the tool
+
+
+- `verilog.verilogFormat.iStyleFormatter.path`: string = "istyleFormat"
+
+    Path to the tool
+
+
+- `verilog.verilogFormat.veribleFormatter.runAtFileLocation`: boolean = false
+
+    Run at file location
+
+
+- `verilog.verilogFormat.veribleFormatter.useWsl`: boolean = false
+
+    Run using wsl
+
+
+- `verilog.verilogFormat.veribleFormatter.args`: string = ""
+
+    Arguments to pass to the tool
+
+
+- `verilog.verilogFormat.veribleFormatter.path`: string = "verible"
+
+    Path to the tool
+
+
+- `verilog.verilogFormat.formatter`: string = "verible-verilog-format"
+
+    Formatter Selection
+
+
+- `verilog.svStandard`: enum = SystemVerilog-2017
+
+    System Verilog standard to use
+
+    Options:
+    - SystemVerilog-2005
+    - SystemVerilog-2009
+    - SystemVerilog-2012
+    - SystemVerilog-2017
+
+- `verilog.verilogStandard`: enum = Verilog-2005
+
+    System Verilog standard to use
+
+    Options:
+    - Verilog-95
+    - Verilog-2001
+    - Verilog-2005
+
+- `verilog.formatDirs`: array = []
+
+    Directories to format
+
+
+- `verilog.languageServer.svls.enabled`: boolean = false
+
+    Enable this Language Server
+
+
+- `verilog.languageServer.svls.path`: string = "svls"
+
+    
+
+
+- `verilog.languageServer.veridian.enabled`: boolean = false
+
+    Enable this Language Server
+
+
+- `verilog.languageServer.veridian.path`: string = "veridian"
+
+    
+
+
+- `verilog.languageServer.hdlChecker.enabled`: boolean = false
+
+    Enable this Language Server
+
+
+- `verilog.languageServer.hdlChecker.path`: string = "hdl_checker"
+
+    
+
+
+- `verilog.languageServer.veribleVerilogLs.enabled`: boolean = false
+
+    Enable this Language Server
+
+
+- `verilog.languageServer.veribleVerilogLs.path`: string = "verible-verilog-ls"
+
+    
+
+
+- `verilog.languageServer.rustHdl.enabled`: boolean = false
+
+    Enable this Language Server
+
+
+- `verilog.languageServer.rustHdl.path`: string = "rust_hdl"
+
+    
+
+

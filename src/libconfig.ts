@@ -122,10 +122,15 @@ export abstract class ExtensionComponent extends ExtensionNode {
       props[obj.configPath!] = obj.getConfigJson()
     })
 
-    return {
-      configuration: { title: `${this.nodeName} configuration` },
-      properties: props,
-    }
+    return props
+  }
+
+  getConfigMd(): string {
+    let out = '## Configuration Settings\n\n'
+    this.preOrderConfigTraverse((obj: ConfigObject<any>) => {
+      out += obj.getMarkdownString()
+    })
+    return out
   }
 }
 
@@ -172,9 +177,31 @@ export class ConfigObject<T extends ConfigType> extends ExtensionNode {
         this.obj['items'] = {
           type: 'string',
         }
+      } else {
+        throw Error(`Was not able to deduce type for ${this.configPath}`)
       }
-      throw Error(`Was not able to deduce type for ${this.configPath}`)
     }
     return this.obj
+  }
+
+  getMarkdownString(): string {
+    let cfgjson = this.getConfigJson()
+    let out = `- \`${this.configPath}\`: ${cfgjson.type} = `
+    if (cfgjson.type === 'string') {
+      out += `"${this.default}"\n\n`
+    } else if (cfgjson.type === 'array') {
+      out += `[]\n\n`
+    } else {
+      out += `${this.default}\n\n`
+    }
+    out += `    ${cfgjson.description}\n\n`
+    if (cfgjson.type === 'enum') {
+      out += `    Options:\n`
+      for (let option of cfgjson.enum) {
+        out += `    - ${option}\n`
+      }
+    }
+    out += '\n'
+    return out
   }
 }

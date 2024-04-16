@@ -12,6 +12,7 @@ import * as HoverProvider from './providers/HoverProvider'
 import { ExtensionComponent, ConfigObject } from './libconfig'
 import { SystemVerilogFormatProvider, VerilogFormatProvider } from './providers/FormatProvider'
 import { LanguageServerManager } from './LSManager'
+import { readFile, writeFile } from 'fs/promises'
 
 export var ext: VerilogExtension
 
@@ -19,7 +20,7 @@ export enum SvStandard {
   sv2005 = 'SystemVerilog-2005',
   sv2009 = 'SystemVerilog-2009',
   sv2012 = 'SystemVerilog-2012',
-  //   sv2017 = 'SystemVerilog2017',
+  sv2017 = 'SystemVerilog-2017',
   //   sv2023 = 'SystemVerilog2023',
 }
 
@@ -45,6 +46,18 @@ export class VerilogExtension extends ExtensionComponent {
 
   svFormat: SystemVerilogFormatProvider = new SystemVerilogFormatProvider()
   verilogFormat: VerilogFormatProvider = new VerilogFormatProvider()
+  svStandard: ConfigObject<SvStandard> = new ConfigObject({
+    default: SvStandard.sv2017,
+    description: 'System Verilog standard to use',
+    type: 'enum',
+    enum: Object.values(SvStandard),
+  })
+  verilogStandard: ConfigObject<VerilogStandard> = new ConfigObject({
+    default: VerilogStandard.v2005,
+    description: 'System Verilog standard to use',
+    type: 'enum',
+    enum: Object.values(VerilogStandard),
+  })
   formatDirs: ConfigObject<string[]> = new ConfigObject({
     default: [],
     description: 'Directories to format',
@@ -161,11 +174,31 @@ export class VerilogExtension extends ExtensionComponent {
     )
     vscode.commands.registerCommand('verilog.lint', this.lint.runLintTool, this.lint)
 
-    vscode.commands.registerCommand('verilog.dev.dumpConfig', () => {
-      vscode.workspace.openTextDocument({
-        content: JSON.stringify(ext.getConfigJson(), null, 2),
-        language: 'json',
+    vscode.commands.registerCommand('verilog.dev.dumpConfig', async () => {
+      // select workspace folder
+      let fileUri = await vscode.window.showOpenDialog({
+        canSelectFolders: true,
+        openLabel: 'Workspace folder for the extension',
       })
+      if (fileUri === undefined) {
+        throw Error('fileuri undefined')
+      }
+
+      // update package.json
+      {
+        let filePath = fileUri[0].fsPath + '/package.json'
+        const data = await readFile(filePath, { encoding: 'utf-8' })
+        let json = JSON.parse(data)
+        json.contributes.configuration.properties = ext.getConfigJson()
+        const updatedJson = JSON.stringify(json, null, 2)
+        await writeFile(filePath, updatedJson, { encoding: 'utf-8' })
+      }
+
+      // update config.md
+      {
+        let filePath = fileUri[0].fsPath + '/CONFIG.md'
+        await writeFile(filePath, ext.getConfigMd(), { encoding: 'utf-8' })
+      }
     })
 
     this.logger.info(this.extensionID + ' activation finished.')
