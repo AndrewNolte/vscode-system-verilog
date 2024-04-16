@@ -2,7 +2,7 @@
 import * as vscode from 'vscode'
 import BaseLinter from './BaseLinter'
 import { FileDiagnostic } from '../utils'
-import { SvStandard, VerilogStandard } from '../extension'
+import { SvStandard, VerilogStandard, ext } from '../extension'
 
 let verilogArgs: Map<string, string> = new Map([
   [VerilogStandard.v1995, '-g1995'],
@@ -14,6 +14,7 @@ let svArgs: Map<SvStandard, string> = new Map([
   [SvStandard.sv2005, '-g2005-sv'],
   [SvStandard.sv2009, '-g2009'],
   [SvStandard.sv2012, '-g2012'],
+  [SvStandard.sv2017, '-g2012'],
 ])
 export default class IcarusLinter extends BaseLinter {
   protected convertToSeverity(severityString: string): vscode.DiagnosticSeverity {
@@ -29,9 +30,9 @@ export default class IcarusLinter extends BaseLinter {
     let args = []
     args.push('-t null')
     if (doc.languageId === 'systemverilog') {
-      args.push(svArgs.get(this.generalOptions.SvStandard) ?? '')
+      args.push(svArgs.get(ext.svStandard.getValue()) ?? '')
     } else {
-      args.push(verilogArgs.get(this.generalOptions.verilogStandard) ?? '')
+      args.push(verilogArgs.get(ext.verilogStandard.getValue()) ?? '')
     }
     return args
   }
