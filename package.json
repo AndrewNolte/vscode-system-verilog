@@ -575,22 +575,22 @@
           "description": "",
           "type": "string"
         }
+      }
+    },
+    "commands": [
+      {
+        "command": "verilog.instantiateModule",
+        "title": "Verilog: Instantiate Module"
       },
-      "commands": [
-        {
-          "command": "verilog.instantiateModule",
-          "title": "Verilog: Instantiate Module"
-        },
-        {
-          "command": "verilog.dev.dumpConfig",
-          "title": "Verilog Dev: dump config"
-        },
-        {
-          "command": "verilog.lint",
-          "title": "Verilog: Rerun lint tool"
-        }
-      ]
-    }
+      {
+        "command": "verilog.dev.dumpConfig",
+        "title": "Verilog Dev: dump config"
+      },
+      {
+        "command": "verilog.lint",
+        "title": "Verilog: Rerun lint tool"
+      }
+    ]
   },
   "scripts": {
     "compile-tests": "tsc -p . --outDir out",
