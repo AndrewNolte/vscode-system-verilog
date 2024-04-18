@@ -24,8 +24,12 @@ export function getParentText(document: vscode.TextDocument, textRange: vscode.R
     // follow interface.modport
     range = document.getWordRangeAtPosition(range.start.translate(0, -1)) ?? range
   } else if (prevChar === ':' && range.start.character > 1) {
-    // follow package scope
-    range = document.getWordRangeAtPosition(range.start.translate(0, -2)) ?? range
+    // follow package scope all the way
+    //use for loop to avoid risk of infinite loop
+    for (let i = 0; i < 10 && prevChar === ':'; i++) {
+      range = document.getWordRangeAtPosition(range.start.translate(0, -2)) ?? range
+      prevChar = getPrevChar(document, range)
+    }
   }
   return document.getText(range)
 }
