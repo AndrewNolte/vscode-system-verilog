@@ -72,6 +72,25 @@ export class Symbol {
           return this.fullRange
         }
       }
+
+      if (this.type === 'instance') {
+        let idind = this.doc.offsetAt(this.getIdRange().start)
+        let endind = this.doc.getText().indexOf(';', idind)
+        let startind: number
+        if (this.typeRef === null) {
+          startind = idind
+        } else {
+          startind = this.doc.getText().lastIndexOf(this.typeRef, idind)
+        }
+
+        if (startind >= 0 && endind >= 0) {
+          this.fullRange = new vscode.Range(
+            this.doc.positionAt(startind),
+            this.doc.positionAt(endind)
+          )
+          return this.fullRange
+        }
+      }
       this.fullRange = this.doc.lineAt(this.line).range
     }
     return this.fullRange
@@ -410,9 +429,9 @@ export class CtagsParser {
       this.logger.error((e as Error).toString())
     }
     // print all syms
-    // this.symbols.forEach((sym) => {
-    //   this.logger.info(sym.prettyPrint());
-    // });
+    this.symbols.forEach((sym) => {
+      this.logger.info(sym.prettyPrint())
+    })
   }
 
   async index(): Promise<void> {

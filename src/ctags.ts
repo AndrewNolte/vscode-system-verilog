@@ -141,23 +141,12 @@ export class CtagsManager extends ExtensionComponent {
     // let modulePromise = this.findDefinitionByName(parentScope, targetText);
     // If we're at a port, .<text> plus no parent
     if (getPrevChar(document, textRange) === '.' && parentScope === targetText) {
-      syms = await symPromise
-
-      let insts = syms.filter((sym) => sym.type === 'instance')
+      let insts = await parser.getSymbols({ type: 'instance' })
       if (insts.length > 0) {
-        let latestInst = insts.reduce((latest, inst) => {
-          if (
-            inst.startPosition.line < position.line &&
-            inst.startPosition.line > latest.startPosition.line
-          ) {
-            return inst
-          } else {
-            return latest
-          }
-        }, insts[0])
+        let myinst = insts.filter((inst) => inst.getFullRange().contains(position))[0]
 
-        if (latestInst.typeRef !== null) {
-          return await this.findDefinitionByName(latestInst.typeRef, targetText)
+        if (myinst.typeRef !== null) {
+          return await this.findDefinitionByName(myinst.typeRef, targetText)
         }
       }
     }
