@@ -135,18 +135,23 @@ export class CtagsManager extends ExtensionComponent {
     let parser = this.getCtags(document)
     let targetText = document.getText(textRange)
     let symPromise = parser.getSymbols({ name: targetText })
-    let syms: Symbol[] | undefined = undefined
 
     let parentScope = getParentText(document, textRange)
     // let modulePromise = this.findDefinitionByName(parentScope, targetText);
     // If we're at a port, .<text> plus no parent
-    if (getPrevChar(document, textRange) === '.' && parentScope === targetText) {
-      let insts = await parser.getSymbols({ type: 'instance' })
-      if (insts.length > 0) {
-        let myinst = insts.filter((inst) => inst.getFullRange().contains(position))[0]
-
-        if (myinst.typeRef !== null) {
-          return await this.findDefinitionByName(myinst.typeRef, targetText)
+    if (getPrevChar(document, textRange) === '.') {
+      if (parentScope === targetText) {
+        // param or port on instance
+        let insts = await parser.getSymbols({ type: 'instance' })
+        insts = insts.filter((inst) => inst.getFullRange().contains(position))
+        if (insts.length > 0 && insts[0].typeRef !== null) {
+          return await this.findDefinitionByName(insts[0].typeRef, targetText)
+        }
+      } else if (parentScope !== undefined) {
+        // hierarchcal reference to instance.wire
+        let insts = await parser.getSymbols({ name: parentScope })
+        if (insts.length > 0 && insts[0].typeRef !== null) {
+          return await this.findDefinitionByName(insts[0].typeRef, targetText)
         }
       }
     }
