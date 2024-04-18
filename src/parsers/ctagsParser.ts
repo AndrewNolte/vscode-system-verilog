@@ -62,37 +62,49 @@ export class Symbol {
   }
 
   getFullRange(): vscode.Range {
+    if (this.fullRange !== undefined) {
+      return this.fullRange
+    }
+
+    if (this.type === 'typedef') {
+      let sOffset = this.doc.offsetAt(this.getIdRange().start)
+      const index = this.doc.getText().lastIndexOf('typedef', sOffset)
+      if (index >= 0) {
+        let pos = this.doc.positionAt(index)
+        this.fullRange = new vscode.Range(pos, this.getIdRange().end)
+      }
+    } else if (this.type === 'instance') {
+      let idind = this.doc.offsetAt(this.getIdRange().start)
+      let endind = this.doc.getText().indexOf(';', idind)
+      let startind: number
+      if (this.typeRef === null) {
+        startind = idind
+      } else {
+        startind = this.doc.getText().lastIndexOf(this.typeRef, idind)
+      }
+
+      if (startind >= 0 && endind >= 0) {
+        this.fullRange = new vscode.Range(
+          this.doc.positionAt(startind),
+          this.doc.positionAt(endind)
+        )
+      }
+    } else if (this.isMacro()) {
+      let firstchar = this.doc.lineAt(this.line).firstNonWhitespaceCharacterIndex
+      let spos = new vscode.Position(this.line, firstchar)
+      let endline = this.line
+      for (; endline < this.doc.lineCount; endline++) {
+        if (!this.doc.lineAt(endline).text.endsWith('\\')) {
+          break
+        }
+      }
+      this.fullRange = new vscode.Range(spos, new vscode.Position(endline, Number.MAX_VALUE))
+    }
+
     if (this.fullRange === undefined) {
-      if (this.type === 'typedef') {
-        let sOffset = this.doc.offsetAt(this.getIdRange().start)
-        const index = this.doc.getText().lastIndexOf('typedef', sOffset)
-        if (index >= 0) {
-          let pos = this.doc.positionAt(index)
-          this.fullRange = new vscode.Range(pos, this.getIdRange().end)
-          return this.fullRange
-        }
-      }
-
-      if (this.type === 'instance') {
-        let idind = this.doc.offsetAt(this.getIdRange().start)
-        let endind = this.doc.getText().indexOf(';', idind)
-        let startind: number
-        if (this.typeRef === null) {
-          startind = idind
-        } else {
-          startind = this.doc.getText().lastIndexOf(this.typeRef, idind)
-        }
-
-        if (startind >= 0 && endind >= 0) {
-          this.fullRange = new vscode.Range(
-            this.doc.positionAt(startind),
-            this.doc.positionAt(endind)
-          )
-          return this.fullRange
-        }
-      }
       this.fullRange = this.doc.lineAt(this.line).range
     }
+
     return this.fullRange
   }
 
@@ -123,6 +135,14 @@ export class Symbol {
   }
 
   isMacro(): boolean {
+    if (this.type === 'define') {
+      return true
+    }
+    // < 6.1
+    if (this.type !== 'constant') {
+      return false
+    }
+
     let charnum = this.getIdRange().start.character
     if (charnum === undefined) {
       return false
@@ -141,36 +161,8 @@ export class Symbol {
     return this.type === 'module' || this.type === 'interface'
   }
 
-  getHoverRange(): vscode.Range {
-    if (this.isMacro()) {
-      let range = this.getFullRange()
-      let endline = range.end.line
-      for (; endline < this.doc.lineCount; endline++) {
-        if (!this.doc.lineAt(endline).text.endsWith('\\')) {
-          break
-        }
-      }
-      this.fullRange = new vscode.Range(range.start, new vscode.Position(endline, Number.MAX_VALUE))
-    }
-    return this.getFullRange()
-  }
-
   getHoverText(): string {
-    if (this.isMacro()) {
-      // macro definitions should show the whole macro
-      let code = ''
-      for (let i = this.line; i < this.doc.lineCount; i++) {
-        const lineText = this.doc.lineAt(i).text
-        code += lineText
-        if (!lineText.endsWith('\\')) {
-          break
-        }
-        code += '\n'
-      }
-      return code
-    }
-
-    if (this.type === 'typedef') {
+    if (this.type === 'typedef' || this.type === 'instance' || this.isMacro()) {
       return this.getUnindented()
     }
 
@@ -455,7 +447,7 @@ export class CtagsParser {
       return ret
     }
     // find other words with definitions in the hover text, and add them
-    let range = sym.getHoverRange()
+    let range = sym.getFullRange()
     let words = new Set(this.doc.getText(range).match(/\b[a-zA-Z_]\w*\b/g) || [])
     words.delete(sym.name)
 
