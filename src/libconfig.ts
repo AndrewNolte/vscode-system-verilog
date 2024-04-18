@@ -21,7 +21,6 @@ class ExtensionNode {
 
     if (parentNode) {
       this.configPath = [parentNode.configPath, this.nodeName].join('.')
-      console.log(this.configPath)
     } else {
       // root node
       this.configPath = this.nodeName
