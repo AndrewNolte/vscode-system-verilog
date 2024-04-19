@@ -421,9 +421,9 @@ export class CtagsParser {
       this.logger.error((e as Error).toString())
     }
     // print all syms
-    this.symbols.forEach((sym) => {
-      this.logger.info(sym.prettyPrint())
-    })
+    // this.symbols.forEach((sym) => {
+    //   this.logger.info(sym.prettyPrint())
+    // })
   }
 
   async index(): Promise<void> {
