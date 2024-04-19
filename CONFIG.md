@@ -1,5 +1,10 @@
 ## Configuration Settings
 
+- `verilog.index.enableSymlinks`: boolean = true
+
+    Whether to enable symlinks for the file inde
+
+
 - `verilog.ctags.path`: string = "ctags"
 
     Path to ctags universal executable

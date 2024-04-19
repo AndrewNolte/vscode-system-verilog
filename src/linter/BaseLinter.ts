@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
 import * as child from 'child_process'
-import { ExecException } from 'child_process'
 import * as path from 'path'
 import * as process from 'process'
 import * as vscode from 'vscode'
@@ -66,9 +65,8 @@ export default abstract class BaseLinter extends ToolConfig {
       return
     }
     this.logger.info(`linting ${doc.uri}...`)
-    let output: any = await this.runTool(doc)
-    output.doc = doc
-    let diags = this.parseDiagnostics(output)
+
+    let diags = await this.lintInternal(doc)
 
     this.diagnostics.set(
       doc.uri,
@@ -79,6 +77,11 @@ export default abstract class BaseLinter extends ToolConfig {
     this.logger.info(
       `found ${this.diagnostics.get(doc.uri)?.length}/${diags.length} errors in ${doc.uri}`
     )
+  }
+
+  protected async lintInternal(doc: vscode.TextDocument): Promise<FileDiagnostic[]> {
+    let output: any = await this.runTool(doc)
+    return this.parseDiagnostics(output)
   }
 
   clear(doc: vscode.TextDocument) {
@@ -96,21 +99,36 @@ export default abstract class BaseLinter extends ToolConfig {
     return path
   }
 
-  protected async runTool(doc: vscode.TextDocument): Promise<{
+  protected async runTool(
+    doc: vscode.TextDocument,
+    addargs: string[] = []
+  ): Promise<{
     stdout: string
     stderr: string
+    doc: vscode.TextDocument
   }> {
     let docUri: string = this.wslAdjust(doc.uri.fsPath)
     let docFolder: string = this.wslAdjust(path.dirname(docUri))
 
     let args: string[] = []
     args.push(...this.toolArgs(doc))
-    args.push(this.formatIncludes([docFolder].concat(this.includeComputed)))
+    args.push(...this.formatIncludes([docFolder].concat(this.includeComputed)))
     if (this.args.cachedValue !== undefined) {
-      args.push(this.args.cachedValue)
+      args.push(
+        ...this.args.cachedValue
+          .trim()
+          .split(' ')
+          .map((arg) => arg.trim())
+      )
     }
-    args.push(`"${docUri}"`)
-    let command: string = this.path.cachedValue + ' ' + args.join(' ')
+
+    if (ext.index.enableSymlinks.cachedValue) {
+      args.push('-y')
+      args.push('.sv_cache/files')
+    }
+    args.push(...addargs)
+
+    args.push(docUri)
 
     let cwd: string | undefined = getWorkspaceFolder()
 
@@ -122,24 +140,21 @@ export default abstract class BaseLinter extends ToolConfig {
       }
     }
 
-    this.logger.info(`Running $${cwd}: ${command}`)
+    let command = this.path.cachedValue
+    this.logger.info(`Running $${cwd}: ${command} ${args}`)
 
     return new Promise((resolve, _reject) => {
-      child.exec(
-        command,
-        { cwd: cwd },
-        (error: ExecException | null, stdout: string, stderr: string) => {
-          if (error !== null) {
-            this.logger.error(error.toString())
-          }
-          resolve({ stdout, stderr })
+      child.execFile(command, args, { cwd: cwd, encoding: 'utf-8' }, (error, stdout, stderr) => {
+        if (error !== null) {
+          this.logger.error(error.toString())
         }
-      )
+        resolve({ stdout, stderr, doc })
+      })
     })
   }
 
-  protected formatIncludes(includes: string[]): string {
-    return includes.map((path: string) => ` -I"${getAbsPath(path)}" `).join(' ')
+  protected formatIncludes(includes: string[]): string[] {
+    return includes.map((path: string) => `-I${getAbsPath(path)}`)
   }
 
   protected toolArgs(_doc: vscode.TextDocument): string[] {

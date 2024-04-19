@@ -13,6 +13,8 @@ import { ExtensionComponent, ConfigObject } from './libconfig'
 import { SystemVerilogFormatProvider, VerilogFormatProvider } from './providers/FormatProvider'
 import { LanguageServerManager } from './LSManager'
 import { readFile, writeFile } from 'fs/promises'
+import { getWorkspaceFolder } from './utils'
+import { IndexComponent } from './IndexComponent'
 
 export var ext: VerilogExtension
 
@@ -32,6 +34,7 @@ export enum VerilogStandard {
 }
 
 export class VerilogExtension extends ExtensionComponent {
+  index: IndexComponent = new IndexComponent()
   ctags: CtagsManager = new CtagsManager()
   includes: ConfigObject<string[]> = new ConfigObject({
     default: [],
@@ -198,13 +201,57 @@ export class VerilogExtension extends ExtensionComponent {
     })
 
     ///////////////////////////////////////////
-    // Slow tasks
+    // Slow async tasks
     /////////////////////////////////////////////
 
-    // index ctags
-    this.ctags.indexInit()
+    // let ctags index include files
+    this.ctags.indexIncludes().then(() => {
+      this.logger.info('ctags index includes finished')
+    })
+
+    // index all files (symlinks in .sv_cache/files + in memory cache)
+    this.index
+      .indexFiles()
+      .then(() => {
+        this.logger.info('index files finished')
+      })
+      .catch((err) => {
+        this.logger.error('index files failed:')
+        this.logger.error(err)
+      })
 
     this.logger.info(this.extensionID + ' activation finished.')
+  }
+
+  async findFiles(ext: string[], dirs: string[] = [], deep = true): Promise<vscode.Uri[]> {
+    let ws = getWorkspaceFolder()
+    if (ws === undefined) {
+      return []
+    }
+
+    let globstr = ''
+
+    if (dirs.length === 0) {
+      let dir = this.directory.getValue()
+      if (dir.length > 0) {
+        globstr += `${dir}/`
+      }
+    } else {
+      globstr += `{${dirs.join(',')}}/`
+    }
+
+    if (deep) {
+      globstr += '**/*'
+    } else {
+      globstr += '*'
+    }
+
+    if (ext.length > 0) {
+      globstr += `.{${ext.join(',')}}`
+    }
+
+    let searchPattern = new vscode.RelativePattern(ws, globstr)
+    return await vscode.workspace.findFiles(searchPattern)
   }
 }
 

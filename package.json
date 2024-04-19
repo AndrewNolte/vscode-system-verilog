@@ -231,6 +231,11 @@
     "configuration": {
       "title": "verilog configuration",
       "properties": {
+        "verilog.index.enableSymlinks": {
+          "default": true,
+          "description": "Enable creating file symlinks in .sv_cache/files for the -y flag that most tools have",
+          "type": "boolean"
+        },
         "verilog.ctags.path": {
           "default": "ctags",
           "description": "Path to ctags universal executable",

@@ -1,12 +1,16 @@
 // SPDX-License-Identifier: MIT
-import * as process from 'process'
 import * as vscode from 'vscode'
 import BaseLinter from './BaseLinter'
 import { FileDiagnostic } from '../utils'
-
-let isWindows = process.platform === 'win32'
+import { ext } from '../extension'
 
 export default class VerilatorLinter extends BaseLinter {
+  pkgs: string[]
+  constructor(name: string) {
+    super(name)
+
+    this.pkgs = []
+  }
   protected convertToSeverity(severityString: string): vscode.DiagnosticSeverity {
     if (severityString.startsWith('Error')) {
       return vscode.DiagnosticSeverity.Error
@@ -22,6 +26,28 @@ export default class VerilatorLinter extends BaseLinter {
       args.push('-sv')
     }
     return args
+  }
+
+  protected async lintInternal(doc: vscode.TextDocument): Promise<FileDiagnostic[]> {
+    /// Verilator expects packages in a previous compilation, so add those here for the second run
+    let addedPkgs = true
+    let diags: FileDiagnostic[] = []
+    while (addedPkgs) {
+      addedPkgs = false
+      let output: any = await this.runTool(doc, this.pkgs)
+      diags = this.parseDiagnostics(output)
+      for (let diag of diags) {
+        if (diag.code === 'PKGNODECL') {
+          let pkgname = doc.getText(diag.range)
+          let pkg = await ext.index.findModule(pkgname)
+          if (pkg) {
+            this.pkgs.push(pkg.uri.fsPath)
+            addedPkgs = true
+          }
+        }
+      }
+    }
+    return diags
   }
 
   protected parseDiagnostics(args: {

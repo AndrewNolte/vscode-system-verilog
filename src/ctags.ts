@@ -3,15 +3,13 @@ import * as vscode from 'vscode'
 import { ext } from './extension'
 import { ConfigObject, ExtensionComponent } from './libconfig'
 import { CtagsParser, Symbol } from './parsers/ctagsParser'
-import { getParentText, getPrevChar, getWorkspaceFolder } from './utils'
+import { getParentText, getPrevChar } from './utils'
 
 export class CtagsManager extends ExtensionComponent {
   // file -> parser
   private filemap: Map<vscode.TextDocument, CtagsParser> = new Map()
   /// symbol name -> symbols (from includes)
   private symbolMap: Map<string, Symbol[]> = new Map()
-  /// module name -> file, we assumed name.sv containes name module
-  private moduleMap: Map<string, vscode.Uri> = new Map()
 
   path: ConfigObject<string> = new ConfigObject({
     default: 'ctags',
@@ -37,21 +35,7 @@ export class CtagsManager extends ExtensionComponent {
 
     vscode.workspace.onDidSaveTextDocument((doc: vscode.TextDocument) => {
       this.getCtags(doc).clearSymbols()
-      this.indexFile(doc.uri)
     })
-  }
-
-  getSearchPrefix() {
-    let dir = ext.directory.getValue()
-    if (dir.length > 0) {
-      return `${dir}/**`
-    }
-    return '**'
-  }
-
-  async indexInit(): Promise<void> {
-    let promises = [this.index(), this.indexIncludes()]
-    await Promise.all(promises)
   }
 
   async indexIncludes(): Promise<void> {
@@ -62,15 +46,13 @@ export class CtagsManager extends ExtensionComponent {
         cancellable: true,
       },
       async () => {
-        let incs = ext.includes.getValue()
-        let pattern: string
+        let files: vscode.Uri[]
+
         if (this.indexAllIncludes.getValue()) {
-          pattern = `${this.getSearchPrefix()}/*.svh`
+          files = await ext.findFiles(['svh'])
         } else {
-          pattern = `{${incs.join(',')}}/*.svh`
+          files = await ext.findFiles(['svh'], ext.includes.getValue(), false)
         }
-        this.logger.info('indexing includes with ' + pattern)
-        let files: vscode.Uri[] = await this.findFiles(pattern)
         this.logger.info(`indexing ${files.length} .svh files`)
 
         files.forEach(async (file: vscode.Uri) => {
@@ -91,29 +73,6 @@ export class CtagsManager extends ExtensionComponent {
     )
   }
 
-  async index(): Promise<void> {
-    await vscode.window.withProgress(
-      {
-        location: vscode.ProgressLocation.Window,
-        title: 'Indexing Verilog',
-        cancellable: true,
-      },
-      async () => {
-        let pattern = `${this.getSearchPrefix()}/*.{sv,v}`
-        this.logger.info('indexing ' + pattern)
-        // We want to do a shallow index
-        let files: vscode.Uri[] = await this.findFiles(pattern)
-        files.forEach(this.indexFile.bind(this))
-        this.logger.info(`indexed ${this.moduleMap.size} verilog files`)
-      }
-    )
-  }
-
-  async indexFile(uri: vscode.Uri) {
-    let name = uri.path.split('/').pop()?.split('.').shift() ?? ''
-    this.moduleMap.set(name, uri)
-  }
-
   getCtags(doc: vscode.TextDocument): CtagsParser {
     let ctags: CtagsParser | undefined = this.filemap.get(doc)
     if (ctags === undefined) {
@@ -123,25 +82,8 @@ export class CtagsManager extends ExtensionComponent {
     return ctags
   }
 
-  async findFiles(pattern: string): Promise<vscode.Uri[]> {
-    let ws = getWorkspaceFolder()
-    if (ws === undefined) {
-      return []
-    }
-    let searchPattern = new vscode.RelativePattern(ws, pattern)
-    return await vscode.workspace.findFiles(searchPattern)
-  }
-
-  async findModule(moduleName: string): Promise<vscode.TextDocument | undefined> {
-    let file = this.moduleMap.get(moduleName)
-    if (file === undefined) {
-      return undefined
-    }
-    return await vscode.workspace.openTextDocument(file)
-  }
-
   async findDefinitionByName(moduleName: string, targetText: string): Promise<Symbol[]> {
-    let file = await this.findModule(moduleName)
+    let file = await ext.index.findModule(moduleName)
     if (file === undefined) {
       return []
     }
@@ -183,7 +125,7 @@ export class CtagsManager extends ExtensionComponent {
       return this.symbolMap.get(targetText) ?? []
     }
 
-    if (this.moduleMap.has(targetText) || this.moduleMap.has(parentScope)) {
+    if (ext.index.moduleMap.has(targetText) || ext.index.moduleMap.has(parentScope)) {
       // find parentScope.sv of parentScope::targetText
       let sym = (await this.findDefinitionByName(parentScope, targetText)).at(0)
       // Sometimes package::x is found multiple times, return just the top level package

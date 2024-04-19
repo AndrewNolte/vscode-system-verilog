@@ -3,6 +3,7 @@ import * as vscode from 'vscode'
 import { CtagsManager } from '../ctags'
 import { Logger } from '../logger'
 import { Symbol } from '../parsers/ctagsParser'
+import { ext } from '../extension'
 
 export class VerilogCompletionItemProvider implements vscode.CompletionItemProvider {
   private logger: Logger
@@ -24,7 +25,7 @@ export class VerilogCompletionItemProvider implements vscode.CompletionItemProvi
     let moduleRange = document.getWordRangeAtPosition(_position.translate(0, -3))
     let moduleName = document.getText(moduleRange)
 
-    let moduleDoc = await this.ctagsManager.findModule(moduleName)
+    let moduleDoc = await ext.index.findModule(moduleName)
     if (moduleDoc === undefined) {
       return []
     }
