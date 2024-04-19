@@ -68,9 +68,10 @@ export class VerilogExtension extends ExtensionComponent {
   extensionID: string = 'AndrewNolte.vscode-system-verilog'
 
   activate(context: vscode.ExtensionContext) {
-    /////////////////////////////////////////////
-    // Register Lint Manager, runs selected linters
-    /////////////////////////////////////////////
+    // Lets do this quickly
+    vscode.window.visibleTextEditors.forEach((editor) => {
+      this.lint.lint(editor.document)
+    })
 
     let extMgr = new ExtensionManager(
       context,
@@ -134,11 +135,6 @@ export class VerilogExtension extends ExtensionComponent {
       )
     })
 
-    // lint all open now that ctags is done
-    vscode.window.visibleTextEditors.forEach((editor) => {
-      this.lint.lint(editor.document)
-    })
-
     /////////////////////////////////////////////
     // Configure Format on save
     /////////////////////////////////////////////
@@ -200,6 +196,13 @@ export class VerilogExtension extends ExtensionComponent {
         await writeFile(filePath, ext.getConfigMd(), { encoding: 'utf-8' })
       }
     })
+
+    ///////////////////////////////////////////
+    // Slow tasks
+    /////////////////////////////////////////////
+
+    // index ctags
+    this.ctags.indexInit()
 
     this.logger.info(this.extensionID + ' activation finished.')
   }

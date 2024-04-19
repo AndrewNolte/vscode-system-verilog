@@ -5,6 +5,11 @@
     Path to ctags universal executable
 
 
+- `verilog.ctags.indexAllIncludes`: boolean = false
+
+    Whether to index all .svh files
+
+
 - `verilog.includes`: array = []
 
     Include Paths for tools

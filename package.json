@@ -236,6 +236,11 @@
           "description": "Path to ctags universal executable",
           "type": "string"
         },
+        "verilog.ctags.indexAllIncludes": {
+          "default": false,
+          "description": "Whether to index all .svh files",
+          "type": "boolean"
+        },
         "verilog.includes": {
           "default": [],
           "description": "Include Paths for tools",

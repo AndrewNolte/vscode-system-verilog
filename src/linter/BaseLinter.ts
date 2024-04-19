@@ -31,23 +31,13 @@ export default abstract class BaseLinter extends ToolConfig {
   }
 
   activate(context: vscode.ExtensionContext) {
+    this.computeIncludes()
     context.subscriptions.push(
       this.onConfigUpdated(() => {
         // We want to cache these values so we don't fetch every lint cycle
         this.logger.info('linter config updated')
         this.enabled.getValue()
-
-        this.includeComputed = this.includes.getValue()
-        this.includeComputed.forEach((inc: string) => {
-          if (inc === '${includes}') {
-            this.includeComputed = this.includeComputed
-              .filter((inc) => inc !== '${includes}')
-              .concat(ext.includes.getValue())
-          }
-        })
-        if (this.includeComputed.length === 0) {
-          this.includeComputed = ext.includes.getValue()
-        }
+        this.computeIncludes()
 
         this.useWsl.getValue()
         this.path.getValue()
@@ -55,6 +45,20 @@ export default abstract class BaseLinter extends ToolConfig {
         this.runAtFileLocation.getValue()
       })
     )
+  }
+
+  computeIncludes() {
+    this.includeComputed = this.includes.getValue()
+    this.includeComputed.forEach((inc: string) => {
+      if (inc === '${includes}') {
+        this.includeComputed = this.includeComputed
+          .filter((inc) => inc !== '${includes}')
+          .concat(ext.includes.getValue())
+      }
+    })
+    if (this.includeComputed.length === 0) {
+      this.includeComputed = ext.includes.getValue()
+    }
   }
 
   async lint(doc: vscode.TextDocument): Promise<void> {

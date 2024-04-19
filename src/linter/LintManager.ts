@@ -36,8 +36,13 @@ export default class LintManager extends ExtensionComponent {
 
   activate(context: vscode.ExtensionContext): void {
     this.logger.info('activating lint manager')
-    // Run linting for open documents on launch
-    context.subscriptions.push(vscode.workspace.onDidOpenTextDocument(this.lint, this))
+    context.subscriptions.push(
+      vscode.window.onDidChangeActiveTextEditor((editor) => {
+        if (editor) {
+          this.lint(editor.document)
+        }
+      })
+    )
     context.subscriptions.push(vscode.workspace.onDidSaveTextDocument(this.lint, this))
     context.subscriptions.push(
       vscode.workspace.onDidCloseTextDocument(this.removeFileDiagnostics, this)

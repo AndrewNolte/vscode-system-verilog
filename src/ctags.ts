@@ -18,14 +18,27 @@ export class CtagsManager extends ExtensionComponent {
     description: 'Path to ctags universal executable',
   })
 
+  indexAllIncludes: ConfigObject<boolean> = new ConfigObject({
+    default: false,
+    description: 'Whether to index all .svh files',
+  })
+
   activate(_context: vscode.ExtensionContext): void {
     this.logger.info('activating')
     vscode.workspace.onDidCloseTextDocument((doc: vscode.TextDocument) => {
       this.filemap.delete(doc)
     })
 
-    ext.includes.onConfigUpdated(() => this.indexIncludes())
-    this.index()
+    ext.includes.onConfigUpdated(() => {
+      if (!this.indexAllIncludes.getValue()) {
+        this.indexIncludes()
+      }
+    })
+
+    vscode.workspace.onDidSaveTextDocument((doc: vscode.TextDocument) => {
+      this.getCtags(doc).clearSymbols()
+      this.indexFile(doc.uri)
+    })
   }
 
   getSearchPrefix() {
@@ -36,8 +49,13 @@ export class CtagsManager extends ExtensionComponent {
     return '**'
   }
 
+  async indexInit(): Promise<void> {
+    let promises = [this.index(), this.indexIncludes()]
+    await Promise.all(promises)
+  }
+
   async indexIncludes(): Promise<void> {
-    vscode.window.withProgress(
+    await vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Window,
         title: 'Indexing Verilog Includes',
@@ -45,28 +63,36 @@ export class CtagsManager extends ExtensionComponent {
       },
       async () => {
         let incs = ext.includes.getValue()
-        incs.forEach(async (path: string) => {
-          let files: vscode.Uri[] = await this.findFiles(`${path}/*.{svh}`)
+        let pattern: string
+        if (this.indexAllIncludes.getValue()) {
+          pattern = `${ext.directory.getValue()}/**/*.svh`
+        } else {
+          pattern = `{${incs.join(',')}}/*.svh`
+        }
+        this.logger.info('indexing includes with ' + pattern)
+        let files: vscode.Uri[] = await this.findFiles(pattern)
+        this.logger.info(`indexing ${files.length} .svh files`)
 
-          files.forEach(async (file: vscode.Uri) => {
-            let doc = await vscode.workspace.openTextDocument(file)
-            let syms = await this.getCtags(doc).getPackageSymbols()
-            syms.forEach((element: Symbol) => {
-              if (this.symbolMap.has(element.name)) {
-                this.symbolMap.get(element.name)?.push(element)
-              } else {
-                this.symbolMap.set(element.name, [element])
-              }
-            })
+        files.forEach(async (file: vscode.Uri) => {
+          let doc = await vscode.workspace.openTextDocument(file)
+          let syms = await this.getCtags(doc).getPackageSymbols()
+          syms.forEach((element: Symbol) => {
+            if (this.symbolMap.has(element.name)) {
+              this.symbolMap.get(element.name)?.push(element)
+            } else {
+              this.symbolMap.set(element.name, [element])
+            }
           })
+          // close doc
         })
-        this.logger.info(`indexed ${incs.length} include paths`)
+
+        this.logger.info(`indexed ${files.length} .svh files`)
       }
     )
   }
 
   async index(): Promise<void> {
-    vscode.window.withProgress(
+    await vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Window,
         title: 'Indexing Verilog',
@@ -77,13 +103,15 @@ export class CtagsManager extends ExtensionComponent {
         this.logger.info('indexing ' + pattern)
         // We want to do a shallow index
         let files: vscode.Uri[] = await this.findFiles(`${this.getSearchPrefix()}/*.{sv,v}`)
-        files.forEach(async (file: vscode.Uri) => {
-          let name = file.path.split('/').pop()?.split('.').shift() ?? ''
-          this.moduleMap.set(name, file)
-        })
+        files.forEach(this.indexFile.bind(this))
         this.logger.info(`indexed ${this.moduleMap.size} verilog files`)
       }
     )
+  }
+
+  async indexFile(uri: vscode.Uri) {
+    let name = uri.path.split('/').pop()?.split('.').shift() ?? ''
+    this.moduleMap.set(name, uri)
   }
 
   getCtags(doc: vscode.TextDocument): CtagsParser {
@@ -93,11 +121,6 @@ export class CtagsManager extends ExtensionComponent {
       this.filemap.set(doc, ctags)
     }
     return ctags
-  }
-
-  onSave(doc: vscode.TextDocument) {
-    let ctags: CtagsParser = this.getCtags(doc)
-    ctags.clearSymbols()
   }
 
   async findFiles(pattern: string): Promise<vscode.Uri[]> {

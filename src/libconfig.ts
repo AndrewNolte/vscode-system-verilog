@@ -6,9 +6,8 @@ class ExtensionNode {
   configPath: string | undefined
   _parentNode: ExtensionComponent | undefined
 
-  onConfigUpdated(func: () => void): vscode.Disposable {
-    func()
-    return vscode.workspace.onDidChangeConfiguration((e) => {
+  onConfigUpdated(func: () => Promise<void> | void): vscode.Disposable {
+    return vscode.workspace.onDidChangeConfiguration(async (e) => {
       if (e.affectsConfiguration(this.configPath!)) {
         func()
       }
@@ -44,7 +43,7 @@ export abstract class ExtensionComponent extends ExtensionNode {
 
   public activateExtension(nodeName: string, context: vscode.ExtensionContext): void {
     this.compile(nodeName)
-    this.preOrderTraverse((node: ExtensionNode) => {
+    this.postOrderTraverse((node: ExtensionNode) => {
       if (node instanceof ExtensionComponent) {
         node.activate(context)
       }
@@ -79,6 +78,17 @@ export abstract class ExtensionComponent extends ExtensionNode {
         func(obj)
       }
     })
+  }
+
+  postOrderTraverse(func: (obj: ExtensionNode) => void): void {
+    this.children.forEach((obj: ExtensionNode) => {
+      if (obj instanceof ExtensionComponent) {
+        obj.preOrderTraverse(func)
+      } else {
+        func(obj)
+      }
+    })
+    func(this)
   }
 
   compile(nodeName: string, parentNode?: ExtensionComponent): void {
@@ -158,7 +168,9 @@ export class ConfigObject<T extends ConfigType> extends ExtensionNode {
   }
 
   listen(): void {
-    this.onConfigUpdated(() => this.getValue())
+    this.onConfigUpdated(() => {
+      this.getValue()
+    })
   }
 
   getConfigJson(): any {
