@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 import * as vscode from 'vscode'
+import { ext } from './extension'
+import { ConfigObject, ExtensionComponent } from './libconfig'
 import { CtagsParser, Symbol } from './parsers/ctagsParser'
 import { getParentText, getPrevChar, getWorkspaceFolder } from './utils'
-import { ext } from './extension'
-import { ExtensionComponent, ConfigObject } from './libconfig'
 
 export class CtagsManager extends ExtensionComponent {
   // file -> parser
@@ -43,7 +43,7 @@ export class CtagsManager extends ExtensionComponent {
 
   getSearchPrefix() {
     let dir = ext.directory.getValue()
-    if (dir !== undefined) {
+    if (dir.length > 0) {
       return `${dir}/**`
     }
     return '**'
@@ -65,7 +65,7 @@ export class CtagsManager extends ExtensionComponent {
         let incs = ext.includes.getValue()
         let pattern: string
         if (this.indexAllIncludes.getValue()) {
-          pattern = `${ext.directory.getValue()}/**/*.svh`
+          pattern = `${this.getSearchPrefix()}/*.svh`
         } else {
           pattern = `{${incs.join(',')}}/*.svh`
         }
@@ -102,7 +102,7 @@ export class CtagsManager extends ExtensionComponent {
         let pattern = `${this.getSearchPrefix()}/*.{sv,v}`
         this.logger.info('indexing ' + pattern)
         // We want to do a shallow index
-        let files: vscode.Uri[] = await this.findFiles(`${this.getSearchPrefix()}/*.{sv,v}`)
+        let files: vscode.Uri[] = await this.findFiles(pattern)
         files.forEach(this.indexFile.bind(this))
         this.logger.info(`indexed ${this.moduleMap.size} verilog files`)
       }
