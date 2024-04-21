@@ -1,5 +1,6 @@
 import * as child from 'child_process'
 import * as path from 'path'
+import { text } from 'stream/consumers'
 import * as vscode from 'vscode'
 
 export function getWorkspaceFolder(): string | undefined {
@@ -17,12 +18,31 @@ export function getPrevChar(
   return lineText.charAt(range.start.character - 1)
 }
 
+export function getPrev2Char(
+  document: vscode.TextDocument,
+  range: vscode.Range
+): string | undefined {
+  const lineText = document.lineAt(range.start.line).text
+  if (range.start.character <= 1) {
+    return undefined
+  }
+  return lineText.charAt(range.start.character - 2)
+}
+
 export function getParentText(document: vscode.TextDocument, textRange: vscode.Range): string {
   let range = textRange
   let prevChar = getPrevChar(document, textRange)
   if (prevChar === '.') {
     // follow interface.modport
     range = document.getWordRangeAtPosition(range.start.translate(0, -1)) ?? range
+
+    // follow interface array refs
+    for (let i = 0; i < 10 && getPrev2Char(document, range) === ']'; i++) {
+      // skip to id[index]
+      range = document.getWordRangeAtPosition(range.start.translate(0, -2)) ?? range
+      // skip to id
+      range = document.getWordRangeAtPosition(range.start.translate(0, -1)) ?? range
+    }
   } else if (prevChar === ':' && range.start.character > 1) {
     // follow package scope all the way
     //use for loop to avoid risk of infinite loop
