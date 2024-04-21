@@ -314,16 +314,20 @@ export class CtagsParser {
   }
 
   async execCtags(filepath: string): Promise<string> {
-    let command: string =
-      ext.ctags.path.getValue() +
-      ' -f - --fields=+K --sort=no --excmd=n --fields-SystemVerilog=+{parameter} "' +
-      filepath +
-      '"'
-    this.logger.info('Executing Command: ' + command)
+    let command: string = ext.ctags.path.getValue()
+    let args: string[] =
+      '-f - --fields=+K --sort=no --excmd=n --fields-SystemVerilog=+{parameter}'.split(' ')
+    args.push(filepath)
+    this.logger.info('Executing Command: ' + command + args)
     return new Promise((resolve, _reject) => {
-      child.exec(command, (_error: child.ExecException | null, stdout: string, _stderr: string) => {
-        resolve(stdout)
-      })
+      child.execFile(
+        command,
+        args,
+        { encoding: 'utf-8' },
+        (_error, stdout: string, _stderr: string) => {
+          resolve(stdout)
+        }
+      )
     })
   }
 
