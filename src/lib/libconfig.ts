@@ -41,11 +41,14 @@ export abstract class ExtensionComponent extends ExtensionNode {
     this.children = []
   }
 
-  public activateExtension(nodeName: string, context: vscode.ExtensionContext): void {
+  public async activateExtension(
+    nodeName: string,
+    context: vscode.ExtensionContext
+  ): Promise<void> {
     this.compile(nodeName)
-    this.postOrderTraverse((node: ExtensionNode) => {
+    this.postOrderTraverse(async (node: ExtensionNode) => {
       if (node instanceof ExtensionComponent) {
-        node.activate(context)
+        await node.activate(context)
       }
       if (node instanceof ConfigObject) {
         node.getValue()
@@ -123,7 +126,7 @@ export abstract class ExtensionComponent extends ExtensionNode {
   /**
    * Override this. Activated in a preorder traversal
    */
-  activate(_context: vscode.ExtensionContext): void {}
+  async activate(_context: vscode.ExtensionContext): Promise<void> {}
 
   getConfigJson(): any {
     let props: any = {}

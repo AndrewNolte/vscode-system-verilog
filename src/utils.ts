@@ -1,6 +1,5 @@
 import * as child from 'child_process'
 import * as path from 'path'
-import { text } from 'stream/consumers'
 import * as vscode from 'vscode'
 
 export function getWorkspaceFolder(): string | undefined {

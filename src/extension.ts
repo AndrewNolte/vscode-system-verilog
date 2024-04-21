@@ -80,7 +80,7 @@ export class VerilogExtension extends ExtensionComponent {
 
   extensionID: string = 'AndrewNolte.vscode-system-verilog'
 
-  activate(context: vscode.ExtensionContext) {
+  async activate(context: vscode.ExtensionContext) {
     // Lets do this quickly
     vscode.window.visibleTextEditors.forEach((editor) => {
       this.lint.lint(editor.document)
@@ -193,15 +193,15 @@ export class VerilogExtension extends ExtensionComponent {
     /////////////////////////////////////////////
 
     // let ctags index include files
-    this.indexFiles()
+    await this.indexFiles()
     vscode.commands.registerCommand('verilog.reindex', async () => {
-      this.indexFiles(true)
+      await this.indexFiles(true)
     })
 
     this.logger.info(`${context.extension.id} activation finished.`)
   }
 
-  private indexFiles(reset: boolean = false) {
+  private async indexFiles(reset: boolean = false) {
     this.ctags.indexIncludes(reset).then(() => {
       this.logger.info('ctags index includes finished')
     })
@@ -255,7 +255,7 @@ export function deactivate(): Promise<void> {
   return ext.languageServer.stopAllLanguageClients()
 }
 
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
   ext = new VerilogExtension()
-  ext.activateExtension('verilog', context)
+  await ext.activateExtension('verilog', context)
 }

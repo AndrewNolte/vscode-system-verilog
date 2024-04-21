@@ -140,7 +140,7 @@ export class VerilogFormatProvider
     enum: [VerilogFormatter.verilogFormat, VerilogFormatter.istyleFormat, VerilogFormatter.verible],
   })
 
-  activate(context: vscode.ExtensionContext): void {
+  async activate(context: vscode.ExtensionContext): Promise<void> {
     context.subscriptions.push(
       vscode.languages.registerDocumentFormattingEditProvider(
         { scheme: 'file', language: 'verilog' },
@@ -194,7 +194,7 @@ export class SystemVerilogFormatProvider
     enum: [SvFormatter.veribleVerilogFormat],
   })
 
-  activate(context: vscode.ExtensionContext): void {
+  async activate(context: vscode.ExtensionContext): Promise<void> {
     context.subscriptions.push(
       vscode.languages.registerDocumentFormattingEditProvider(
         { scheme: 'file', language: 'systemverilog' },

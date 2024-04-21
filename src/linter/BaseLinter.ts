@@ -29,7 +29,7 @@ export default abstract class BaseLinter extends ToolConfig {
     this.includeComputed = []
   }
 
-  activate(context: vscode.ExtensionContext) {
+  async activate(context: vscode.ExtensionContext): Promise<void> {
     this.computeIncludes()
     context.subscriptions.push(
       this.onConfigUpdated(() => {

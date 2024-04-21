@@ -11,7 +11,7 @@ export class LanguageServerComponent extends ExtensionComponent {
   veribleVerilogLs: BaseLanguageServer = new BaseLanguageServer('verible-verilog-ls')
   rustHdl: BaseLanguageServer = new BaseLanguageServer('rust_hdl')
 
-  activate(context: vscode.ExtensionContext) {
+  async activate(context: vscode.ExtensionContext) {
     this.initAllLanguageClients()
     context.subscriptions.push(
       this.onConfigUpdated(async () => {
@@ -79,7 +79,7 @@ class BaseLanguageServer extends ExtensionComponent {
     })
   }
 
-  activate(_context: vscode.ExtensionContext): void {}
+  async activate(_context: vscode.ExtensionContext): Promise<void> {}
 
   setupLanguageClient(
     serverArgs: string[],

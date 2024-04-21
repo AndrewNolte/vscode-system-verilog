@@ -21,7 +21,7 @@ export class CtagsComponent extends ExtensionComponent {
     description: 'Whether to index all .svh files',
   })
 
-  activate(_context: vscode.ExtensionContext): void {
+  async activate(_context: vscode.ExtensionContext): Promise<void> {
     this.logger.info('activating')
     vscode.workspace.onDidCloseTextDocument((doc: vscode.TextDocument) => {
       this.filemap.delete(doc)

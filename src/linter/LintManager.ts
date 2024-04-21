@@ -34,7 +34,7 @@ export default class LintManager extends ExtensionComponent {
     this.linters.set(Linter.modelsim, this.modelsim)
   }
 
-  activate(context: vscode.ExtensionContext): void {
+  async activate(context: vscode.ExtensionContext): Promise<void> {
     this.logger.info('activating lint manager')
     context.subscriptions.push(
       vscode.window.onDidChangeActiveTextEditor((editor) => {
