@@ -1,17 +1,15 @@
 // SPDX-License-Identifier: MIT
 import * as vscode from 'vscode'
-import { CtagsManager } from '../ctags'
 import { Logger } from '../logger'
 import { Symbol } from '../parsers/ctagsParser'
+import { ext } from '../extension'
 
 export class VerilogDocumentSymbolProvider implements vscode.DocumentSymbolProvider {
   public docSymbols: vscode.DocumentSymbol[] = []
 
   private logger: Logger
-  private ctagsManager: CtagsManager
-  constructor(logger: Logger, ctagsManager: CtagsManager) {
+  constructor(logger: Logger) {
     this.logger = logger
-    this.ctagsManager = ctagsManager
   }
 
   async provideDocumentSymbols(
@@ -19,7 +17,7 @@ export class VerilogDocumentSymbolProvider implements vscode.DocumentSymbolProvi
     _token: vscode.CancellationToken
   ): Promise<vscode.DocumentSymbol[]> {
     this.logger.info('[VerilogSymbol] Symbols Requested: ' + document.uri)
-    let symbols: Symbol[] = await this.ctagsManager.getCtags(document).getSymbols()
+    let symbols: Symbol[] = await ext.ctags.getCtags(document).getSymbols()
     this.docSymbols = this.buildDocumentSymbolList(symbols)
     this.logger.info(this.docSymbols.length + ' top-level symbols returned')
     return this.docSymbols

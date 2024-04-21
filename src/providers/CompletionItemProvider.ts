@@ -1,16 +1,13 @@
 // SPDX-License-Identifier: MIT
 import * as vscode from 'vscode'
-import { CtagsManager } from '../ctags'
 import { Logger } from '../logger'
 import { Symbol } from '../parsers/ctagsParser'
 import { ext } from '../extension'
 
 export class VerilogCompletionItemProvider implements vscode.CompletionItemProvider {
   private logger: Logger
-  private ctagsManager: CtagsManager
-  constructor(logger: Logger, ctagsManager: CtagsManager) {
+  constructor(logger: Logger) {
     this.logger = logger
-    this.ctagsManager = ctagsManager
   }
 
   async provideModuleCompletion(
@@ -30,7 +27,7 @@ export class VerilogCompletionItemProvider implements vscode.CompletionItemProvi
       return []
     }
 
-    let ctags = this.ctagsManager.getCtags(moduleDoc)
+    let ctags = ext.ctags.getCtags(moduleDoc)
     let modules = await ctags.getModules()
     if (modules.length === 0) {
       return []
@@ -69,7 +66,7 @@ export class VerilogCompletionItemProvider implements vscode.CompletionItemProvi
     this.logger.info('Completion items requested')
     let items: vscode.CompletionItem[] = []
 
-    let symbols: Symbol[] = await this.ctagsManager.getCtags(document).getSymbols()
+    let symbols: Symbol[] = await ext.ctags.getCtags(document).getSymbols()
     symbols.forEach((symbol) => {
       let newItem: vscode.CompletionItem = new vscode.CompletionItem(
         symbol.name,

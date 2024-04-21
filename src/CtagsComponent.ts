@@ -5,7 +5,7 @@ import { ConfigObject, ExtensionComponent } from './libconfig'
 import { CtagsParser, Symbol } from './parsers/ctagsParser'
 import { getParentText, getPrevChar } from './utils'
 
-export class CtagsManager extends ExtensionComponent {
+export class CtagsComponent extends ExtensionComponent {
   // file -> parser
   private filemap: Map<vscode.TextDocument, CtagsParser> = new Map()
   /// symbol name -> symbols (from includes)

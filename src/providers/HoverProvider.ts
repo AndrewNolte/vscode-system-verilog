@@ -1,17 +1,15 @@
 // SPDX-License-Identifier: MIT
 // import * as vscode from 'vscode';
 import * as vscode from 'vscode'
-import { CtagsManager } from '../ctags'
 import { Logger } from '../logger'
 import { Symbol } from '../parsers/ctagsParser'
+import { ext } from '../extension'
 
 export class VerilogHoverProvider implements vscode.HoverProvider {
   // lang: verilog / systemverilog
   private logger: Logger
-  private ctagsManager: CtagsManager
-  constructor(logger: Logger, ctagsManager: CtagsManager) {
+  constructor(logger: Logger) {
     this.logger = logger
-    this.ctagsManager = ctagsManager
   }
 
   // end position in line
@@ -44,16 +42,15 @@ export class VerilogHoverProvider implements vscode.HoverProvider {
     _token: vscode.CancellationToken
   ): Promise<vscode.Hover | undefined> {
     this.logger.info('Hover requested')
-    let syms: Symbol[] = await this.ctagsManager.findSymbol(document, position)
+    let syms: Symbol[] = await ext.ctags.findSymbol(document, position)
     if (syms.length === 0) {
       this.logger.warn('Hover object not found')
       return undefined
     }
 
     let sym = syms[0]
-    let ctags = this.ctagsManager.getCtags(sym.doc)
+    let ctags = ext.ctags.getCtags(sym.doc)
     let hovers = await ctags.getNestedHoverText(sym)
-    // let hovers = await syms[0].getHoverTextRecursive(this.ctagsManager, 1);
     let mds = hovers.reverse().map((hover) => {
       let md = new vscode.MarkdownString()
       md.appendCodeblock(hover, document.languageId)

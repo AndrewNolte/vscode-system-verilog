@@ -2,7 +2,7 @@
 import * as vscode from 'vscode'
 
 import { CommandExcecutor } from './commands/ModuleInstantiation'
-import { CtagsManager } from './ctags'
+import { CtagsComponent } from './CtagsComponent'
 import LintManager from './linter/LintManager'
 import * as CompletionItemProvider from './providers/CompletionItemProvider'
 import * as DefinitionProvider from './providers/DefinitionProvider'
@@ -34,7 +34,7 @@ export enum VerilogStandard {
 
 export class VerilogExtension extends ExtensionComponent {
   index: IndexComponent = new IndexComponent()
-  ctags: CtagsManager = new CtagsManager()
+  ctags: CtagsComponent = new CtagsComponent()
   includes: ConfigObject<string[]> = new ConfigObject({
     default: [],
     description: 'Include paths to pass as -I to tools',
@@ -91,23 +91,19 @@ export class VerilogExtension extends ExtensionComponent {
     /////////////////////////////////////////////
 
     let verilogDocumentSymbolProvider = new DocumentSymbolProvider.VerilogDocumentSymbolProvider(
-      this.logger.getChild('VerilogDocumentSymbolProvider'),
-      this.ctags
+      this.logger.getChild('VerilogDocumentSymbolProvider')
     )
 
     let verilogCompletionItemProvider = new CompletionItemProvider.VerilogCompletionItemProvider(
-      this.logger.getChild('VerilogCompletionItemProvider'),
-      this.ctags
+      this.logger.getChild('VerilogCompletionItemProvider')
     )
 
     let verilogHoverProvider = new HoverProvider.VerilogHoverProvider(
-      this.logger.getChild('VerilogHoverProvider'),
-      this.ctags
+      this.logger.getChild('VerilogHoverProvider')
     )
 
     let verilogDefinitionProvider = new DefinitionProvider.VerilogDefinitionProvider(
-      this.logger.getChild('VerilogDefinitionProvider'),
-      this.ctags
+      this.logger.getChild('VerilogDefinitionProvider')
     )
 
     // push provider subs to .v and .sv files
@@ -163,10 +159,7 @@ export class VerilogExtension extends ExtensionComponent {
     // Register Commands
     /////////////////////////////////////////////
 
-    let commandExcecutor = new CommandExcecutor(
-      this.logger.getChild('CommandExcecutor'),
-      this.ctags
-    )
+    let commandExcecutor = new CommandExcecutor(this.logger.getChild('CommandExcecutor'))
     vscode.commands.registerCommand(
       'verilog.instantiateModule',
       commandExcecutor.instantiateModuleInteract,

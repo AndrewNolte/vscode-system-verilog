@@ -4,16 +4,13 @@ import * as path from 'path'
 import * as vscode from 'vscode'
 import { Symbol } from '../parsers/ctagsParser'
 import { getWorkspaceFolder } from '../utils'
-import { CtagsManager } from '../ctags'
 import { Logger } from '../logger'
 import { ext } from '../extension'
 
 export class CommandExcecutor {
   private logger: Logger
-  private ctagsManager: CtagsManager
-  constructor(logger: Logger, ctagsManager: CtagsManager) {
+  constructor(logger: Logger) {
     this.logger = logger
-    this.ctagsManager = ctagsManager
   }
 
   async instantiateModuleInteract() {
@@ -25,7 +22,7 @@ export class CommandExcecutor {
       return
     }
     let doc = await vscode.workspace.openTextDocument(srcPath)
-    let ctags = this.ctagsManager.getCtags(doc)
+    let ctags = ext.ctags.getCtags(doc)
 
     let modules: Symbol[] = await ctags.getModules()
     // No modules found
