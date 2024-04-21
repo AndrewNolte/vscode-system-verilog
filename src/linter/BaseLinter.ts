@@ -33,6 +33,7 @@ export default abstract class BaseLinter extends ToolConfig {
     this.computeIncludes()
     context.subscriptions.push(
       this.onConfigUpdated(() => {
+        this.diagnostics.clear()
         // We want to cache these values so we don't fetch every lint cycle
         this.logger.info('linter config updated')
         this.enabled.getValue()
@@ -141,7 +142,7 @@ export default abstract class BaseLinter extends ToolConfig {
     }
 
     let command = this.path.cachedValue
-    this.logger.info(`Running $${cwd}: ${command} ${args}`)
+    this.logger.info(`Running $${cwd}: ${command} ${args.join(' ')}`)
 
     return new Promise((resolve, _reject) => {
       child.execFile(command, args, { cwd: cwd, encoding: 'utf-8' }, (error, stdout, stderr) => {
