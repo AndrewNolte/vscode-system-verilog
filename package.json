@@ -248,15 +248,35 @@
         },
         "verilog.includes": {
           "default": [],
-          "description": "Include Paths for tools",
+          "description": "Include paths to pass as -I to tools",
           "type": "array",
           "items": {
             "type": "string"
           }
         },
-        "verilog.directory": {
+        "verilog.moduleGlobs": {
+          "default": [
+            "**/*.{sv,v}"
+          ],
+          "description": "Globs for finding verilog modules, interfaces, and packages for use with the common -y flag",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "verilog.includeGlobs": {
+          "default": [
+            "**/*.{svh}"
+          ],
+          "description": "Globs for finding verilog include files (typically svh), used for definition providing. If set to [], it will source from verilog.includes",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "verilog.excludeGlob": {
           "default": "",
-          "description": "The directory containing all hardware files",
+          "description": "Globs to exclude files",
           "type": "string"
         },
         "verilog.lint.slang.runAtFileLocation": {
@@ -614,8 +634,12 @@
         "title": "Verilog: Instantiate Module"
       },
       {
-        "command": "verilog.dev.dumpConfig",
-        "title": "Verilog Dev: dump config"
+        "command": "verilog.dev.updateConfig",
+        "title": "Verilog Dev: update config (package.json and CONFIG.md)"
+      },
+      {
+        "command": "verilog.reindex",
+        "title": "Verilog: Reindex files"
       },
       {
         "command": "verilog.lint",

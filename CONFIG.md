@@ -2,7 +2,7 @@
 
 - `verilog.index.enableSymlinks`: boolean = true
 
-    Whether to enable symlinks for the file inde
+    Enable creating file symlinks in .sv_cache/files for the -y flag that most tools have
 
 
 - `verilog.ctags.path`: string = "ctags"
@@ -17,12 +17,22 @@
 
 - `verilog.includes`: array = []
 
-    Include Paths for tools
+    Include paths to pass as -I to tools
 
 
-- `verilog.directory`: string = ""
+- `verilog.moduleGlobs`: array = []
 
-    The directory containing all hardware files
+    Globs for finding verilog modules, interfaces, and packages for use with the common -y flag
+
+
+- `verilog.includeGlobs`: array = []
+
+    Globs for finding verilog include files (typically svh), used for definition providing. If set to [], it will source from verilog.includes
+
+
+- `verilog.excludeGlob`: string = ""
+
+    Globs to exclude files
 
 
 - `verilog.lint.slang.runAtFileLocation`: boolean = false

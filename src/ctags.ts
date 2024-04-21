@@ -29,7 +29,7 @@ export class CtagsManager extends ExtensionComponent {
 
     ext.includes.onConfigUpdated(() => {
       if (!this.indexAllIncludes.getValue()) {
-        this.indexIncludes()
+        this.indexIncludes(true)
       }
     })
 
@@ -38,7 +38,7 @@ export class CtagsManager extends ExtensionComponent {
     })
   }
 
-  async indexIncludes(): Promise<void> {
+  async indexIncludes(reset: boolean = false): Promise<void> {
     await vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Window,
@@ -46,14 +46,12 @@ export class CtagsManager extends ExtensionComponent {
         cancellable: true,
       },
       async () => {
-        let files: vscode.Uri[]
+        let files: vscode.Uri[] = await ext.findIncludes()
 
-        if (this.indexAllIncludes.getValue()) {
-          files = await ext.findFiles(['svh'])
-        } else {
-          files = await ext.findFiles(['svh'], ext.includes.getValue(), false)
-        }
         this.logger.info(`indexing ${files.length} .svh files`)
+        if (reset) {
+          this.symbolMap.clear()
+        }
 
         files.forEach(async (file: vscode.Uri) => {
           let doc = await vscode.workspace.openTextDocument(file)

@@ -3,7 +3,6 @@ import * as vscode from 'vscode'
 
 import { CommandExcecutor } from './commands/ModuleInstantiation'
 import { CtagsManager } from './ctags'
-import { ExtensionManager } from './extensionManager'
 import LintManager from './linter/LintManager'
 import * as CompletionItemProvider from './providers/CompletionItemProvider'
 import * as DefinitionProvider from './providers/DefinitionProvider'
@@ -13,8 +12,8 @@ import { ExtensionComponent, ConfigObject } from './libconfig'
 import { SystemVerilogFormatProvider, VerilogFormatProvider } from './providers/FormatProvider'
 import { LanguageServerManager } from './LSManager'
 import { readFile, writeFile } from 'fs/promises'
-import { getWorkspaceFolder } from './utils'
 import { IndexComponent } from './IndexComponent'
+import { getWorkspaceFolder } from './utils'
 
 export var ext: VerilogExtension
 
@@ -38,11 +37,22 @@ export class VerilogExtension extends ExtensionComponent {
   ctags: CtagsManager = new CtagsManager()
   includes: ConfigObject<string[]> = new ConfigObject({
     default: [],
-    description: 'Include Paths for tools',
+    description: 'Include paths to pass as -I to tools',
   })
-  directory: ConfigObject<string> = new ConfigObject({
+
+  moduleGlobs: ConfigObject<string[]> = new ConfigObject({
+    default: ['**/*.{sv,v}'],
+    description:
+      'Globs for finding verilog modules, interfaces, and packages for use with the common -y flag',
+  })
+  includeGlobs: ConfigObject<string[]> = new ConfigObject({
+    default: ['**/*.{svh}'],
+    description:
+      'Globs for finding verilog include files (typically svh), used for definition providing. If set to [], it will source from verilog.includes',
+  })
+  excludeGlob: ConfigObject<string> = new ConfigObject({
     default: '',
-    description: 'The directory containing all hardware files',
+    description: 'Globs to exclude files',
   })
 
   lint: LintManager = new LintManager()
@@ -75,15 +85,6 @@ export class VerilogExtension extends ExtensionComponent {
     vscode.window.visibleTextEditors.forEach((editor) => {
       this.lint.lint(editor.document)
     })
-
-    let extMgr = new ExtensionManager(
-      context,
-      this.extensionID,
-      this.logger.getChild('ExtensionManager')
-    )
-    if (extMgr.isVersionUpdated()) {
-      extMgr.showChangelogNotification()
-    }
 
     /////////////////////////////////////////////
     // Configure Providers
@@ -173,45 +174,48 @@ export class VerilogExtension extends ExtensionComponent {
     )
     vscode.commands.registerCommand('verilog.lint', this.lint.runLintTool, this.lint)
 
-    vscode.commands.registerCommand('verilog.dev.dumpConfig', async () => {
-      // select workspace folder
-      let fileUri = await vscode.window.showOpenDialog({
-        canSelectFolders: true,
-        openLabel: 'Workspace folder for the extension',
+    // dev commands
+    if (context.extensionMode !== vscode.ExtensionMode.Production) {
+      vscode.commands.registerCommand('verilog.dev.updateConfig', async () => {
+        // update package.json
+        {
+          let filePath = context.extensionPath + '/package.json'
+          const data = await readFile(filePath, { encoding: 'utf-8' })
+          let json = JSON.parse(data)
+          json.contributes.configuration.properties = ext.getConfigJson()
+          const updatedJson = JSON.stringify(json, null, 2)
+          await writeFile(filePath, updatedJson, { encoding: 'utf-8' })
+        }
+
+        // update config.md
+        {
+          let filePath = context.extensionPath + '/CONFIG.md'
+          await writeFile(filePath, ext.getConfigMd(), { encoding: 'utf-8' })
+        }
       })
-      if (fileUri === undefined) {
-        throw Error('fileuri undefined')
-      }
-
-      // update package.json
-      {
-        let filePath = fileUri[0].fsPath + '/package.json'
-        const data = await readFile(filePath, { encoding: 'utf-8' })
-        let json = JSON.parse(data)
-        json.contributes.configuration.properties = ext.getConfigJson()
-        const updatedJson = JSON.stringify(json, null, 2)
-        await writeFile(filePath, updatedJson, { encoding: 'utf-8' })
-      }
-
-      // update config.md
-      {
-        let filePath = fileUri[0].fsPath + '/CONFIG.md'
-        await writeFile(filePath, ext.getConfigMd(), { encoding: 'utf-8' })
-      }
-    })
+    }
 
     ///////////////////////////////////////////
     // Slow async tasks
     /////////////////////////////////////////////
 
     // let ctags index include files
-    this.ctags.indexIncludes().then(() => {
+    this.indexFiles()
+    vscode.commands.registerCommand('verilog.reindex', async () => {
+      this.indexFiles(true)
+    })
+
+    this.logger.info(`${context.extension.id} activation finished.`)
+  }
+
+  private indexFiles(reset: boolean = false) {
+    this.ctags.indexIncludes(reset).then(() => {
       this.logger.info('ctags index includes finished')
     })
 
     // index all files (symlinks in .sv_cache/files + in memory cache)
     this.index
-      .indexFiles()
+      .indexFiles(reset)
       .then(() => {
         this.logger.info('index files finished')
       })
@@ -219,39 +223,37 @@ export class VerilogExtension extends ExtensionComponent {
         this.logger.error('index files failed:')
         this.logger.error(err)
       })
-
-    this.logger.info(this.extensionID + ' activation finished.')
   }
 
-  async findFiles(ext: string[], dirs: string[] = [], deep = true): Promise<vscode.Uri[]> {
+  public async findFiles(globs: string[]): Promise<vscode.Uri[]> {
     let ws = getWorkspaceFolder()
     if (ws === undefined) {
       return []
     }
+    const exclude: string = this.excludeGlob.getValue()
 
-    let globstr = ''
-
-    if (dirs.length === 0) {
-      let dir = this.directory.getValue()
-      if (dir.length > 0) {
-        globstr += `${dir}/`
-      }
-    } else {
-      globstr += `{${dirs.join(',')}}/`
+    const find = async (str: string): Promise<vscode.Uri[]> => {
+      let searchPattern = new vscode.RelativePattern(ws, str)
+      let ret = await vscode.workspace.findFiles(searchPattern, exclude)
+      return ret
     }
+    let uriList: vscode.Uri[][] = await Promise.all(globs.map(find))
+    let uris = uriList.reduce((acc, curr) => acc.concat(curr), [])
+    return uris
+  }
 
-    if (deep) {
-      globstr += '**/*'
-    } else {
-      globstr += '*'
+  public async findIncludes(): Promise<vscode.Uri[]> {
+    let incGlobs = this.includeGlobs.getValue()
+    if (incGlobs.length === 0) {
+      incGlobs = this.includes.getValue().map((inc) => {
+        return inc + '/*.svh'
+      })
     }
+    return await this.findFiles(incGlobs)
+  }
 
-    if (ext.length > 0) {
-      globstr += `.{${ext.join(',')}}`
-    }
-
-    let searchPattern = new vscode.RelativePattern(ws, globstr)
-    return await vscode.workspace.findFiles(searchPattern)
+  public async findModules(): Promise<vscode.Uri[]> {
+    return await this.findFiles(this.moduleGlobs.getValue())
   }
 }
 

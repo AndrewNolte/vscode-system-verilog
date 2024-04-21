@@ -37,13 +37,16 @@ export class IndexComponent extends ExtensionComponent {
     })
   }
 
-  getDir(): vscode.Uri | undefined {
+  async getDir(reset: boolean = false): Promise<vscode.Uri | undefined> {
     let ws = vscode.workspace.workspaceFolders?.[0]?.uri
     if (ws === undefined) {
       return undefined
     }
     this.dir = vscode.Uri.joinPath(ws, '.sv_cache', 'files')
     if (!fs.existsSync(this.dir.fsPath)) {
+      fs.mkdirSync(this.dir.fsPath, { recursive: true })
+    } else if (reset) {
+      await vscode.workspace.fs.delete(this.dir, { recursive: true })
       fs.mkdirSync(this.dir.fsPath, { recursive: true })
     }
     return this.dir
@@ -78,10 +81,13 @@ export class IndexComponent extends ExtensionComponent {
     return await vscode.workspace.openTextDocument(file)
   }
 
-  async indexFiles(): Promise<void> {
-    let dir = this.getDir()
+  async indexFiles(reset: boolean = false): Promise<void> {
+    let dir = await this.getDir(reset)
+    if (dir === undefined) {
+      return
+    }
 
-    let files: vscode.Uri[] = await ext.findFiles(['v', 'sv', 'svh'], [], true)
+    let files: vscode.Uri[] = await ext.findModules()
     this.logger.info('indexing ' + files.length + ' files')
 
     await vscode.window.withProgress(
