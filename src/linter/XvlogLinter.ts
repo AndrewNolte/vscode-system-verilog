@@ -12,8 +12,13 @@ export default class XvlogLinter extends BaseLinter {
     return args
   }
 
-  protected formatIncludes(includes: string[]): string {
-    return includes.map((path: string) => ` -i "${path}" `).join(' ')
+  protected formatIncludes(includes: string[]): string[] {
+    let ret = []
+    for (let inc of includes) {
+      ret.push('-i')
+      ret.push(inc)
+    }
+    return ret
   }
 
   protected parseDiagnostics(args: {
