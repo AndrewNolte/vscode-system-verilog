@@ -1,8 +1,8 @@
 import { LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient/node'
-import { ExtensionComponent, ConfigObject } from './libconfig'
+import { ExtensionComponent, ConfigObject } from './lib/libconfig'
 import * as vscode from 'vscode'
 
-export class LanguageServerManager extends ExtensionComponent {
+export class LanguageServerComponent extends ExtensionComponent {
   languageClients = new Map<string, LanguageClient>()
 
   svls: BaseLanguageServer = new BaseLanguageServer('svls')

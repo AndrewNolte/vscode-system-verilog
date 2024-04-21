@@ -7,8 +7,8 @@ import * as os from 'os'
 import * as path from 'path'
 import * as vscode from 'vscode'
 import { getWorkspaceFolder } from '../utils'
-import { ToolConfig } from '../runner'
-import { ExtensionComponent, ConfigObject } from '../libconfig'
+import { ToolConfig } from '../lib/runner'
+import { ExtensionComponent, ConfigObject } from '../lib/libconfig'
 // handle temporary file
 class TemporaryFile {
   public readonly path: string

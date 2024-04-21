@@ -2,7 +2,7 @@
 import * as vscode from 'vscode'
 import BaseLinter from './BaseLinter'
 import { FileDiagnostic } from '../utils'
-import { ConfigObject } from '../libconfig'
+import { ConfigObject } from '../lib/libconfig'
 
 export default class ModelsimLinter extends BaseLinter {
   work: ConfigObject<string> = new ConfigObject({

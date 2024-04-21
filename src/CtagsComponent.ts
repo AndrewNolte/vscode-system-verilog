@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 import * as vscode from 'vscode'
 import { ext } from './extension'
-import { ConfigObject, ExtensionComponent } from './libconfig'
+import { ConfigObject, ExtensionComponent } from './lib/libconfig'
 import { CtagsParser, Symbol } from './parsers/ctagsParser'
 import { getParentText, getPrevChar } from './utils'
 

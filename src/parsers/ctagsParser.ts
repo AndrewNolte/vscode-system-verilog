@@ -1,6 +1,6 @@
 import * as child from 'child_process'
 import * as vscode from 'vscode'
-import { Logger } from '../logger'
+import { Logger } from '../lib/logger'
 import { ext } from '../extension'
 
 export class Symbol {

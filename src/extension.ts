@@ -8,9 +8,9 @@ import * as CompletionItemProvider from './providers/CompletionItemProvider'
 import * as DefinitionProvider from './providers/DefinitionProvider'
 import * as DocumentSymbolProvider from './providers/DocumentSymbolProvider'
 import * as HoverProvider from './providers/HoverProvider'
-import { ExtensionComponent, ConfigObject } from './libconfig'
+import { ExtensionComponent, ConfigObject } from './lib/libconfig'
 import { SystemVerilogFormatProvider, VerilogFormatProvider } from './providers/FormatProvider'
-import { LanguageServerManager } from './LSManager'
+import { LanguageServerComponent } from './LSComponent'
 import { readFile, writeFile } from 'fs/promises'
 import { IndexComponent } from './IndexComponent'
 import { getWorkspaceFolder } from './utils'
@@ -76,7 +76,7 @@ export class VerilogExtension extends ExtensionComponent {
     description: 'Directories to format',
   })
 
-  languageServer: LanguageServerManager = new LanguageServerManager()
+  languageServer: LanguageServerComponent = new LanguageServerComponent()
 
   extensionID: string = 'AndrewNolte.vscode-system-verilog'
 

@@ -6,7 +6,7 @@ import SlangLinter from './SlangLinter'
 import VerilatorLinter from './VerilatorLinter'
 import XvlogLinter from './XvlogLinter'
 import ModelsimLinter from './ModelsimLinter'
-import { ExtensionComponent } from '../libconfig'
+import { ExtensionComponent } from '../lib/libconfig'
 
 enum Linter {
   slang = 'slang',

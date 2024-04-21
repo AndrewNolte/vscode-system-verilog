@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // import * as vscode from 'vscode';
 import * as vscode from 'vscode'
-import { Logger } from '../logger'
+import { Logger } from '../lib/logger'
 import { Symbol } from '../parsers/ctagsParser'
 import { ext } from '../extension'
 

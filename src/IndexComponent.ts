@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 import * as vscode from 'vscode'
-import { ConfigObject, ExtensionComponent } from './libconfig'
+import { ConfigObject, ExtensionComponent } from './lib/libconfig'
 import { ext } from './extension'
 import fs = require('fs')
 import path = require('path')
