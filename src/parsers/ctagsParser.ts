@@ -318,7 +318,7 @@ export class CtagsParser {
     let args: string[] =
       '-f - --fields=+K --sort=no --excmd=n --fields-SystemVerilog=+{parameter}'.split(' ')
     args.push(filepath)
-    this.logger.info('Executing Command: ' + command + args)
+    this.logger.info('Executing Command: ' + command + ' ' + args.join(' '))
     return new Promise((resolve, _reject) => {
       child.execFile(
         command,
