@@ -36,11 +36,11 @@ export function getParentText(document: vscode.TextDocument, textRange: vscode.R
     range = document.getWordRangeAtPosition(range.start.translate(0, -1)) ?? range
 
     // follow interface array refs
-    for (let i = 0; i < 10 && getPrev2Char(document, range) === ']'; i++) {
-      // skip to id[index]
-      range = document.getWordRangeAtPosition(range.start.translate(0, -2)) ?? range
-      // skip to id
-      range = document.getWordRangeAtPosition(range.start.translate(0, -1)) ?? range
+    let line = document.lineAt(textRange.start.line).text
+    if (getPrev2Char(document, range) === ']') {
+      let match = line.lastIndexOf('[', range.start.character - 2)
+      range =
+        document.getWordRangeAtPosition(new vscode.Position(range.start.line, match - 1)) ?? range
     }
   } else if (prevChar === ':' && range.start.character > 1) {
     // follow package scope all the way
