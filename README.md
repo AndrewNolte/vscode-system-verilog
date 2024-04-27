@@ -22,31 +22,72 @@ Install it from the [VS Code Marketplace](https://marketplace.visualstudio.com/i
   - Verilog Filelists (dot-F files)
   - Tcl
 - Simple Snippets
-- Linting support from: \
-  [![](https://img.shields.io/github/stars/MikePopoloski/slang?label=Slang&style=social) ![](https://img.shields.io/github/commit-activity/t/MikePopoloski/slang?label=commits&style=social)](https://github.com/MikePopoloski/slang)  - `slang` \
-  [![](https://img.shields.io/github/stars/verilator/verilator?label=Verilator&style=social) ![](https://img.shields.io/github/commit-activity/t/verilator/verilator?label=commits&style=social)](https://github.com/verilator/verilator) - `verilator` \
-  [![](https://img.shields.io/github/stars/steveicarus/iverilog?label=Icarus&style=social) ![](https://img.shields.io/github/commit-activity/t/steveicarus/iverilog?label=commits&style=social)](https://github.com/steveicarus/iverilog) - `iverilog` \
-  [Modelsim](https://eda.sw.siemens.com/en-US/ic/modelsim/) - `modelsim` \
-  [Vivado Logical Simulation](https://www.xilinx.com/products/design-tools/vivado.html) - `xvlog` 
+
+
+## Linters
+  Multiple Linters can be used in parallel
+
+### [⭐️ Slang](https://github.com/MikePopoloski/slang) - `slang`
+![](https://img.shields.io/github/stars/MikePopoloski/slang?style=flat) 
+![](https://img.shields.io/github/commit-activity/t/MikePopoloski/slang?label=commits)
+
+### [Icarus](https://github.com/steveicarus/iverilog) - `iverilog`
+![](https://img.shields.io/github/stars/steveicarus/iverilog?style=flat) 
+![](https://img.shields.io/github/commit-activity/t/steveicarus/iverilog?label=commits)
+
+### [Verilator](https://github.com/verilator/verilator) - `verilator`
+![](https://img.shields.io/github/stars/verilator/verilator?style=flat) 
+![](https://img.shields.io/github/commit-activity/t/verilator/verilator?label=commits)
+
+### [Modelsim](https://eda.sw.siemens.com/en-US/ic/modelsim/) - `modelsim`
+### [Vivado Logical Simulation](https://www.xilinx.com/products/design-tools/vivado.html) - `xvlog` 
+
+## Formatters
+
+### [⭐️ Verible](https://github.com/chipsalliance/verible) - `verible-verilog-format`
+![](https://img.shields.io/github/stars/chipsalliance/verible?style=flat) 
+![](https://img.shields.io/github/commit-activity/t/chipsalliance/verible?label=commits)
+
+### [verilog-format](https://github.com/ericsonj/verilog-format) - `verilog-format`
+![](https://img.shields.io/github/stars/ericsonj/verilog-format?style=flat) 
+![](https://img.shields.io/github/commit-activity/t/ericsonj/verilog-format?label=commits)
+### [istyle](https://github.com/thomasrussellmurphy/istyle-verilog-formatter) - `verilog-format` 
+![](https://img.shields.io/github/stars/thomasrussellmurphy/istyle-verilog-formatter?style=flat) 
+![](https://img.shields.io/github/commit-activity/t/thomasrussellmurphy/istyle-verilog-formatter?label=commits)
+
+
+## Language Servers
+
+### ⭐️ Built-in language server
 - Code analysis
-  - Document symbols outline
-  - Hover and definitions across files
+- Document symbols outline
+- Hover and definitions across files
 - Code completion
-  - Automatic module instantiation when typing
-  - Suggests symbols in the current module
-- Formatting support from: \
-  [![](https://img.shields.io/github/stars/chipsalliance/verible?label=verible-verilog-format&style=social)](https://github.com/chipsalliance/verible/tree/master/verilog/tools/formatter) \
-  [![](https://img.shields.io/github/stars/ericsonj/verilog-format?label=verilog-format&style=social)](https://github.com/ericsonj/verilog-format) (verilog only)\
-  [![](https://img.shields.io/github/stars/thomasrussellmurphy/istyle-verilog-formatter?label=istyle-verilog-formatter&style=social)](https://github.com/thomasrussellmurphy/istyle-verilog-formatter) (verilog only) 
-- Language Server support (experimental) from: \
-[![](https://img.shields.io/github/stars/chipsalliance/verible?label=verible-verilog-ls&style=social) ![](https://img.shields.io/github/commit-activity/t/chipsalliance/verible?label=commits&style=social)](https://github.com/chipsalliance/verible/tree/master/verilog/tools/ls) \
-[![](https://img.shields.io/github/stars/VHDL-LS/rust_hdl?label=RustHdl&style=social) ![](https://img.shields.io/github/commit-activity/t/VHDL-LS/rust_hdl?label=commits&style=social)](https://github.com/VHDL-LS/rust_hdl) (VHDL only)\
-[![](https://img.shields.io/github/stars/dalance/svls?label=svls&style=social) ![](https://img.shields.io/github/commit-activity/t/dalance/svls?label=commits&style=social)](https://github.com/dalance/svls) \
-[![](https://img.shields.io/github/stars/suoto/hdl_checker?label=hdlChecker&style=social) ![](https://img.shields.io/github/commit-activity/t/suoto/hdl_checker?label=commits&style=social)](https://github.com/suoto/hdl_checker) \
-[![](https://img.shields.io/github/stars/vivekmalneedi/veridian?label=veridian&style=social) ![](https://img.shields.io/github/commit-activity/t/vivekmalneedi/veridian?label=commits&style=social)](https://github.com/vivekmalneedi/veridian)
+- Automatic module instantiation when typing
+- Suggests symbols in the current module
+
+### [verible-verilog-ls](https://github.com/chipsalliance/verible?label=verible-verilog-ls)
+![](https://img.shields.io/github/stars/chipsalliance/verible?style=flat) 
+![](https://img.shields.io/github/commit-activity/t/chipsalliance/verible?label=commits)
+
+### [veridian](https://github.com/vivekmalneedi/veridian)
+![](https://img.shields.io/github/stars/vivekmalneedi/veridian?style=flat) 
+![](https://img.shields.io/github/commit-activity/t/vivekmalneedi/veridian?label=commits)
+
+### [rust_hdl](https://github.com/VHDL-LS/rust_hdl)
+![](https://img.shields.io/github/stars/VHDL-LS/rust_hdl?style=flat) 
+![](https://img.shields.io/github/commit-activity/t/VHDL-LS/rust_hdl?label=commits)
+
+### [svls](https://github.com/dalance/svls)
+![](https://img.shields.io/github/stars/dalance/svls?style=flat) 
+![](https://img.shields.io/github/commit-activity/t/dalance/svls?label=commits)
+
+### [hdl_checker](https://github.com/suoto/hdl_checker)
+![](https://img.shields.io/github/stars/suoto/hdl_checker?style=flat) 
+![](https://img.shields.io/github/commit-activity/t/suoto/hdl_checker?label=commits)
 
 
-## Recommended Configuration
+## Recommended SystemVerilog Configuration
 
 ### Install [universal-ctags](https://github.com/universal-ctags/ctags)
 
@@ -68,7 +109,7 @@ This is recommended because it's the [fastest and most compliant](https://github
 ### Example Configuration
 
 ```json
-// these get passed to linters and other tools
+// these get passed to linters and other tools with -I, or the correct format for that tool
 "verilog.includes": [
     "hdl/lib",
     "hdl/includes"
@@ -78,13 +119,15 @@ This is recommended because it's the [fastest and most compliant](https://github
 // includes and '-y .sv_cache/files' are already passed to linters
 "verilog.lint.slang.args": "--error-limit 200",
 "verilog.lint.slang.path": "/usr/local/bin/slang",
+// multiple linters can run concurrently
 "verilog.lint.verilator.enabled": true,
 // tools will use the default name on the path if not given
 "verilog.format.svFormatter": "verible-verilog-format",
 "verilog.format.verible.args": "--flagfile=myflags.txt",
 "verilog.format.verible.path": "/usr/local/bin/verible-verilog-format",
-"verilog.format.dirs": [
-    "hdl/myproject"
+// select directories to format on save
+"verilog.formatDirs": [
+    "hdl/my/project/with/formatting"
 ],
 ```
 
