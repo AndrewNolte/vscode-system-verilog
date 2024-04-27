@@ -43,7 +43,10 @@ export class LanguageServerComponent extends ExtensionComponent {
 
     // init verible-verilog-ls
     this.veribleVerilogLs.setupLanguageClient([], [], {
-      documentSelector: [{ scheme: 'file', language: 'systemverilog' }],
+      documentSelector: [
+        { scheme: 'file', language: 'verilog' },
+        { scheme: 'file', language: 'systemverilog' },
+      ],
     })
 
     // init rustHdl
