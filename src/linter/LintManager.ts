@@ -9,29 +9,29 @@ import ModelsimLinter from './ModelsimLinter'
 import { ExtensionComponent } from '../lib/libconfig'
 
 enum Linter {
-  slang = 'slang',
-  verilator = 'verilator',
-  iverilog = 'iverilog',
-  xvlog = 'xvlog',
-  modelsim = 'modelsim',
+  Slang = 'slang',
+  Verilator = 'verilator',
+  Iverilog = 'iverilog',
+  Xvlog = 'xvlog',
+  Modelsim = 'modelsim',
 }
 
 export default class LintManager extends ExtensionComponent {
   private linters: Map<string, BaseLinter> = new Map()
 
-  slang: SlangLinter = new SlangLinter(Linter.slang)
-  modelsim: ModelsimLinter = new ModelsimLinter(Linter.modelsim)
-  iverilog: IcarusLinter = new IcarusLinter(Linter.iverilog)
-  verilator: VerilatorLinter = new VerilatorLinter(Linter.verilator)
-  xvlog: XvlogLinter = new XvlogLinter(Linter.xvlog)
+  slang: SlangLinter = new SlangLinter(Linter.Slang)
+  modelsim: ModelsimLinter = new ModelsimLinter(Linter.Modelsim)
+  iverilog: IcarusLinter = new IcarusLinter(Linter.Iverilog)
+  verilator: VerilatorLinter = new VerilatorLinter(Linter.Verilator)
+  xvlog: XvlogLinter = new XvlogLinter(Linter.Xvlog)
 
   constructor() {
     super()
-    this.linters.set(Linter.slang, this.slang)
-    this.linters.set(Linter.verilator, this.verilator)
-    this.linters.set(Linter.iverilog, this.iverilog)
-    this.linters.set(Linter.xvlog, this.xvlog)
-    this.linters.set(Linter.modelsim, this.modelsim)
+    this.linters.set(Linter.Slang, this.slang)
+    this.linters.set(Linter.Verilator, this.verilator)
+    this.linters.set(Linter.Iverilog, this.iverilog)
+    this.linters.set(Linter.Xvlog, this.xvlog)
+    this.linters.set(Linter.Modelsim, this.modelsim)
   }
 
   async activate(context: vscode.ExtensionContext): Promise<void> {

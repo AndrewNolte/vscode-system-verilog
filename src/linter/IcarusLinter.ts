@@ -5,16 +5,16 @@ import { FileDiagnostic } from '../utils'
 import { SvStandard, VerilogStandard, ext } from '../extension'
 
 let verilogArgs: Map<string, string> = new Map([
-  [VerilogStandard.v1995, '-g1995'],
-  [VerilogStandard.v2001, '-g2001'],
-  [VerilogStandard.v2005, '-g2005'],
+  [VerilogStandard.V1995, '-g1995'],
+  [VerilogStandard.V2001, '-g2001'],
+  [VerilogStandard.V2005, '-g2005'],
 ])
 
 let svArgs: Map<SvStandard, string> = new Map([
-  [SvStandard.sv2005, '-g2005-sv'],
-  [SvStandard.sv2009, '-g2009'],
-  [SvStandard.sv2012, '-g2012'],
-  [SvStandard.sv2017, '-g2012'],
+  [SvStandard.SV2005, '-g2005-sv'],
+  [SvStandard.SV2009, '-g2009'],
+  [SvStandard.SV2012, '-g2012'],
+  [SvStandard.SV2017, '-g2012'],
 ])
 export default class IcarusLinter extends BaseLinter {
   protected convertToSeverity(severityString: string): vscode.DiagnosticSeverity {

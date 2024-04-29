@@ -1,6 +1,11 @@
 import * as vscode from 'vscode'
 import { Logger, StubLogger, createLogger } from './logger'
 
+import * as child_process from 'child_process'
+import { IConfigurationPropertySchema } from './vscodeConfigs'
+import { JSONSchemaType } from './jsonSchema'
+import * as process from 'process'
+
 class ExtensionNode {
   nodeName: string | undefined
   configPath: string | undefined
@@ -27,7 +32,6 @@ class ExtensionNode {
   }
 }
 
-type ConfigType = number | string | boolean | string[]
 export abstract class ExtensionComponent extends ExtensionNode {
   /**
    * Container for extensions functionality and config
@@ -56,7 +60,7 @@ export abstract class ExtensionComponent extends ExtensionNode {
     })
   }
 
-  preOrderConfigTraverse<T extends ConfigType>(func: (obj: ConfigObject<T>) => void): void {
+  preOrderConfigTraverse<T extends JSONSchemaType>(func: (obj: ConfigObject<T>) => void): void {
     this.preOrderTraverse((obj: ExtensionNode) => {
       if (obj instanceof ConfigObject) {
         func(obj)
@@ -146,19 +150,12 @@ export abstract class ExtensionComponent extends ExtensionNode {
   }
 }
 
-export class ConfigObject<T extends ConfigType> extends ExtensionNode {
-  private obj: any
+export class ConfigObject<T extends JSONSchemaType> extends ExtensionNode {
+  protected obj: any
   default: T
   cachedValue: T
 
-  constructor(obj: {
-    default: T
-    description: string
-    scope?: string
-    type?: string
-    enum?: string[]
-    items?: any
-  }) {
+  constructor(obj: IConfigurationPropertySchema) {
     super()
     this.obj = obj
     this.default = obj.default
@@ -217,5 +214,106 @@ export class ConfigObject<T extends ConfigType> extends ExtensionNode {
     }
     out += '\n'
     return out
+  }
+}
+
+type Platform = 'windows' | 'linux' | 'mac'
+
+type PlatformMap = { [key in Platform]: string }
+
+type PathConfigSchema = Omit<IConfigurationPropertySchema, 'default'>
+export class PathConfigObject extends ConfigObject<string> {
+  platformDefaults: PlatformMap
+  constructor(obj: PathConfigSchema, platformDefaults: PlatformMap) {
+    let configObj: IConfigurationPropertySchema = obj
+    configObj.default = JSON.stringify(platformDefaults)
+    super(configObj)
+    this.platformDefaults = platformDefaults
+  }
+
+  getValue(): string {
+    let path = super.getValue()
+    if (path === '' || path.startsWith('{')) {
+      path = this.platformDefaults[getPlatform()]
+    }
+    path = this.getAbsPath(path)
+
+    this.cachedValue = path
+    return path
+  }
+
+  getAbsPath(path: string): string {
+    if (getPlatform() === 'windows') {
+      if (!path.match(/^[a-zA-Z]:\\/)) {
+        child_process.execFile('cmd.exe', ['/c', `where ${path}`], (error, stdout, stderr) => {
+          if (error) {
+            console.error(`Error: ${error.message}`)
+            path = ''
+          }
+          if (stderr) {
+            console.error(`stderr: ${stderr}`)
+            path = ''
+          }
+          path = stdout.split('\r\n')[0].trim() // Taking the first result if multiple are returned
+        })
+      }
+    } else {
+      let userShell = process.env.SHELL ?? '/bin/bash'
+      if (!path.startsWith('/')) {
+        // Using bash to execute the `which` command
+        child_process.execFile(userShell, ['-c', `which ${path}`], (error, stdout, stderr) => {
+          if (error) {
+            console.error(`Error: ${error.message}`)
+            path = ''
+          }
+          if (stderr) {
+            console.error(`stderr: ${stderr}`)
+            path = ''
+          }
+          return stdout.trim()
+        })
+      }
+    }
+    return path
+  }
+
+  async checkPath(): Promise<boolean> {
+    return new Promise((resolve, _reject) => {
+      child_process.execFile(
+        this.getValue(),
+        ['--version'],
+        { encoding: 'utf-8' },
+        (error, _stdout, stderr) => {
+          if (error) {
+            console.error(`Error: ${error.message}`)
+            resolve(false)
+          }
+          if (stderr) {
+            console.error(`stderr: ${stderr}`)
+            resolve(false)
+          }
+          resolve(true)
+        }
+      )
+    })
+  }
+
+  async checkPathNotify(): Promise<boolean> {
+    let ret = await this.checkPath()
+    if (!ret) {
+      vscode.window.showErrorMessage(`${this.configPath} not found at "${this.getValue()}"`)
+    }
+    return ret
+  }
+}
+
+export function getPlatform(): Platform {
+  switch (process.platform) {
+    case 'win32':
+      return 'windows'
+    case 'darwin':
+      return 'mac'
+    default:
+      return 'linux'
   }
 }

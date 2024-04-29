@@ -18,18 +18,18 @@ import { getWorkspaceFolder } from './utils'
 export var ext: VerilogExtension
 
 export enum SvStandard {
-  sv2005 = 'SystemVerilog-2005',
-  sv2009 = 'SystemVerilog-2009',
-  sv2012 = 'SystemVerilog-2012',
-  sv2017 = 'SystemVerilog-2017',
+  SV2005 = 'SystemVerilog-2005',
+  SV2009 = 'SystemVerilog-2009',
+  SV2012 = 'SystemVerilog-2012',
+  SV2017 = 'SystemVerilog-2017',
   //   sv2023 = 'SystemVerilog2023',
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export enum VerilogStandard {
-  v1995 = 'Verilog-95',
-  v2001 = 'Verilog-2001',
-  v2005 = 'Verilog-2005',
+  V1995 = 'Verilog-95',
+  V2001 = 'Verilog-2001',
+  V2005 = 'Verilog-2005',
 }
 
 export class VerilogExtension extends ExtensionComponent {
@@ -60,13 +60,13 @@ export class VerilogExtension extends ExtensionComponent {
   svFormat: SystemVerilogFormatProvider = new SystemVerilogFormatProvider()
   verilogFormat: VerilogFormatProvider = new VerilogFormatProvider()
   svStandard: ConfigObject<SvStandard> = new ConfigObject({
-    default: SvStandard.sv2017,
+    default: SvStandard.SV2017,
     description: 'System Verilog standard to use',
     type: 'enum',
     enum: Object.values(SvStandard),
   })
   verilogStandard: ConfigObject<VerilogStandard> = new ConfigObject({
-    default: VerilogStandard.v2005,
+    default: VerilogStandard.V2005,
     description: 'System Verilog standard to use',
     type: 'enum',
     enum: Object.values(VerilogStandard),
@@ -202,6 +202,10 @@ export class VerilogExtension extends ExtensionComponent {
   }
 
   private async indexFiles(reset: boolean = false) {
+    if (!(await this.ctags.path.checkPathNotify())) {
+      return
+    }
+
     this.ctags.indexIncludes(reset).then(() => {
       this.logger.info('ctags index includes finished')
     })

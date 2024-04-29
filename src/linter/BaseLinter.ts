@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-import * as child from 'child_process'
+import * as child_process from 'child_process'
 import * as path from 'path'
 import * as process from 'process'
 import * as vscode from 'vscode'
@@ -145,12 +145,17 @@ export default abstract class BaseLinter extends ToolConfig {
     this.logger.info(`Running $${cwd}: ${command} ${args.join(' ')}`)
 
     return new Promise((resolve, _reject) => {
-      child.execFile(command, args, { cwd: cwd, encoding: 'utf-8' }, (error, stdout, stderr) => {
-        if (error !== null) {
-          this.logger.error(error.toString())
+      child_process.execFile(
+        command,
+        args,
+        { cwd: cwd, encoding: 'utf-8' },
+        (error, stdout, stderr) => {
+          if (error !== null) {
+            this.logger.error(error.toString())
+          }
+          resolve({ stdout, stderr, doc })
         }
-        resolve({ stdout, stderr, doc })
-      })
+      )
     })
   }
 

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-import * as child from 'child_process'
+import * as child_process from 'child_process'
 import * as crypto from 'crypto'
 import * as fs from 'fs'
 import * as os from 'os'
@@ -73,7 +73,7 @@ abstract class FileBasedFormattingEditProvider
     }
     this.logger.info('Executing command: ' + binPath + ' ' + args.join(' '))
     try {
-      child.execFileSync(binPath, args, {
+      child_process.execFileSync(binPath, args, {
         cwd: getWorkspaceFolder(),
       })
       let formattedText: string = tempFile.readFileSync({ encoding: 'utf-8' })
@@ -115,9 +115,9 @@ class VeribleVerilogFormatEditProvider extends FileBasedFormattingEditProvider {
 /////////////////////////////////////////////
 
 enum VerilogFormatter {
-  verilogFormat = 'verilog-format',
-  istyleFormat = 'istyle-format',
-  verible = 'verible-verilog-format',
+  VerilogFormat = 'verilog-format',
+  IstyleFormat = 'istyle-format',
+  Verible = 'verible-verilog-format',
 }
 export class VerilogFormatProvider
   extends ExtensionComponent
@@ -135,9 +135,9 @@ export class VerilogFormatProvider
 
   formatter: ConfigObject<VerilogFormatter> = new ConfigObject({
     description: 'Formatter Selection',
-    default: VerilogFormatter.verible,
+    default: VerilogFormatter.Verible,
     type: 'string',
-    enum: [VerilogFormatter.verilogFormat, VerilogFormatter.istyleFormat, VerilogFormatter.verible],
+    enum: [VerilogFormatter.VerilogFormat, VerilogFormatter.IstyleFormat, VerilogFormatter.Verible],
   })
 
   async activate(context: vscode.ExtensionContext): Promise<void> {
@@ -161,11 +161,11 @@ export class VerilogFormatProvider
     }
 
     switch (fmt) {
-      case VerilogFormatter.verilogFormat:
+      case VerilogFormatter.VerilogFormat:
         return this.verilogFormatter.provideDocumentFormattingEdits(document, _options, _token)
-      case VerilogFormatter.istyleFormat:
+      case VerilogFormatter.IstyleFormat:
         return this.iStyleFormatter.provideDocumentFormattingEdits(document, _options, _token)
-      case VerilogFormatter.verible:
+      case VerilogFormatter.Verible:
         return this.veribleFormatter.provideDocumentFormattingEdits(document, _options, _token)
     }
   }
@@ -176,7 +176,7 @@ export class VerilogFormatProvider
 /////////////////////////////////////////////
 
 enum SvFormatter {
-  veribleVerilogFormat = 'verible-verilog-format',
+  VeribleVerilogFormat = 'verible-verilog-format',
 }
 export class SystemVerilogFormatProvider
   extends ExtensionComponent
@@ -189,9 +189,9 @@ export class SystemVerilogFormatProvider
 
   formatter: ConfigObject<SvFormatter> = new ConfigObject({
     description: 'Formatter Selection',
-    default: SvFormatter.veribleVerilogFormat,
+    default: SvFormatter.VeribleVerilogFormat,
     type: 'string',
-    enum: [SvFormatter.veribleVerilogFormat],
+    enum: [SvFormatter.VeribleVerilogFormat],
   })
 
   async activate(context: vscode.ExtensionContext): Promise<void> {

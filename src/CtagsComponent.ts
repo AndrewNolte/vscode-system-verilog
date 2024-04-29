@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 import * as vscode from 'vscode'
 import { ext } from './extension'
-import { ConfigObject, ExtensionComponent } from './lib/libconfig'
+import { ConfigObject, ExtensionComponent, PathConfigObject } from './lib/libconfig'
 import { CtagsParser, Symbol } from './parsers/ctagsParser'
 import { getParentText, getPrevChar } from './utils'
+import fs = require('fs')
 
 export class CtagsComponent extends ExtensionComponent {
   // file -> parser
@@ -11,10 +12,16 @@ export class CtagsComponent extends ExtensionComponent {
   /// symbol name -> symbols (from includes)
   private symbolMap: Map<string, Symbol[]> = new Map()
 
-  path: ConfigObject<string> = new ConfigObject({
-    default: 'ctags',
-    description: 'Path to ctags universal executable',
-  })
+  path: PathConfigObject = new PathConfigObject(
+    {
+      description: 'Path to ctags universal executable',
+    },
+    {
+      windows: 'ctags.exe',
+      linux: 'ctags-universal',
+      mac: 'ctags',
+    }
+  )
 
   indexAllIncludes: ConfigObject<boolean> = new ConfigObject({
     default: false,
@@ -35,6 +42,10 @@ export class CtagsComponent extends ExtensionComponent {
 
     vscode.workspace.onDidSaveTextDocument((doc: vscode.TextDocument) => {
       this.getCtags(doc).clearSymbols()
+    })
+
+    this.path.onConfigUpdated(async () => {
+      await this.path.checkPathNotify()
     })
   }
 

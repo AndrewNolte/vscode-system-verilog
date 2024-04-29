@@ -1,4 +1,4 @@
-import * as child from 'child_process'
+import * as child_process from 'child_process'
 import * as vscode from 'vscode'
 import { Logger } from '../lib/logger'
 import { ext } from '../extension'
@@ -314,13 +314,13 @@ export class CtagsParser {
   }
 
   async execCtags(filepath: string): Promise<string> {
-    let command: string = ext.ctags.path.getValue()
+    let command: string = ext.ctags.path.cachedValue
     let args: string[] =
       '-f - --fields=+K --sort=no --excmd=n --fields-SystemVerilog=+{parameter}'.split(' ')
     args.push(filepath)
     this.logger.info('Executing Command: ' + command + ' ' + args.join(' '))
     return new Promise((resolve, _reject) => {
-      child.execFile(
+      child_process.execFile(
         command,
         args,
         { encoding: 'utf-8' },

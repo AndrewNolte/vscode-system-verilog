@@ -41,7 +41,15 @@
       "unused-imports"
     ],
     "rules": {
-      "@typescript-eslint/naming-convention": "warn",
+      "@typescript-eslint/naming-convention": [
+        "error",
+        {
+          "selector": "enumMember",
+          "format": [
+            "PascalCase"
+          ]
+        }
+      ],
       "@typescript-eslint/semi": "off",
       "curly": "warn",
       "eqeqeq": "warn",
@@ -237,8 +245,8 @@
           "type": "boolean"
         },
         "verilog.ctags.path": {
-          "default": "ctags",
           "description": "Path to ctags universal executable",
+          "default": "{\"windows\":\"ctags.exe\",\"linux\":\"ctags-universal\",\"mac\":\"ctags\"}",
           "type": "string"
         },
         "verilog.ctags.indexAllIncludes": {

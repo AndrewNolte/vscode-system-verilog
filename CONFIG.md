@@ -5,7 +5,7 @@
     Enable creating file symlinks in .sv_cache/files for the -y flag that most tools have
 
 
-- `verilog.ctags.path`: string = "ctags"
+- `verilog.ctags.path`: string = "{"windows":"ctags.exe","linux":"ctags-universal","mac":"ctags"}"
 
     Path to ctags universal executable
 
