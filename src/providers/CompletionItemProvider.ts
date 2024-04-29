@@ -3,6 +3,7 @@ import * as vscode from 'vscode'
 import { Logger } from '../lib/logger'
 import { Symbol } from '../parsers/ctagsParser'
 import { ext } from '../extension'
+import { getPrev2Char } from '../utils'
 
 export class VerilogCompletionItemProvider implements vscode.CompletionItemProvider {
   private logger: Logger
@@ -50,7 +51,7 @@ export class VerilogCompletionItemProvider implements vscode.CompletionItemProvi
     _token: vscode.CancellationToken,
     context: vscode.CompletionContext
   ): Promise<vscode.CompletionItem[]> {
-    this.logger.info('providing completion ' + context.triggerCharacter)
+    this.logger.info('providing completion on ' + context.triggerCharacter)
     if (context.triggerCharacter === '(') {
       // if the prev char is #
       let textBeforePosition = document.getText(
@@ -63,78 +64,28 @@ export class VerilogCompletionItemProvider implements vscode.CompletionItemProvi
         return await this.provideModuleCompletion(document, _position, _token, context)
       }
     }
-    this.logger.info('Completion items requested')
-    let items: vscode.CompletionItem[] = []
 
-    let symbols: Symbol[] = await ext.ctags.getCtags(document).getSymbols()
-    symbols.forEach((symbol) => {
-      let newItem: vscode.CompletionItem = new vscode.CompletionItem(
-        symbol.name,
-        this.getCompletionItemKind(symbol.type)
-      )
-      let codeRange = new vscode.Range(
-        symbol.startPosition,
-        new vscode.Position(symbol.startPosition.line, Number.MAX_VALUE)
-      )
-      let code = document.getText(codeRange).trim()
-      newItem.detail = symbol.type
-      let doc: string = '```systemverilog\n' + code + '\n```'
-      if (symbol.parentScope !== undefined && symbol.parentScope !== '') {
-        doc += '\nHeirarchial Scope: ' + symbol.parentScope
+    let ppChar = getPrev2Char(document, _position)
+
+    let symbols: Symbol[] = []
+
+    if (context.triggerCharacter === ':' && ppChar === ':') {
+      let pkgRange = document.getWordRangeAtPosition(_position.translate(0, -2))
+      let pkgName = document.getText(pkgRange)
+      let ctags = await ext.ctags.findModule(pkgName)
+      if (ctags === undefined) {
+        return []
       }
-      newItem.documentation = new vscode.MarkdownString(doc)
-      items.push(newItem)
-    })
-    this.logger.info(items.length + ' items requested')
-    return items
-  }
-
-  private getCompletionItemKind(type: string): vscode.CompletionItemKind {
-    switch (type) {
-      case 'constant':
-        return vscode.CompletionItemKind.Constant
-      case 'event':
-        return vscode.CompletionItemKind.Event
-      case 'function':
-        return vscode.CompletionItemKind.Function
-      case 'module':
-        return vscode.CompletionItemKind.Module
-      case 'net':
-        return vscode.CompletionItemKind.Variable
-      case 'port':
-        return vscode.CompletionItemKind.Variable
-      case 'register':
-        return vscode.CompletionItemKind.Variable
-      case 'task':
-        return vscode.CompletionItemKind.Function
-      case 'block':
-        return vscode.CompletionItemKind.Module
-      case 'assert':
-        return vscode.CompletionItemKind.Variable // No idea what to use
-      case 'class':
-        return vscode.CompletionItemKind.Class
-      case 'covergroup':
-        return vscode.CompletionItemKind.Class // No idea what to use
-      case 'enum':
-        return vscode.CompletionItemKind.Enum
-      case 'interface':
-        return vscode.CompletionItemKind.Interface
-      case 'modport':
-        return vscode.CompletionItemKind.Variable // same as ports
-      case 'package':
-        return vscode.CompletionItemKind.Module
-      case 'program':
-        return vscode.CompletionItemKind.Module
-      case 'prototype':
-        return vscode.CompletionItemKind.Function
-      case 'property':
-        return vscode.CompletionItemKind.Property
-      case 'struct':
-        return vscode.CompletionItemKind.Struct
-      case 'typedef':
-        return vscode.CompletionItemKind.TypeParameter
-      default:
-        return vscode.CompletionItemKind.Variable
+      symbols = await ctags.getPackageSymbols()
+    } else {
+      symbols = await ext.ctags.getCtags(document).getSymbols()
     }
+
+    let items = symbols.map((symbol: Symbol) => {
+      return symbol.getCompletionItem()
+    })
+
+    this.logger.info(`Returning ${items.length} completion items`)
+    return items
   }
 }

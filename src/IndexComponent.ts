@@ -16,7 +16,7 @@ export class IndexComponent extends ExtensionComponent {
 
   dir: vscode.Uri | undefined
 
-  activate(context: vscode.ExtensionContext): void {
+  async activate(context: vscode.ExtensionContext): Promise<void> {
     this.logger.info('index activating')
 
     context.subscriptions.push(

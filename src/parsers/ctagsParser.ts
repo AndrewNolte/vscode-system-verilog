@@ -274,6 +274,71 @@ export class Symbol {
         return vscode.SymbolKind.Variable
     }
   }
+
+  public getCompletionItem(): vscode.CompletionItem {
+    let item: vscode.CompletionItem = new vscode.CompletionItem(
+      this.name,
+      this.getCompletionItemKind()
+    )
+    item.detail = this.type
+    item.filterText = this.name
+    item.insertText = this.name
+    item.documentation = this.getHoverText()
+    return item
+  }
+
+  public getCompletionItemKind(): vscode.CompletionItemKind {
+    switch (this.type) {
+      case 'constant':
+        return vscode.CompletionItemKind.Constant
+      case 'parameter':
+        return vscode.CompletionItemKind.TypeParameter
+      case 'event':
+        return vscode.CompletionItemKind.Event
+      case 'function':
+        return vscode.CompletionItemKind.Function
+      case 'module':
+        return vscode.CompletionItemKind.Module
+      case 'net':
+        return vscode.CompletionItemKind.Variable
+      case 'port':
+        return vscode.CompletionItemKind.Variable
+      case 'register':
+        return vscode.CompletionItemKind.Variable
+      case 'task':
+        return vscode.CompletionItemKind.Function
+      case 'block':
+        return vscode.CompletionItemKind.Module
+      case 'assert':
+        return vscode.CompletionItemKind.Variable // No idea what to use
+      case 'class':
+        return vscode.CompletionItemKind.Class
+      case 'covergroup':
+        return vscode.CompletionItemKind.Class // No idea what to use
+      case 'enum':
+        return vscode.CompletionItemKind.Enum
+      case 'interface':
+        return vscode.CompletionItemKind.Interface
+      case 'modport':
+        return vscode.CompletionItemKind.Variable // same as ports
+      case 'package':
+        return vscode.CompletionItemKind.Module
+      case 'program':
+        return vscode.CompletionItemKind.Module
+      case 'prototype':
+        return vscode.CompletionItemKind.Function
+      case 'property':
+        return vscode.CompletionItemKind.Property
+      case 'struct':
+        return vscode.CompletionItemKind.Struct
+      case 'typedef':
+        return vscode.CompletionItemKind.Struct
+      case 'instance':
+        return vscode.CompletionItemKind.Class
+      default:
+        return vscode.CompletionItemKind.Variable
+    }
+  }
 }
 
 // TODO: add a user setting to enable/disable all ctags based operations
@@ -320,7 +385,9 @@ export class CtagsParser {
 
   async getPackageSymbols(): Promise<Symbol[]> {
     let syms = await this.getSymbols()
-    return syms.filter((tag) => tag.type !== 'member' && tag.type !== 'register')
+    return syms.filter(
+      (tag) => tag.type !== 'member' && tag.type !== 'register' && tag.type !== 'port'
+    )
   }
 
   async execCtags(filepath: string): Promise<string> {
@@ -451,9 +518,10 @@ export class CtagsParser {
       if (sym.parentScope !== '') {
         symMap.set(sym.parentScope + '.' + sym.name, sym)
         let parent = symMap.get(sym.parentScope)
-        this.logger.warn('Parent not found for ' + sym.name + ' ' + sym.parentScope)
         if (parent !== undefined) {
           parent.children.push(sym)
+        } else {
+          this.logger.warn('Parent not found for ' + sym.name + ' ' + sym.parentScope)
         }
       } else {
         symMap.set(sym.name, sym)

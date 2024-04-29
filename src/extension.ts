@@ -115,9 +115,11 @@ export class VerilogExtension extends ExtensionComponent {
         vscode.languages.registerCompletionItemProvider(
           selector,
           verilogCompletionItemProvider,
-          '.',
-          '(',
-          '='
+          '.', // params, ports, hierarchical references
+          '(', // module inst, func calls
+          ':' // pkg scope
+          // '`', // macros
+          // '$' // builtins
         )
       )
 

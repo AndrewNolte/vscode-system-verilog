@@ -19,13 +19,13 @@ export function getPrevChar(
 
 export function getPrev2Char(
   document: vscode.TextDocument,
-  range: vscode.Range
+  pos: vscode.Position
 ): string | undefined {
-  const lineText = document.lineAt(range.start.line).text
-  if (range.start.character <= 1) {
+  const lineText = document.lineAt(pos.line).text
+  if (pos.character <= 1) {
     return undefined
   }
-  return lineText.charAt(range.start.character - 2)
+  return lineText.charAt(pos.character - 2)
 }
 
 export function getParentText(document: vscode.TextDocument, textRange: vscode.Range): string {
@@ -37,7 +37,7 @@ export function getParentText(document: vscode.TextDocument, textRange: vscode.R
 
     // follow interface array refs
     let line = document.lineAt(textRange.start.line).text
-    if (getPrev2Char(document, range) === ']') {
+    if (getPrev2Char(document, range.start) === ']') {
       let match = line.lastIndexOf('[', range.start.character - 2)
       range =
         document.getWordRangeAtPosition(new vscode.Position(range.start.line, match - 1)) ?? range

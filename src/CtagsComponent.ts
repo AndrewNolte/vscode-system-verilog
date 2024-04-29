@@ -66,8 +66,12 @@ export class CtagsComponent extends ExtensionComponent {
 
         files.forEach(async (file: vscode.Uri) => {
           let doc = await vscode.workspace.openTextDocument(file)
-          let syms = await this.getCtags(doc).getPackageSymbols()
+          let syms = await this.getCtags(doc).getSymbols()
           syms.forEach((element: Symbol) => {
+            // only want to index top level symbols, i.e. macros
+            if (element.parentScope !== '') {
+              return
+            }
             if (this.symbolMap.has(element.name)) {
               this.symbolMap.get(element.name)?.push(element)
             } else {
@@ -89,6 +93,15 @@ export class CtagsComponent extends ExtensionComponent {
       this.filemap.set(doc, ctags)
     }
     return ctags
+  }
+
+  async findModule(moduleName: string): Promise<CtagsParser | undefined> {
+    let file = await ext.index.findModule(moduleName)
+    if (file === undefined) {
+      return undefined
+    }
+    let parser = this.getCtags(file)
+    return parser
   }
 
   async findDefinitionByName(moduleName: string, targetText: string): Promise<Symbol[]> {
