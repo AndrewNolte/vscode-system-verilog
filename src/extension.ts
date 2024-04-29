@@ -7,7 +7,6 @@ import LintManager from './linter/LintManager'
 import * as CompletionItemProvider from './providers/CompletionItemProvider'
 import * as DefinitionProvider from './providers/DefinitionProvider'
 import * as DocumentSymbolProvider from './providers/DocumentSymbolProvider'
-import * as HoverProvider from './providers/HoverProvider'
 import { ExtensionComponent, ConfigObject } from './lib/libconfig'
 import { SystemVerilogFormatProvider, VerilogFormatProvider } from './providers/FormatProvider'
 import { LanguageServerComponent } from './LSComponent'
@@ -98,10 +97,6 @@ export class VerilogExtension extends ExtensionComponent {
       this.logger.getChild('VerilogCompletionItemProvider')
     )
 
-    let verilogHoverProvider = new HoverProvider.VerilogHoverProvider(
-      this.logger.getChild('VerilogHoverProvider')
-    )
-
     let verilogDefinitionProvider = new DefinitionProvider.VerilogDefinitionProvider(
       this.logger.getChild('VerilogDefinitionProvider')
     )
@@ -127,7 +122,7 @@ export class VerilogExtension extends ExtensionComponent {
       )
 
       context.subscriptions.push(
-        vscode.languages.registerHoverProvider(selector, verilogHoverProvider)
+        vscode.languages.registerHoverProvider(selector, verilogDefinitionProvider)
       )
 
       context.subscriptions.push(
@@ -193,7 +188,10 @@ export class VerilogExtension extends ExtensionComponent {
     /////////////////////////////////////////////
 
     // let ctags index include files
-    await this.indexFiles()
+
+    let tasks = [this.indexFiles(), verilogDefinitionProvider.loadBuiltins(context)]
+    await Promise.all(tasks)
+
     vscode.commands.registerCommand('verilog.reindex', async () => {
       await this.indexFiles(true)
     })

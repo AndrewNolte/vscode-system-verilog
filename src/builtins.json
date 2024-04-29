@@ -1,5 +1,5 @@
 {
-    "$sampled": {
+    "sampled": {
         "description": "Checks if a signal is sampled at the current simulation time.",
         "args": {
             "expression": {
@@ -8,7 +8,7 @@
             }
         }
     },
-    "$rose": {
+    "rose": {
         "description": "Detects a rising edge on a signal.",
         "args": {
             "expression": {
@@ -21,7 +21,7 @@
             }
         }
     },
-    "$fell": {
+    "fell": {
         "description": "Detects a falling edge on a signal.",
         "args": {
             "expression": {
@@ -34,7 +34,7 @@
             }
         }
     },
-    "$stable": {
+    "stable": {
         "description": "Checks if a signal has remained stable over the last simulation cycle.",
         "args": {
             "expression": {
@@ -47,7 +47,7 @@
             }
         }
     },
-    "$changed": {
+    "changed": {
         "description": "Checks if a signal has changed since the last simulation cycle.",
         "args": {
             "expression": {
@@ -60,7 +60,7 @@
             }
         }
     },
-    "$past": {
+    "past": {
         "description": "Retrieves the past value of a signal.",
         "args": {
             "expression": {
@@ -81,31 +81,31 @@
             }
         }
     },
-    "$finish": {
+    "finish": {
         "description": "Stops the simulation and closes the simulator.",
         "args": {}
     },
-    "$stop": {
+    "stop": {
         "description": "Stops the simulation and allows interactive debugging.",
         "args": {}
     },
-    "$exit": {
+    "exit": {
         "description": "Exits the simulation and returns control to the operating system.",
         "args": {}
     },
-    "$time": {
+    "time": {
         "description": "Returns the current simulation time as an integer.",
         "args": {}
     },
-    "$stime": {
+    "stime": {
         "description": "Returns the current simulation time as a 32-bit integer.",
         "args": {}
     },
-    "$realtime": {
+    "realtime": {
         "description": "Returns the current simulation time as a real number.",
         "args": {}
     },
-    "$printtimescale": {
+    "printtimescale": {
         "description": "Prints the timescale of a specified module or the current module.",
         "args": {
             "module_name": {
@@ -114,7 +114,7 @@
             }
         }
     },
-    "$timeformat": {
+    "timeformat": {
         "description": "Sets the format for displaying time.",
         "args": {
             "unit": {
@@ -135,7 +135,7 @@
             }
         }
     },
-    "$log": {
+    "log": {
         "description": "Logs a message to a file.",
         "args": {
             "filename": {
@@ -148,7 +148,7 @@
             }
         }
     },
-    "$fopen": {
+    "fopen": {
         "description": "Opens a file and returns a file descriptor.",
         "args": {
             "filename": {
@@ -162,7 +162,7 @@
             }
         }
     },
-    "$fclose": {
+    "fclose": {
         "description": "Closes an open file.",
         "args": {
             "file_descriptor": {
@@ -171,7 +171,7 @@
             }
         }
     },
-    "$fdisplay": {
+    "fdisplay": {
         "description": "Writes formatted data to a file and appends a newline.",
         "args": {
             "file_descriptor": {
@@ -184,7 +184,7 @@
             }
         }
     },
-    "$fwrite": {
+    "fwrite": {
         "description": "Writes formatted data to a file without appending a newline.",
         "args": {
             "file_descriptor": {
@@ -197,7 +197,7 @@
             }
         }
     },
-    "$fread": {
+    "fread": {
         "description": "Reads data from a file.",
         "args": {
             "file_descriptor": {
@@ -206,7 +206,7 @@
             }
         }
     },
-    "$fscanf": {
+    "fscanf": {
         "description": "Reads formatted data from a file.",
         "args": {
             "file_descriptor": {
@@ -219,7 +219,7 @@
             }
         }
     },
-    "$feof": {
+    "feof": {
         "description": "Checks for end of file.",
         "args": {
             "file_descriptor": {
@@ -228,7 +228,7 @@
             }
         }
     },
-    "$fseek": {
+    "fseek": {
         "description": "Sets the file position of the file with the given file descriptor.",
         "args": {
             "file_descriptor": {
@@ -245,7 +245,7 @@
             }
         }
     },
-    "$fflush": {
+    "fflush": {
         "description": "Flushes the output buffer of a file.",
         "args": {
             "file_descriptor": {
@@ -254,15 +254,15 @@
             }
         }
     },
-    "$random": {
+    "random": {
         "description": "Returns a pseudo-random integer.",
         "args": {}
     },
-    "$urandom": {
+    "urandom": {
         "description": "Generates an unsigned random integer.",
         "args": {}
     },
-    "$urandom_range": {
+    "urandom_range": {
         "description": "Generates an unsigned random integer within a specified range.",
         "args": {
             "min": {
@@ -275,7 +275,7 @@
             }
         }
     },
-    "$srandom": {
+    "srandom": {
         "description": "Sets the seed for the random number generator.",
         "args": {
             "seed": {
@@ -284,7 +284,7 @@
             }
         }
     },
-    "$clog2": {
+    "clog2": {
         "description": "Returns the ceiling of the log base 2 of the argument.",
         "args": {
             "value": {
@@ -293,7 +293,7 @@
             }
         }
     },
-    "$ln": {
+    "ln": {
         "description": "Returns the natural logarithm of the argument.",
         "args": {
             "x": {
@@ -302,7 +302,7 @@
             }
         }
     },
-    "$log10": {
+    "log10": {
         "description": "Returns the base-10 logarithm of the argument.",
         "args": {
             "x": {
@@ -311,7 +311,7 @@
             }
         }
     },
-    "$exp": {
+    "exp": {
         "description": "Returns the exponential of the argument.",
         "args": {
             "x": {
@@ -320,7 +320,7 @@
             }
         }
     },
-    "$sqrt": {
+    "sqrt": {
         "description": "Returns the square root of the argument.",
         "args": {
             "x": {
@@ -329,7 +329,7 @@
             }
         }
     },
-    "$pow": {
+    "pow": {
         "description": "Returns the result of raising the first argument to the power of the second argument.",
         "args": {
             "x": {
@@ -342,7 +342,7 @@
             }
         }
     },
-    "$floor": {
+    "floor": {
         "description": "Returns the largest integer not greater than the argument.",
         "args": {
             "x": {
@@ -351,7 +351,7 @@
             }
         }
     },
-    "$ceil": {
+    "ceil": {
         "description": "Returns the smallest integer not less than the argument.",
         "args": {
             "x": {
@@ -360,7 +360,7 @@
             }
         }
     },
-    "$sin": {
+    "sin": {
         "description": "Returns the sine of the argument.",
         "args": {
             "x": {
@@ -369,7 +369,7 @@
             }
         }
     },
-    "$cos": {
+    "cos": {
         "description": "Returns the cosine of the argument.",
         "args": {
             "x": {
@@ -378,7 +378,7 @@
             }
         }
     },
-    "$tan": {
+    "tan": {
         "description": "Returns the tangent of the argument.",
         "args": {
             "x": {
@@ -387,7 +387,7 @@
             }
         }
     },
-    "$asin": {
+    "asin": {
         "description": "Returns the arc sine of the argument.",
         "args": {
             "x": {
@@ -396,7 +396,7 @@
             }
         }
     },
-    "$acos": {
+    "acos": {
         "description": "Returns the arc cosine of the argument.",
         "args": {
             "x": {
@@ -405,7 +405,7 @@
             }
         }
     },
-    "$atan": {
+    "atan": {
         "description": "Returns the arc tangent of the argument.",
         "args": {
             "x": {
@@ -414,7 +414,7 @@
             }
         }
     },
-    "$atan2": {
+    "atan2": {
         "description": "Returns the angle in radians between the positive x-axis of a plane and the point given by the coordinates (x, y) on it.",
         "args": {
             "y": {
@@ -427,7 +427,7 @@
             }
         }
     },
-    "$hypot": {
+    "hypot": {
         "description": "Returns the square root of the sum of squares of its arguments, i.e., the Euclidean distance function or hypotenuse.",
         "args": {
             "x": {
@@ -440,7 +440,7 @@
             }
         }
     },
-    "$sinh": {
+    "sinh": {
         "description": "Returns the hyperbolic sine of the argument.",
         "args": {
             "x": {
@@ -449,7 +449,7 @@
             }
         }
     },
-    "$cosh": {
+    "cosh": {
         "description": "Returns the hyperbolic cosine of the argument.",
         "args": {
             "x": {
@@ -458,7 +458,7 @@
             }
         }
     },
-    "$tanh": {
+    "tanh": {
         "description": "Returns the hyperbolic tangent of the argument.",
         "args": {
             "x": {
@@ -467,7 +467,7 @@
             }
         }
     },
-    "$bits": {
+    "bits": {
         "description": "Returns the number of bits required to hold an expression as a bit stream. The value returned by $bits is determined without actual evaluation of the expression it encloses. It shall be an error to enclose a function that returns a dynamically sized data type. The return value is valid at elaboration only if the expression contains fixed-size data types.",
         "args": {
             "expression": {
@@ -476,7 +476,7 @@
             }
         }
     },
-    "$typename": {
+    "typename": {
         "description": "Returns a string that represents the resolved type of its argument. The return string is constructed in a way that strips the default signing and constructs system-generated names for anonymous structs, unions, and enums.",
         "args": {
             "expression": {
@@ -485,7 +485,7 @@
             }
         }
     },
-    "$isunbounded": {
+    "isunbounded": {
         "description": "Determines if the size of an array is unbounded. Returns true if the array is unbounded.",
         "args": {
             "expression": {
@@ -494,7 +494,7 @@
             }
         }
     },
-    "$fatal": {
+    "fatal": {
         "description": "Generates a run-time fatal error which terminates the simulation. The first argument sets the level of diagnostic information reported.",
         "args": {
             "finish_number": {
@@ -507,7 +507,7 @@
             }
         }
     },
-    "$error": {
+    "error": {
         "description": "Generates a run-time error message.",
         "args": {
             "list_of_arguments": {
@@ -516,7 +516,7 @@
             }
         }
     },
-    "$warning": {
+    "warning": {
         "description": "Generates a run-time warning message.",
         "args": {
             "list_of_arguments": {
@@ -525,7 +525,7 @@
             }
         }
     },
-    "$info": {
+    "info": {
         "description": "Generates an informational message without any severity indication.",
         "args": {
             "list_of_arguments": {
@@ -534,7 +534,7 @@
             }
         }
     },
-    "$display": {
+    "display": {
         "description": "Displays the specified message or variable values on the standard output with a newline.",
         "args": {
             "list_of_arguments": {
@@ -543,7 +543,7 @@
             }
         }
     },
-    "$write": {
+    "write": {
         "description": "Writes the specified message or variable values to the standard output without a newline.",
         "args": {
             "list_of_arguments": {
@@ -552,7 +552,7 @@
             }
         }
     },
-    "$sformat": {
+    "sformat": {
         "description": "Formats data into a string and stores it in the specified variable.",
         "args": {
             "output_var": {
@@ -569,7 +569,7 @@
             }
         }
     },
-    "$sformatf": {
+    "sformatf": {
         "description": "Formats data according to the format string and returns it as a string.",
         "args": {
             "format_string": {
@@ -582,7 +582,7 @@
             }
         }
     },
-    "$isunknown": {
+    "isunknown": {
         "description": "Returns true if any bit of the expression is 'X' or 'Z'.",
         "args": {
             "expression": {
@@ -591,7 +591,7 @@
             }
         }
     },
-    "$dimensions": {
+    "dimensions": {
         "description": "Returns the total number of dimensions in the array (packed and unpacked).",
         "args": {
             "expression": {
@@ -600,7 +600,7 @@
             }
         }
     },
-    "$unpacked_dimensions": {
+    "unpacked_dimensions": {
         "description": "Returns the total number of unpacked dimensions for an array.",
         "args": {
             "expression": {
@@ -609,7 +609,7 @@
             }
         }
     },
-    "$left": {
+    "left": {
         "description": "Returns the left bound of the specified dimension of an array.",
         "args": {
             "expression": {
@@ -623,7 +623,7 @@
             }
         }
     },
-    "$right": {
+    "right": {
         "description": "Returns the right bound of the specified dimension of an array.",
         "args": {
             "expression": {
@@ -637,7 +637,7 @@
             }
         }
     },
-    "$low": {
+    "low": {
         "description": "Returns the lower index of the specified dimension of an array.",
         "args": {
             "expression": {
@@ -651,7 +651,7 @@
             }
         }
     },
-    "$high": {
+    "high": {
         "description": "Returns the upper index of the specified dimension of an array.",
         "args": {
             "expression": {
@@ -665,7 +665,7 @@
             }
         }
     },
-    "$increment": {
+    "increment": {
         "description": "Returns the step size between consecutive indices of the specified dimension.",
         "args": {
             "expression": {
@@ -679,7 +679,7 @@
             }
         }
     },
-    "$size": {
+    "size": {
         "description": "Returns the number of elements in the specified dimension of an array.",
         "args": {
             "expression": {
@@ -693,7 +693,7 @@
             }
         }
     },
-    "$bitstoreal": {
+    "bitstoreal": {
         "description": "Converts a bit pattern created by $realtobits back to a real type value.",
         "args": {
             "bit_val": {
@@ -702,7 +702,7 @@
             }
         }
     },
-    "$realtobits": {
+    "realtobits": {
         "description": "Converts real type values to a 64-bit vector representation of the real number.",
         "args": {
             "real_val": {
@@ -711,7 +711,7 @@
             }
         }
     },
-    "$bitstoshortreal": {
+    "bitstoshortreal": {
         "description": "Converts a bit pattern created by $shortrealtobits back to a shortreal type value.",
         "args": {
             "bit_val": {
@@ -720,7 +720,7 @@
             }
         }
     },
-    "$shortrealtobits": {
+    "shortrealtobits": {
         "description": "Converts shortreal type values to a 32-bit vector representation of the shortreal number.",
         "args": {
             "shortreal_val": {
@@ -729,7 +729,7 @@
             }
         }
     },
-    "$rtoi": {
+    "rtoi": {
         "description": "Converts real values to an integer type by truncation.",
         "args": {
             "real_val": {
@@ -738,7 +738,7 @@
             }
         }
     },
-    "$itor": {
+    "itor": {
         "description": "Converts integer values to real values.",
         "args": {
             "int_val": {
