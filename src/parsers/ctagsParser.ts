@@ -17,6 +17,7 @@ export class Symbol {
   isValid: boolean
   typeRef: string | null
   doc: vscode.TextDocument
+  children: Symbol[]
   constructor(
     doc: vscode.TextDocument,
     name: string,
@@ -36,6 +37,7 @@ export class Symbol {
     this.parentType = parentType
     this.isValid = Boolean(isValid)
     this.typeRef = typeRef
+    this.children = []
   }
 
   prettyPrint(): string {
@@ -125,13 +127,15 @@ export class Symbol {
   }
 
   getDocumentSymbol(): vscode.DocumentSymbol {
-    return new vscode.DocumentSymbol(
+    let sym = new vscode.DocumentSymbol(
       this.name,
       this.type,
       Symbol.getSymbolKind(this.type),
       this.fullRange ?? this.getIdRange(),
       this.getIdRange()
     )
+    sym.children = this.children.map((child) => child.getDocumentSymbol())
+    return sym
   }
 
   isMacro(): boolean {
@@ -216,12 +220,13 @@ export class Symbol {
 
   // types used by ctags
   // taken from https://github.com/universal-ctags/ctags/blob/master/parsers/verilog.c
+  // Vscode icons at https://code.visualstudio.com/api/references/icons-in-labels
   static getSymbolKind(name: String): vscode.SymbolKind {
     switch (name) {
       case 'constant':
         return vscode.SymbolKind.Constant
       case 'parameter':
-        return vscode.SymbolKind.Constant
+        return vscode.SymbolKind.TypeParameter
       case 'event':
         return vscode.SymbolKind.Event
       case 'function':
@@ -242,7 +247,7 @@ export class Symbol {
       case 'assert':
         return vscode.SymbolKind.Variable // No idea what to use
       case 'class':
-        return vscode.SymbolKind.Class
+        return vscode.SymbolKind.Module
       case 'covergroup':
         return vscode.SymbolKind.Class // No idea what to use
       case 'enum':
@@ -262,7 +267,9 @@ export class Symbol {
       case 'struct':
         return vscode.SymbolKind.Struct
       case 'typedef':
-        return vscode.SymbolKind.TypeParameter
+        return vscode.SymbolKind.Struct
+      case 'instance':
+        return vscode.SymbolKind.Class
       default:
         return vscode.SymbolKind.Variable
     }
@@ -273,12 +280,14 @@ export class Symbol {
 export class CtagsParser {
   /// Symbol definitions (no rhs)
   symbols: Symbol[]
+  topSymbols: Symbol[]
   doc: vscode.TextDocument
   isDirty: boolean
   private logger: Logger
 
   constructor(logger: Logger, document: vscode.TextDocument) {
     this.symbols = []
+    this.topSymbols = []
     this.isDirty = true
     this.logger = logger
     this.doc = document
@@ -288,6 +297,7 @@ export class CtagsParser {
   clearSymbols() {
     this.isDirty = true
     this.symbols = []
+    this.topSymbols = []
   }
 
   async getSymbols({ name, type }: { name?: string; type?: string } = {}): Promise<Symbol[]> {
@@ -430,8 +440,33 @@ export class CtagsParser {
     // })
   }
 
+  async getSymbolTree(): Promise<Symbol[]> {
+    if (this.topSymbols.length > 0) {
+      return this.topSymbols
+    }
+
+    let syms = await this.getSymbols()
+    let symMap = new Map<string, Symbol>()
+    for (let sym of syms) {
+      if (sym.parentScope !== '') {
+        symMap.set(sym.parentScope + '.' + sym.name, sym)
+        let parent = symMap.get(sym.parentScope)
+        this.logger.warn('Parent not found for ' + sym.name + ' ' + sym.parentScope)
+        if (parent !== undefined) {
+          parent.children.push(sym)
+        }
+      } else {
+        symMap.set(sym.name, sym)
+        this.topSymbols.push(sym)
+      }
+    }
+
+    return this.topSymbols
+  }
+
   async index(): Promise<void> {
     this.logger.info('indexing ', this.doc.uri.fsPath)
+    this.clearSymbols()
     let output = await this.execCtags(this.doc.uri.fsPath)
     await this.buildSymbolsList(output)
   }
