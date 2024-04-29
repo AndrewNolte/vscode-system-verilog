@@ -445,6 +445,7 @@ export class CtagsParser {
       sym.type === 'typedef' ||
       sym.type === 'package' ||
       sym.type === 'instance' ||
+      sym.type === 'function' ||
       sym.type === 'class'
     ) {
       // limit depths for certain types
