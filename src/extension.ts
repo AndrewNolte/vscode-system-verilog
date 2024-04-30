@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: MIT
 import * as vscode from 'vscode'
 
-import { CommandExcecutor } from './commands/ModuleInstantiation'
-import { CtagsComponent } from './CtagsComponent'
+import { CommandExcecutor } from './analysis/ModuleInstantiation'
+import { CtagsComponent } from './analysis/CtagsComponent'
 import LintManager from './linter/LintManager'
 import { ExtensionComponent, ConfigObject } from './lib/libconfig'
-import { SystemVerilogFormatProvider, VerilogFormatProvider } from './providers/FormatProvider'
+import { SystemVerilogFormatProvider, VerilogFormatProvider } from './FormatProvider'
 import { LanguageServerComponent } from './LSComponent'
 import { readFile, writeFile } from 'fs/promises'
 import { IndexComponent } from './IndexComponent'
 import { getWorkspaceFolder } from './utils'
-import { CtagsServerComponent } from './providers/CtagsServerComponent'
+import { CtagsServerComponent } from './analysis/CtagsServerComponent'
 
 export var ext: VerilogExtension
 

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 import * as vscode from 'vscode'
-import { ext } from './extension'
-import { ConfigObject, ExtensionComponent, PathConfigObject } from './lib/libconfig'
-import { CtagsParser, Symbol } from './parsers/ctagsParser'
-import { getParentText, getPrevChar } from './utils'
+import { ext } from '../extension'
+import { ConfigObject, ExtensionComponent, PathConfigObject } from '../lib/libconfig'
+import { CtagsParser, Symbol } from './ctagsParser'
+import { getParentText, getPrevChar } from '../utils'
 import fs = require('fs')
 
 export class CtagsComponent extends ExtensionComponent {
