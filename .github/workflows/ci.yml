@@ -1,8 +1,8 @@
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   run:
@@ -30,4 +30,4 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v4
         with:
-          path: veriloghdl-*.vsix
+          path: vscode-system-verilog-*.vsix
