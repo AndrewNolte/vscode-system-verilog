@@ -130,7 +130,7 @@ export class Symbol {
     let sym = new vscode.DocumentSymbol(
       this.name,
       this.type,
-      Symbol.getSymbolKind(this.type),
+      this.getSymbolKind(),
       this.fullRange ?? this.getIdRange(),
       this.getIdRange()
     )
@@ -218,11 +218,34 @@ export class Symbol {
     return false
   }
 
+  isData(): boolean {
+    switch (this.type) {
+      case 'parameter':
+      case 'constant': // localparam
+      case 'register':
+      case 'port':
+      case 'wire':
+        return true
+      default:
+        return false
+    }
+  }
+
+  isConstant(): boolean {
+    switch (this.type) {
+      case 'parameter':
+      case 'constant': // localparam
+        return true
+      default:
+        return false
+    }
+  }
+
   // types used by ctags
   // taken from https://github.com/universal-ctags/ctags/blob/master/parsers/verilog.c
   // Vscode icons at https://code.visualstudio.com/api/references/icons-in-labels
-  static getSymbolKind(name: String): vscode.SymbolKind {
-    switch (name) {
+  getSymbolKind(): vscode.SymbolKind {
+    switch (this.type) {
       case 'constant':
         return vscode.SymbolKind.Constant
       case 'parameter':
@@ -255,7 +278,7 @@ export class Symbol {
       case 'interface':
         return vscode.SymbolKind.Interface
       case 'modport':
-        return vscode.SymbolKind.Boolean // same as ports
+        return vscode.SymbolKind.Property // same as ports
       case 'package':
         return vscode.SymbolKind.Package
       case 'program':
@@ -263,7 +286,7 @@ export class Symbol {
       case 'prototype':
         return vscode.SymbolKind.Function
       case 'property':
-        return vscode.SymbolKind.Property
+        return vscode.SymbolKind.Property // Not sure this is used
       case 'struct':
         return vscode.SymbolKind.Struct
       case 'typedef':
@@ -282,8 +305,28 @@ export class Symbol {
     )
     item.detail = this.type
     item.filterText = this.name
-    item.insertText = this.name
-    item.documentation = this.getHoverText()
+    if (this.isMacro()) {
+      let ln = this.doc.lineAt(this.line).text
+      let args = ln.substring(ln.indexOf('(') + 1, ln.indexOf(')'))
+
+      let snip = new vscode.SnippetString(this.name + '(')
+      let arglist = args.split(',')
+      for (let i = 0; i < arglist.length; i++) {
+        snip.appendPlaceholder(arglist[i].trim())
+        if (i !== arglist.length - 1) {
+          snip.appendText(',')
+        }
+      }
+      snip.appendText(')')
+      let txt = ln.substring(this.getIdRange().start.character, ln.indexOf(')') + 1)
+      // let ins = new vscode.SnippetString()
+      item.insertText = snip
+      item.documentation = txt
+      item.label = '`' + item.label
+    } else {
+      item.insertText = this.name
+      item.documentation = this.getHoverText()
+    }
     return item
   }
 
@@ -302,7 +345,7 @@ export class Symbol {
       case 'net':
         return vscode.CompletionItemKind.Variable
       case 'port':
-        return vscode.CompletionItemKind.Variable
+        return vscode.CompletionItemKind.Interface // No bool, this looks similar
       case 'register':
         return vscode.CompletionItemKind.Variable
       case 'task':
@@ -381,6 +424,10 @@ export class CtagsParser {
   async getModules(): Promise<Symbol[]> {
     let syms = await this.getSymbols()
     return syms.filter((tag) => tag.type === 'module' || tag.type === 'interface')
+  }
+
+  async getInstances(): Promise<Symbol[]> {
+    return await this.getSymbols({ type: 'instance' })
   }
 
   async getPackageSymbols(): Promise<Symbol[]> {
@@ -574,67 +621,65 @@ export class CtagsParser {
     return ret
   }
 
-  getModuleSnippet(module: Symbol, fullModule: boolean) {
-    let portsName: string[] = []
-    let parametersName: string[] = []
-
-    let scope = module.parentScope !== '' ? module.parentScope + '.' + module.name : module.name
+  getModuleSnippet(module: Symbol, includeName: boolean = false): vscode.SnippetString {
     let ports: Symbol[] = this.symbols.filter(
-      (tag) => tag.type === 'port' && tag.parentScope === scope
+      (tag) => tag.type === 'port' && tag.parentScope === module.name
     )
-    portsName = ports.map((tag) => tag.name)
     let params: Symbol[] = this.symbols.filter(
-      (tag) => tag.type === 'parameter' && tag.parentScope === scope
+      (tag) => tag.type === 'parameter' && tag.parentScope === module.name
     )
-    parametersName = params.map((tag) => tag.name)
-    let paramString = ``
-    if (parametersName.length > 0) {
-      paramString = `\n${instantiatePort(parametersName)}`
-    }
 
-    if (fullModule) {
-      return new vscode.SnippetString()
-        .appendText(module.name + ' ')
-        .appendText('#(')
-        .appendText(paramString)
-        .appendText(') ')
-        .appendPlaceholder(`${module.name.toLowerCase()}`)
-        .appendText(' (\n')
-        .appendText(instantiatePort(portsName))
-        .appendText(');\n')
+    let s = new vscode.SnippetString()
+    if (includeName) {
+      s = s.appendText(module.name).appendText(' #')
     }
-    return (
-      new vscode.SnippetString()
-        // .appendText('#(')
-        .appendText(paramString)
-        .appendText(') ')
-        .appendPlaceholder(`${module.name.toLowerCase()}`)
-        .appendText(' (\n')
-        .appendText(instantiatePort(portsName))
-    )
+    s = s.appendText('(')
+    if (params.length > 0) {
+      s.appendText('\n')
+      s = appendPorts(s, params, true)
+    }
+    s.appendText(') ')
+    s = s.appendPlaceholder(`${module.name.toLowerCase()}`).appendText(' (\n')
+    s = appendPorts(s, ports, false).appendText(');')
+    return s
   }
 }
 
-function instantiatePort(ports: string[]): string {
-  let port = ''
+function appendPorts(
+  s: vscode.SnippetString,
+  ports: Symbol[],
+  isParam: boolean
+): vscode.SnippetString {
   let maxLen = 0
   for (let i = 0; i < ports.length; i++) {
-    if (ports[i].length > maxLen) {
-      maxLen = ports[i].length
+    if (ports[i].name.length > maxLen) {
+      maxLen = ports[i].name.length
     }
   }
   // .NAME(NAME)
   for (let i = 0; i < ports.length; i++) {
-    let element = ports[i]
+    let element = ports[i].name
     let padding = maxLen - element.length
     element = element + ' '.repeat(padding)
-    port += `\t.${element}(${ports[i]})`
-    if (i !== ports.length - 1) {
-      port += ','
+    // let match = line.match(/=(.*?)([;,]|\/\/|\))/)
+
+    let endstr = i === ports.length - 1 ? '\n' : ',\n'
+    s.appendText(`\t.${element}(`)
+    if (isParam) {
+      let line = ports[i].doc.lineAt(ports[i].line).text
+      let match = line.match(/=(.*?)([;,]|\/\/.*|\))?$/)
+      // console.log(match)
+      if (match && match[1].indexOf('(') === -1) {
+        s.appendText(match[1].trim())
+      } else {
+        s.appendPlaceholder(ports[i].name)
+      }
+    } else {
+      s.appendPlaceholder(ports[i].name)
     }
-    port += '\n'
+    s.appendText(`)${endstr}`)
   }
-  return port
+  return s
 }
 
 function positionsFromRange(doc: vscode.TextDocument, range: vscode.Range): vscode.Position[] {

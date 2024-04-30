@@ -8,13 +8,13 @@ export function getWorkspaceFolder(): string | undefined {
 
 export function getPrevChar(
   document: vscode.TextDocument,
-  range: vscode.Range
+  start: vscode.Position
 ): string | undefined {
-  const lineText = document.lineAt(range.start.line).text
-  if (range.start.character === 0) {
+  const lineText = document.lineAt(start.line).text
+  if (start.character === 0) {
     return undefined
   }
-  return lineText.charAt(range.start.character - 1)
+  return lineText.charAt(start.character - 1)
 }
 
 export function getPrev2Char(
@@ -30,7 +30,7 @@ export function getPrev2Char(
 
 export function getParentText(document: vscode.TextDocument, textRange: vscode.Range): string {
   let range = textRange
-  let prevChar = getPrevChar(document, textRange)
+  let prevChar = getPrevChar(document, textRange.start)
   if (prevChar === '.') {
     // follow interface.modport
     range = document.getWordRangeAtPosition(range.start.translate(0, -1)) ?? range
@@ -47,7 +47,7 @@ export function getParentText(document: vscode.TextDocument, textRange: vscode.R
     //use for loop to avoid risk of infinite loop
     for (let i = 0; i < 10 && prevChar === ':'; i++) {
       range = document.getWordRangeAtPosition(range.start.translate(0, -2)) ?? range
-      prevChar = getPrevChar(document, range)
+      prevChar = getPrevChar(document, range.start)
     }
   }
   return document.getText(range)
@@ -100,3 +100,27 @@ export class FileDiagnostic extends vscode.Diagnostic {
     this.file = file
   }
 }
+
+// end position in line
+// getWordRanges(
+//   doc: vscode.TextDocument,
+//   endpos: vscode.Position
+//   // token: vscode.CancellationToken
+// ): vscode.Range[] {
+//   let line = endpos.line
+//   let pos = new vscode.Position(line, 0)
+//   let ranges = []
+//   while (pos.character < endpos.character) {
+//     // let hover = await this.provideHover(doc, new vscode.Position(pos.line, x), token);
+//     let range = doc.getWordRangeAtPosition(pos)
+//     if (range !== undefined) {
+//       ranges.push(range)
+//       pos = range.end.translate(0, 1)
+//     } else {
+//       pos = pos.translate(0, 1)
+//     }
+//     pos = pos.translate(0, pos.character + 1)
+//   }
+
+//   return ranges
+// }

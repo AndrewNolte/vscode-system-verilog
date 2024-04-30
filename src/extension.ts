@@ -4,15 +4,13 @@ import * as vscode from 'vscode'
 import { CommandExcecutor } from './commands/ModuleInstantiation'
 import { CtagsComponent } from './CtagsComponent'
 import LintManager from './linter/LintManager'
-import * as CompletionItemProvider from './providers/CompletionItemProvider'
-import * as DefinitionProvider from './providers/DefinitionProvider'
-import * as DocumentSymbolProvider from './providers/DocumentSymbolProvider'
 import { ExtensionComponent, ConfigObject } from './lib/libconfig'
 import { SystemVerilogFormatProvider, VerilogFormatProvider } from './providers/FormatProvider'
 import { LanguageServerComponent } from './LSComponent'
 import { readFile, writeFile } from 'fs/promises'
 import { IndexComponent } from './IndexComponent'
 import { getWorkspaceFolder } from './utils'
+import { CtagsServerComponent } from './providers/CtagsServerComponent'
 
 export var ext: VerilogExtension
 
@@ -77,59 +75,14 @@ export class VerilogExtension extends ExtensionComponent {
 
   languageServer: LanguageServerComponent = new LanguageServerComponent()
 
-  extensionID: string = 'AndrewNolte.vscode-system-verilog'
+  ctagsServer: CtagsServerComponent = new CtagsServerComponent()
+
+  builtins: any | undefined = undefined
 
   async activate(context: vscode.ExtensionContext) {
     // Lets do this quickly
     vscode.window.visibleTextEditors.forEach((editor) => {
       this.lint.lint(editor.document)
-    })
-
-    /////////////////////////////////////////////
-    // Configure Providers
-    /////////////////////////////////////////////
-
-    let verilogDocumentSymbolProvider = new DocumentSymbolProvider.VerilogDocumentSymbolProvider(
-      this.logger.getChild('VerilogDocumentSymbolProvider')
-    )
-
-    let verilogCompletionItemProvider = new CompletionItemProvider.VerilogCompletionItemProvider(
-      this.logger.getChild('VerilogCompletionItemProvider')
-    )
-
-    let verilogDefinitionProvider = new DefinitionProvider.VerilogDefinitionProvider(
-      this.logger.getChild('VerilogDefinitionProvider')
-    )
-
-    // push provider subs to .v and .sv files
-    const selectors = [
-      { scheme: 'file', language: 'verilog' },
-      { scheme: 'file', language: 'systemverilog' },
-    ]
-    selectors.forEach((selector) => {
-      context.subscriptions.push(
-        vscode.languages.registerDocumentSymbolProvider(selector, verilogDocumentSymbolProvider)
-      )
-
-      context.subscriptions.push(
-        vscode.languages.registerCompletionItemProvider(
-          selector,
-          verilogCompletionItemProvider,
-          '.', // params, ports, hierarchical references
-          '(', // module inst, func calls
-          ':' // pkg scope
-          // '`', // macros
-          // '$' // builtins
-        )
-      )
-
-      context.subscriptions.push(
-        vscode.languages.registerHoverProvider(selector, verilogDefinitionProvider)
-      )
-
-      context.subscriptions.push(
-        vscode.languages.registerDefinitionProvider(selector, verilogDefinitionProvider)
-      )
     })
 
     /////////////////////////////////////////////
@@ -185,13 +138,13 @@ export class VerilogExtension extends ExtensionComponent {
       })
     }
 
-    ///////////////////////////////////////////
+    /////////////////////////////////////////////
     // Slow async tasks
     /////////////////////////////////////////////
 
     // let ctags index include files
 
-    let tasks = [this.indexFiles(), verilogDefinitionProvider.loadBuiltins(context)]
+    let tasks = [this.indexFiles(), this.ctagsServer.loadBuiltins()]
     await Promise.all(tasks)
 
     vscode.commands.registerCommand('verilog.reindex', async () => {

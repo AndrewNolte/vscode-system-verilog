@@ -126,10 +126,10 @@ export class CtagsComponent extends ExtensionComponent {
     let parentScope = getParentText(document, textRange)
     // let modulePromise = this.findDefinitionByName(parentScope, targetText);
     // If we're at a port, .<text> plus no parent
-    if (getPrevChar(document, textRange) === '.') {
+    if (getPrevChar(document, textRange.start) === '.') {
       if (parentScope === targetText) {
         // param or port on instance
-        let insts = await parser.getSymbols({ type: 'instance' })
+        let insts = await parser.getInstances()
         insts = insts.filter((inst) => inst.getFullRange().contains(position))
         if (insts.length > 0 && insts[0].typeRef !== null) {
           return await this.findDefinitionByName(insts[0].typeRef, targetText)
@@ -156,5 +156,9 @@ export class CtagsComponent extends ExtensionComponent {
       }
     }
     return await symPromise
+  }
+
+  public getSymbolMap(): Map<string, Symbol[]> {
+    return this.symbolMap
   }
 }

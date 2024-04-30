@@ -1,750 +1,846 @@
 {
     "sampled": {
         "description": "Checks if a signal is sampled at the current simulation time.",
-        "args": {
-            "expression": {
+        "args": [
+            {
+                "name": "expression",
                 "description": "Expression to evaluate at the current simulation time.",
                 "type": "bit"
             }
-        }
+        ]
     },
     "rose": {
         "description": "Detects a rising edge on a signal.",
-        "args": {
-            "expression": {
+        "args": [
+            {
+                "name": "expression",
                 "description": "Signal to detect rising edge on.",
                 "type": "bit"
             },
-            "clocking_event": {
+            {
+                "name": "clocking_event",
                 "description": "Optional clocking event to specify the timing context.",
                 "type": "event"
             }
-        }
+        ]
     },
     "fell": {
         "description": "Detects a falling edge on a signal.",
-        "args": {
-            "expression": {
+        "args": [
+            {
+                "name": "expression",
                 "description": "Signal to detect falling edge on.",
                 "type": "bit"
             },
-            "clocking_event": {
+            {
+                "name": "clocking_event",
                 "description": "Optional clocking event to specify the timing context.",
                 "type": "event"
             }
-        }
+        ]
     },
     "stable": {
         "description": "Checks if a signal has remained stable over the last simulation cycle.",
-        "args": {
-            "expression": {
+        "args": [
+            {
+                "name": "expression",
                 "description": "Signal to check stability.",
                 "type": "bit"
             },
-            "clocking_event": {
+            {
+                "name": "clocking_event",
                 "description": "Optional clocking event to specify the timing context.",
                 "type": "event"
             }
-        }
+        ]
     },
     "changed": {
         "description": "Checks if a signal has changed since the last simulation cycle.",
-        "args": {
-            "expression": {
+        "args": [
+            {
+                "name": "expression",
                 "description": "Signal to check for changes.",
                 "type": "bit"
             },
-            "clocking_event": {
+            {
+                "name": "clocking_event",
                 "description": "Optional clocking event to specify the timing context.",
                 "type": "event"
             }
-        }
+        ]
     },
     "past": {
         "description": "Retrieves the past value of a signal.",
-        "args": {
-            "expression": {
+        "args": [
+            {
+                "name": "expression",
                 "description": "Signal to retrieve past value for.",
                 "type": "bit"
             },
-            "number_of_ticks": {
+            {
+                "name": "number_of_ticks",
                 "description": "Number of simulation ticks to look back.",
                 "type": "integer"
             },
-            "expression2": {
+            {
+                "name": "expression2",
                 "description": "Optional condition to check when retrieving the past value.",
                 "type": "bit"
             },
-            "clocking_event": {
+            {
+                "name": "clocking_event",
                 "description": "Optional clocking event to specify the timing context.",
                 "type": "event"
             }
-        }
+        ]
     },
     "finish": {
         "description": "Stops the simulation and closes the simulator.",
-        "args": {}
+        "args": []
     },
     "stop": {
         "description": "Stops the simulation and allows interactive debugging.",
-        "args": {}
+        "args": []
     },
     "exit": {
         "description": "Exits the simulation and returns control to the operating system.",
-        "args": {}
+        "args": []
     },
     "time": {
         "description": "Returns the current simulation time as an integer.",
-        "args": {}
+        "args": []
     },
     "stime": {
         "description": "Returns the current simulation time as a 32-bit integer.",
-        "args": {}
+        "args": []
     },
     "realtime": {
         "description": "Returns the current simulation time as a real number.",
-        "args": {}
+        "args": []
     },
     "printtimescale": {
         "description": "Prints the timescale of a specified module or the current module.",
-        "args": {
-            "module_name": {
+        "args": [
+            {
+                "name": "module_name",
                 "description": "Name of the module",
                 "type": "string"
             }
-        }
+        ]
     },
     "timeformat": {
         "description": "Sets the format for displaying time.",
-        "args": {
-            "unit": {
+        "args": [
+            {
+                "name": "unit",
                 "description": "Number of digits in the units of the time.",
                 "type": "integer"
             },
-            "precision": {
+            {
+                "name": "precision",
                 "description": "Number of digits to the right of the decimal point.",
                 "type": "integer"
             },
-            "suffix": {
+            {
+                "name": "suffix",
                 "description": "String to append after the time value.",
                 "type": "string"
             },
-            "minimum_field_width": {
+            {
+                "name": "minimum_field_width",
                 "description": "Minimum width of the printed time field.",
                 "type": "integer"
             }
-        }
+        ]
     },
     "log": {
         "description": "Logs a message to a file.",
-        "args": {
-            "filename": {
+        "args": [
+            {
+                "name": "filename",
                 "description": "File to log the message.",
                 "type": "string"
             },
-            "message": {
+            {
+                "name": "message",
                 "description": "Message to log.",
                 "type": "string"
             }
-        }
+        ]
     },
     "fopen": {
         "description": "Opens a file and returns a file descriptor.",
-        "args": {
-            "filename": {
+        "args": [
+            {
+                "name": "filename",
                 "description": "Name of the file to open.",
                 "type": "string"
             },
-            "type": {
+            {
+                "name": "type",
                 "description": "Type of file access (optional).",
                 "type": "string",
                 "optional": true
             }
-        }
+        ]
     },
     "fclose": {
         "description": "Closes an open file.",
-        "args": {
-            "file_descriptor": {
+        "args": [
+            {
+                "name": "file_descriptor",
                 "description": "Descriptor of the file to close.",
                 "type": "integer"
             }
-        }
+        ]
     },
     "fdisplay": {
         "description": "Writes formatted data to a file and appends a newline.",
-        "args": {
-            "file_descriptor": {
+        "args": [
+            {
+                "name": "file_descriptor",
                 "description": "File descriptor where data is written.",
                 "type": "integer"
             },
-            "data": {
+            {
+                "name": "data",
                 "description": "Data to write.",
                 "type": "string"
             }
-        }
+        ]
     },
     "fwrite": {
         "description": "Writes formatted data to a file without appending a newline.",
-        "args": {
-            "file_descriptor": {
+        "args": [
+            {
+                "name": "file_descriptor",
                 "description": "File descriptor where data is written.",
                 "type": "integer"
             },
-            "data": {
+            {
+                "name": "data",
                 "description": "Data to write.",
                 "type": "string"
             }
-        }
+        ]
     },
     "fread": {
         "description": "Reads data from a file.",
-        "args": {
-            "file_descriptor": {
+        "args": [
+            {
+                "name": "file_descriptor",
                 "description": "File descriptor from which data is read.",
                 "type": "integer"
             }
-        }
+        ]
     },
     "fscanf": {
         "description": "Reads formatted data from a file.",
-        "args": {
-            "file_descriptor": {
+        "args": [
+            {
+                "name": "file_descriptor",
                 "description": "File descriptor from which data is read.",
                 "type": "integer"
             },
-            "format": {
+            {
+                "name": "format",
                 "description": "Format specifier for reading data.",
                 "type": "string"
             }
-        }
+        ]
     },
     "feof": {
         "description": "Checks for end of file.",
-        "args": {
-            "file_descriptor": {
+        "args": [
+            {
+                "name": "file_descriptor",
                 "description": "File descriptor to check.",
                 "type": "integer"
             }
-        }
+        ]
     },
     "fseek": {
         "description": "Sets the file position of the file with the given file descriptor.",
-        "args": {
-            "file_descriptor": {
+        "args": [
+            {
+                "name": "file_descriptor",
                 "description": "File descriptor to seek.",
                 "type": "integer"
             },
-            "offset": {
+            {
+                "name": "offset",
                 "description": "Number of bytes to offset from origin.",
                 "type": "integer"
             },
-            "origin": {
+            {
+                "name": "origin",
                 "description": "Position used as reference for the offset.",
                 "type": "integer"
             }
-        }
+        ]
     },
     "fflush": {
         "description": "Flushes the output buffer of a file.",
-        "args": {
-            "file_descriptor": {
+        "args": [
+            {
+                "name": "file_descriptor",
                 "description": "File descriptor to flush.",
                 "type": "integer"
             }
-        }
+        ]
     },
     "random": {
         "description": "Returns a pseudo-random integer.",
-        "args": {}
+        "args": []
     },
     "urandom": {
         "description": "Generates an unsigned random integer.",
-        "args": {}
+        "args": []
     },
     "urandom_range": {
         "description": "Generates an unsigned random integer within a specified range.",
-        "args": {
-            "min": {
+        "args": [
+            {
+                "name": "min",
                 "description": "Minimum value of the range.",
                 "type": "integer"
             },
-            "max": {
+            {
+                "name": "max",
                 "description": "Maximum value of the range.",
                 "type": "integer"
             }
-        }
+        ]
     },
     "srandom": {
         "description": "Sets the seed for the random number generator.",
-        "args": {
-            "seed": {
+        "args": [
+            {
+                "name": "seed",
                 "description": "Seed value to set.",
                 "type": "integer"
             }
-        }
+        ]
     },
     "clog2": {
         "description": "Returns the ceiling of the log base 2 of the argument.",
-        "args": {
-            "value": {
+        "args": [
+            {
+                "name": "value",
                 "description": "An integer or an arbitrary sized vector value, treated as unsigned.",
                 "type": "integer"
             }
-        }
+        ]
     },
     "ln": {
         "description": "Returns the natural logarithm of the argument.",
-        "args": {
-            "x": {
+        "args": [
+            {
+                "name": "x",
                 "description": "A real value.",
                 "type": "real"
             }
-        }
+        ]
     },
     "log10": {
         "description": "Returns the base-10 logarithm of the argument.",
-        "args": {
-            "x": {
+        "args": [
+            {
+                "name": "x",
                 "description": "A real value.",
                 "type": "real"
             }
-        }
+        ]
     },
     "exp": {
         "description": "Returns the exponential of the argument.",
-        "args": {
-            "x": {
+        "args": [
+            {
+                "name": "x",
                 "description": "A real value.",
                 "type": "real"
             }
-        }
+        ]
     },
     "sqrt": {
         "description": "Returns the square root of the argument.",
-        "args": {
-            "x": {
+        "args": [
+            {
+                "name": "x",
                 "description": "A real value.",
                 "type": "real"
             }
-        }
+        ]
     },
     "pow": {
         "description": "Returns the result of raising the first argument to the power of the second argument.",
-        "args": {
-            "x": {
+        "args": [
+            {
+                "name": "x",
                 "description": "The base, a real value.",
                 "type": "real"
             },
-            "y": {
+            {
+                "name": "y",
                 "description": "The exponent, a real value.",
                 "type": "real"
             }
-        }
+        ]
     },
     "floor": {
         "description": "Returns the largest integer not greater than the argument.",
-        "args": {
-            "x": {
+        "args": [
+            {
+                "name": "x",
                 "description": "A real value.",
                 "type": "real"
             }
-        }
+        ]
     },
     "ceil": {
         "description": "Returns the smallest integer not less than the argument.",
-        "args": {
-            "x": {
+        "args": [
+            {
+                "name": "x",
                 "description": "A real value.",
                 "type": "real"
             }
-        }
+        ]
     },
     "sin": {
         "description": "Returns the sine of the argument.",
-        "args": {
-            "x": {
+        "args": [
+            {
+                "name": "x",
                 "description": "An angle in radians, a real value.",
                 "type": "real"
             }
-        }
+        ]
     },
     "cos": {
         "description": "Returns the cosine of the argument.",
-        "args": {
-            "x": {
+        "args": [
+            {
+                "name": "x",
                 "description": "An angle in radians, a real value.",
                 "type": "real"
             }
-        }
+        ]
     },
     "tan": {
         "description": "Returns the tangent of the argument.",
-        "args": {
-            "x": {
+        "args": [
+            {
+                "name": "x",
                 "description": "An angle in radians, a real value.",
                 "type": "real"
             }
-        }
+        ]
     },
     "asin": {
         "description": "Returns the arc sine of the argument.",
-        "args": {
-            "x": {
+        "args": [
+            {
+                "name": "x",
                 "description": "A real value between -1 and 1.",
                 "type": "real"
             }
-        }
+        ]
     },
     "acos": {
         "description": "Returns the arc cosine of the argument.",
-        "args": {
-            "x": {
+        "args": [
+            {
+                "name": "x",
                 "description": "A real value between -1 and 1.",
                 "type": "real"
             }
-        }
+        ]
     },
     "atan": {
         "description": "Returns the arc tangent of the argument.",
-        "args": {
-            "x": {
+        "args": [
+            {
+                "name": "x",
                 "description": "A real value.",
                 "type": "real"
             }
-        }
+        ]
     },
     "atan2": {
         "description": "Returns the angle in radians between the positive x-axis of a plane and the point given by the coordinates (x, y) on it.",
-        "args": {
-            "y": {
+        "args": [
+            {
+                "name": "y",
                 "description": "The y-coordinate of the point.",
                 "type": "real"
             },
-            "x": {
+            {
+                "name": "x",
                 "description": "The x-coordinate of the point.",
                 "type": "real"
             }
-        }
+        ]
     },
     "hypot": {
         "description": "Returns the square root of the sum of squares of its arguments, i.e., the Euclidean distance function or hypotenuse.",
-        "args": {
-            "x": {
+        "args": [
+            {
+                "name": "x",
                 "description": "A real value.",
                 "type": "real"
             },
-            "y": {
+            {
+                "name": "y",
                 "description": "A real value.",
                 "type": "real"
             }
-        }
+        ]
     },
     "sinh": {
         "description": "Returns the hyperbolic sine of the argument.",
-        "args": {
-            "x": {
+        "args": [
+            {
+                "name": "x",
                 "description": "A real value.",
                 "type": "real"
             }
-        }
+        ]
     },
     "cosh": {
         "description": "Returns the hyperbolic cosine of the argument.",
-        "args": {
-            "x": {
+        "args": [
+            {
+                "name": "x",
                 "description": "A real value.",
                 "type": "real"
             }
-        }
+        ]
     },
     "tanh": {
         "description": "Returns the hyperbolic tangent of the argument.",
-        "args": {
-            "x": {
+        "args": [
+            {
+                "name": "x",
                 "description": "A real value.",
                 "type": "real"
             }
-        }
+        ]
     },
     "bits": {
         "description": "Returns the number of bits required to hold an expression as a bit stream. The value returned by $bits is determined without actual evaluation of the expression it encloses. It shall be an error to enclose a function that returns a dynamically sized data type. The return value is valid at elaboration only if the expression contains fixed-size data types.",
-        "args": {
-            "expression": {
+        "args": [
+            {
+                "name": "expression",
                 "description": "Expression or data type to evaluate.",
                 "type": "expression | data_type"
             }
-        }
+        ]
     },
     "typename": {
         "description": "Returns a string that represents the resolved type of its argument. The return string is constructed in a way that strips the default signing and constructs system-generated names for anonymous structs, unions, and enums.",
-        "args": {
-            "expression": {
+        "args": [
+            {
+                "name": "expression",
                 "description": "Expression to evaluate the type for.",
                 "type": "expression | data_type"
             }
-        }
+        ]
     },
     "isunbounded": {
         "description": "Determines if the size of an array is unbounded. Returns true if the array is unbounded.",
-        "args": {
-            "expression": {
+        "args": [
+            {
+                "name": "expression",
                 "description": "Array expression to check.",
                 "type": "array_expression"
             }
-        }
+        ]
     },
     "fatal": {
         "description": "Generates a run-time fatal error which terminates the simulation. The first argument sets the level of diagnostic information reported.",
-        "args": {
-            "finish_number": {
+        "args": [
+            {
+                "name": "finish_number",
                 "description": "Level of diagnostic information. Accepts 0, 1, or 2.",
                 "type": "integer"
             },
-            "list_of_arguments": {
+            {
+                "name": "list_of_arguments",
                 "description": "Optional user-defined messages or variables to display.",
                 "type": "string"
             }
-        }
+        ]
     },
     "error": {
         "description": "Generates a run-time error message.",
-        "args": {
-            "list_of_arguments": {
+        "args": [
+            {
+                "name": "list_of_arguments",
                 "description": "Optional user-defined messages or variables to display.",
                 "type": "string"
             }
-        }
+        ]
     },
     "warning": {
         "description": "Generates a run-time warning message.",
-        "args": {
-            "list_of_arguments": {
+        "args": [
+            {
+                "name": "list_of_arguments",
                 "description": "Optional user-defined messages or variables to display.",
                 "type": "string"
             }
-        }
+        ]
     },
     "info": {
         "description": "Generates an informational message without any severity indication.",
-        "args": {
-            "list_of_arguments": {
+        "args": [
+            {
+                "name": "list_of_arguments",
                 "description": "Optional user-defined messages or variables to display.",
                 "type": "string"
             }
-        }
+        ]
     },
     "display": {
         "description": "Displays the specified message or variable values on the standard output with a newline.",
-        "args": {
-            "list_of_arguments": {
+        "args": [
+            {
+                "name": "list_of_arguments",
                 "description": "Variables or messages to display. Format specifiers can be used to format the output.",
                 "type": "string"
             }
-        }
+        ]
     },
     "write": {
         "description": "Writes the specified message or variable values to the standard output without a newline.",
-        "args": {
-            "list_of_arguments": {
+        "args": [
+            {
+                "name": "list_of_arguments",
                 "description": "Variables or messages to display. Format specifiers can be used to format the output.",
                 "type": "string"
             }
-        }
+        ]
     },
     "sformat": {
         "description": "Formats data into a string and stores it in the specified variable.",
-        "args": {
-            "output_var": {
+        "args": [
+            {
+                "name": "output_var",
                 "description": "Variable where the formatted string is stored.",
                 "type": "string"
             },
-            "format_string": {
+            {
+                "name": "format_string",
                 "description": "Format string used to format the output.",
                 "type": "string"
-            },
-            "list_of_arguments": {
+            }, 
+            {
+                "name": "list_of_arguments",
                 "description": "Variables or messages to format according to the format_string.",
                 "type": "string"
             }
-        }
+        ]
     },
     "sformatf": {
         "description": "Formats data according to the format string and returns it as a string.",
-        "args": {
-            "format_string": {
+        "args": [
+            {
+                "name": "format_string",
                 "description": "Format string used to format the output.",
                 "type": "string"
             },
-            "list_of_arguments": {
+            {
+                "name": "list_of_arguments",
                 "description": "Variables or messages to format according to the format_string.",
                 "type": "string"
             }
-        }
+        ]
     },
     "isunknown": {
         "description": "Returns true if any bit of the expression is 'X' or 'Z'.",
-        "args": {
-            "expression": {
+        "args": [
+            {
+                "name": "expression",
                 "description": "Expression to check for unknown or high-impedance values.",
                 "type": "bit vector | integer | real"
             }
-        }
+        ]
     },
     "dimensions": {
         "description": "Returns the total number of dimensions in the array (packed and unpacked).",
-        "args": {
-            "expression": {
+        "args": [
+            {
+                "name": "expression",
                 "description": "Array expression or data type to evaluate.",
                 "type": "expression | data_type"
             }
-        }
+        ]
     },
     "unpacked_dimensions": {
         "description": "Returns the total number of unpacked dimensions for an array.",
-        "args": {
-            "expression": {
+        "args": [
+            {
+                "name": "expression",
                 "description": "Array expression or data type to evaluate.",
                 "type": "expression | data_type"
             }
-        }
+        ]
     },
     "left": {
         "description": "Returns the left bound of the specified dimension of an array.",
-        "args": {
-            "expression": {
+        "args": [
+            {
+                "name": "expression",
                 "description": "Array expression to evaluate.",
                 "type": "expression"
             },
-            "dimension": {
+            {
+                "name": "dimension",
                 "description": "Specific dimension to query.",
                 "type": "integer",
                 "optional": true
             }
-        }
+        ]
     },
     "right": {
         "description": "Returns the right bound of the specified dimension of an array.",
-        "args": {
-            "expression": {
+        "args": [
+            {
+                "name": "expression",
                 "description": "Array expression to evaluate.",
                 "type": "expression"
             },
-            "dimension": {
+            {
+                "name": "dimension",
                 "description": "Specific dimension to query.",
                 "type": "integer",
                 "optional": true
             }
-        }
+        ]
     },
     "low": {
         "description": "Returns the lower index of the specified dimension of an array.",
-        "args": {
-            "expression": {
+        "args": [
+            {
+                "name": "expression",
                 "description": "Array expression to evaluate.",
                 "type": "expression"
             },
-            "dimension": {
+            {
+                "name": "dimension",
                 "description": "Specific dimension to query.",
                 "type": "integer",
                 "optional": true
             }
-        }
+        ]
     },
     "high": {
         "description": "Returns the upper index of the specified dimension of an array.",
-        "args": {
-            "expression": {
+        "args": [
+            {
+                "name": "expression",
                 "description": "Array expression to evaluate.",
                 "type": "expression"
             },
-            "dimension": {
+            {
+                "name": "dimension",
                 "description": "Specific dimension to query.",
                 "type": "integer",
                 "optional": true
             }
-        }
+        ]
     },
     "increment": {
         "description": "Returns the step size between consecutive indices of the specified dimension.",
-        "args": {
-            "expression": {
+        "args": [
+            {
+                "name": "expression",
                 "description": "Array expression to evaluate.",
                 "type": "expression"
             },
-            "dimension": {
+            {
+                "name": "dimension",
                 "description": "Specific dimension to query.",
                 "type": "integer",
                 "optional": true
             }
-        }
+        ]
     },
     "size": {
         "description": "Returns the number of elements in the specified dimension of an array.",
-        "args": {
-            "expression": {
+        "args": [
+            {
+                "name": "expression",
                 "description": "Array expression to evaluate.",
                 "type": "expression"
             },
-            "dimension": {
+            {
+                "name": "dimension",
                 "description": "Specific dimension to query.",
                 "type": "integer",
                 "optional": true
             }
-        }
+        ]
     },
     "bitstoreal": {
         "description": "Converts a bit pattern created by $realtobits back to a real type value.",
-        "args": {
-            "bit_val": {
+        "args": [
+            {
+                "name": "bit_val",
                 "description": "Bit pattern to be converted into real type.",
                 "type": "bit[63:0]"
             }
-        }
+        ]
     },
     "realtobits": {
         "description": "Converts real type values to a 64-bit vector representation of the real number.",
-        "args": {
-            "real_val": {
+        "args": [
+            {
+                "name": "real_val",
                 "description": "Real value to be converted into bit pattern.",
                 "type": "real"
             }
-        }
+        ]
     },
     "bitstoshortreal": {
         "description": "Converts a bit pattern created by $shortrealtobits back to a shortreal type value.",
-        "args": {
-            "bit_val": {
+        "args": [
+            {
+                "name": "bit_val",
                 "description": "Bit pattern to be converted into shortreal type.",
                 "type": "bit[31:0]"
             }
-        }
+        ]
     },
     "shortrealtobits": {
         "description": "Converts shortreal type values to a 32-bit vector representation of the shortreal number.",
-        "args": {
-            "shortreal_val": {
+        "args": [
+            {
+                "name": "shortreal_val",
                 "description": "Shortreal value to be converted into bit pattern.",
                 "type": "shortreal"
             }
-        }
+        ]
     },
     "rtoi": {
         "description": "Converts real values to an integer type by truncation.",
-        "args": {
-            "real_val": {
+        "args": [
+            {
+                "name": "real_val",
                 "description": "Real value to be converted into integer.",
                 "type": "real"
             }
-        }
+        ]
     },
     "itor": {
         "description": "Converts integer values to real values.",
-        "args": {
-            "int_val": {
+        "args": [
+            {
+                "name": "int_val",
                 "description": "Integer value to be converted into real.",
                 "type": "integer"
             }
-        }
+        ]
     }
 }
