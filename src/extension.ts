@@ -138,6 +138,17 @@ export class VerilogExtension extends ExtensionComponent {
       })
     }
 
+    vscode.commands.registerCommand('verilog.reindex', () => {
+      this.indexFiles(true)
+        .then(() => {
+          vscode.window.showInformationMessage('Reindexing complete')
+        })
+        .catch((err) => {
+          vscode.window.showErrorMessage('Reindexing failed')
+          this.logger.error(err)
+        })
+    })
+
     /////////////////////////////////////////////
     // Slow async tasks
     /////////////////////////////////////////////
@@ -146,10 +157,6 @@ export class VerilogExtension extends ExtensionComponent {
 
     let tasks = [this.indexFiles(), this.ctagsServer.loadBuiltins()]
     await Promise.all(tasks)
-
-    vscode.commands.registerCommand('verilog.reindex', async () => {
-      await this.indexFiles(true)
-    })
 
     this.logger.info(`${context.extension.id} activation finished.`)
   }
