@@ -314,7 +314,7 @@ export class Symbol {
       for (let i = 0; i < arglist.length; i++) {
         snip.appendPlaceholder(arglist[i].trim())
         if (i !== arglist.length - 1) {
-          snip.appendText(',')
+          snip.appendText(', ')
         }
       }
       snip.appendText(')')
