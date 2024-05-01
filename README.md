@@ -11,23 +11,11 @@ SystemVerilog support for VS Code with Syntax Highlighting, Snippets, Linting, F
 
 Install it from the [VS Code Marketplace](https://marketplace.visualstudio.com/items/AndrewNolte.vscode-system-verilog)
 
-## Features
-
-- Syntax Highlighting
-  - Verilog-HDL
-  - SystemVerilog
-  - VHDL
-  - Vivado UCF constraints
-  - Synopsys Design Constraints
-  - Verilog Filelists (dot-F files)
-  - Tcl
-- Simple Snippets
-
-
 ## Linters
-  Multiple Linters can be used in parallel
+  The extension will make symlinks to all sv files in .sv_cahce/files, and then pass that to tools with the -y flag so they can discover modules without the need for individual build configs. This can be disabled with `verilog.index.enableSymlinks`
 
-### [⭐️ Slang](https://github.com/MikePopoloski/slang) - `slang`
+  Multiple Linters can be used in parallel.
+### [Slang](https://github.com/MikePopoloski/slang) - `slang` (recommended)
 ![](https://img.shields.io/github/stars/MikePopoloski/slang?style=flat) 
 ![](https://img.shields.io/github/commit-activity/t/MikePopoloski/slang?label=commits)
 
@@ -44,7 +32,7 @@ Install it from the [VS Code Marketplace](https://marketplace.visualstudio.com/i
 
 ## Formatters
 
-### [⭐️ Verible](https://github.com/chipsalliance/verible) - `verible-verilog-format`
+### [verible](https://github.com/chipsalliance/verible) - `verible-verilog-format` (recommended)
 ![](https://img.shields.io/github/stars/chipsalliance/verible?style=flat) 
 ![](https://img.shields.io/github/commit-activity/t/chipsalliance/verible?label=commits)
 
@@ -58,13 +46,13 @@ Install it from the [VS Code Marketplace](https://marketplace.visualstudio.com/i
 
 ## Language Servers
 
-### ⭐️ Built-in language server
-- Code analysis
+###  Built-in language server
 - Document symbols outline
-- Hover and definitions across files
-- Code completion
-- Automatic module instantiation when typing
-- Suggests symbols in the current module
+- Hover and definitions across files, including macros
+- Code completion for modules on "ModuleName #"
+- Code completion suggests relevant symbols- package refs, params, ports, macros, builtins, etc.
+- Relies on modules matching the name of the file
+- Hover and Completion for builtin functions like $bits()
 
 ### [verible-verilog-ls](https://github.com/chipsalliance/verible?label=verible-verilog-ls)
 ![](https://img.shields.io/github/stars/chipsalliance/verible?style=flat) 
@@ -104,7 +92,7 @@ Use 6.1 or later for port/param definition support
 
 
 
-This is recommended because it's the [fastest and most compliant](https://github.com/MikePopoloski/slang?tab=readme-ov-file#:~:text=slang%20is%20the%20fastest%20and%20most%20compliant%20SystemVerilog%20frontend%20(according%20to%20the%20open%20source%20chipsalliance%20test%20suite).) language frontend, and it has very precise error messages.
+This is the recommended linter because it's the [fastest and most compliant](https://github.com/MikePopoloski/slang?tab=readme-ov-file#:~:text=slang%20is%20the%20fastest%20and%20most%20compliant%20SystemVerilog%20frontend%20(according%20to%20the%20open%20source%20chipsalliance%20test%20suite).) language frontend, and it has very precise error messages.
 
 ### Example Configuration
 
@@ -164,7 +152,6 @@ There's a lot more planned as well:
 - expanded hover support for hierarchical references (ctags needs a fix)
 - slang language server
 - expand macros on hover + expansion command
-- builtin functions with description on hover
 - project or top level selection
   - instance selection within project
   - context aware inlay hints for elaboration
