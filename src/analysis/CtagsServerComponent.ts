@@ -3,8 +3,8 @@ import * as vscode from 'vscode'
 import { Symbol } from './ctagsParser'
 import { ext } from '../extension'
 import { getParentText, getPrev2Char, getPrevChar } from '../utils'
-import { readFile } from 'fs/promises'
 import { ExtensionComponent } from '../lib/libconfig'
+import builtins from './builtins.json'
 
 export class CtagsServerComponent
   extends ExtensionComponent
@@ -14,7 +14,6 @@ export class CtagsServerComponent
     vscode.DefinitionProvider,
     vscode.HoverProvider
 {
-  builtins: any | undefined
   builtinsPath: string | undefined
   builtinCompletions: Map<string, vscode.CompletionItem> = new Map()
   builtinHovers: Map<string, vscode.Hover> = new Map()
@@ -46,24 +45,19 @@ export class CtagsServerComponent
 
       context.subscriptions.push(vscode.languages.registerDefinitionProvider(selector, this))
     })
-
-    this.builtinsPath = context.extensionPath + '/src/builtins.json'
   }
 
   async loadBuiltins() {
-    if (!this.builtinsPath) {
-      return
-    }
-    const data = await readFile(this.builtinsPath, { encoding: 'utf-8' })
-    this.builtins = JSON.parse(data)
+    // load builtins for json
 
-    for (let key in this.builtins) {
+    for (let key in builtins) {
       // builtin completion
       let item = new vscode.CompletionItem('$' + key, vscode.CompletionItemKind.Function)
-      let args = this.builtins[key].args
-      item.documentation = this.builtins[key].description
+      let builtin = builtins[key as keyof typeof builtins]
+      item.documentation = builtin.description
       let s = new vscode.SnippetString()
       s = s.appendText(key + '(')
+      let args = builtin.args
       // append placeholders and correct commas
       for (let i = 0; i < args.length; i++) {
         s = s.appendPlaceholder(args[i].name)
@@ -77,7 +71,7 @@ export class CtagsServerComponent
 
       // builtin hover
       let md = new vscode.MarkdownString()
-      let desc = this.builtins[key].description.split('. ').join('.\n')
+      let desc = builtin.description.split('. ').join('.\n')
       md.appendText(desc)
       let arglist = []
       for (let arg of args) {
@@ -241,7 +235,7 @@ export class CtagsServerComponent
 
     // handle builtin
     let pchar = getPrevChar(document, range.start)
-    if (pchar === '$' && this.builtins !== undefined) {
+    if (pchar === '$') {
       return this.builtinHovers.get(document.getText(range))
     }
 
