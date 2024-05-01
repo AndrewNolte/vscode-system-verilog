@@ -51,7 +51,7 @@ export class IndexComponent extends ExtensionComponent {
     }
     return this.dir
   }
-  async indexMem(uri: vscode.Uri) {
+  indexMem(uri: vscode.Uri) {
     // modulemap
     let name = uri.path.split('/').pop()?.split('.').shift() ?? ''
     this.moduleMap.set(name, uri)
@@ -63,7 +63,7 @@ export class IndexComponent extends ExtensionComponent {
     if (fs.existsSync(sym)) {
       return
     }
-    fs.promises.symlink(uri.fsPath, sym)
+    await fs.promises.symlink(uri.fsPath, sym)
   }
 
   indexFile(uri: vscode.Uri) {
@@ -101,9 +101,10 @@ export class IndexComponent extends ExtensionComponent {
           this.indexMem(file)
         }
         if (this.enableSymlinks.getValue() && dir !== undefined) {
-          for (let file of files) {
+          let promises = files.map((file) => {
             this.indexSym(dir, file)
-          }
+          })
+          await Promise.all(promises)
         }
       }
     )
