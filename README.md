@@ -47,6 +47,9 @@ Install it from the [VS Code Marketplace](https://marketplace.visualstudio.com/i
 ## Language Servers
 
 ###  Built-in language server
+
+![sample](images/completion.gif)
+
 - Document symbols outline
 - Hover and definitions across files, including macros
 - Code completion for modules on "ModuleName #"
