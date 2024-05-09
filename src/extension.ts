@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: MIT
 import * as vscode from 'vscode'
 
-import { CommandExcecutor } from './analysis/ModuleInstantiation'
 import { CtagsComponent } from './analysis/CtagsComponent'
 import LintManager from './linter/LintManager'
-import { ExtensionComponent, ConfigObject } from './lib/libconfig'
+import { ConfigObject, ActivityBarComponent, CommandNode } from './lib/libconfig'
 import { SystemVerilogFormatProvider, VerilogFormatProvider } from './FormatProvider'
 import { LanguageServerComponent } from './LSComponent'
-import { readFile, writeFile } from 'fs/promises'
 import { IndexComponent } from './IndexComponent'
 import { getWorkspaceFolder } from './utils'
 import { CtagsServerComponent } from './analysis/CtagsServerComponent'
+import { ProjectComponent } from './ProjectComponent'
+import { selectModuleGlobal } from './analysis/selection'
 
 export var ext: VerilogExtension
 
@@ -29,9 +29,14 @@ export enum VerilogStandard {
   V2005 = 'Verilog-2005',
 }
 
-export class VerilogExtension extends ExtensionComponent {
+export class VerilogExtension extends ActivityBarComponent {
+  /// Important components to load first
   index: IndexComponent = new IndexComponent()
   ctags: CtagsComponent = new CtagsComponent()
+
+  ////////////////////////////////////////////////
+  /// top level configs
+  ////////////////////////////////////////////////
   includes: ConfigObject<string[]> = new ConfigObject({
     default: [],
     description: 'Include paths to pass as -I to tools',
@@ -51,11 +56,6 @@ export class VerilogExtension extends ExtensionComponent {
     default: '',
     description: 'Globs to exclude files',
   })
-
-  lint: LintManager = new LintManager()
-
-  svFormat: SystemVerilogFormatProvider = new SystemVerilogFormatProvider()
-  verilogFormat: VerilogFormatProvider = new VerilogFormatProvider()
   svStandard: ConfigObject<SvStandard> = new ConfigObject({
     default: SvStandard.SV2017,
     description: 'System Verilog standard to use',
@@ -72,12 +72,56 @@ export class VerilogExtension extends ExtensionComponent {
     default: [],
     description: 'Directories to format',
   })
+  ////////////////////////////////////////////////
+  /// extension subcomponents
+  ////////////////////////////////////////////////
+  lint: LintManager = new LintManager()
+
+  svFormat: SystemVerilogFormatProvider = new SystemVerilogFormatProvider()
+  verilogFormat: VerilogFormatProvider = new VerilogFormatProvider()
+
+  project: ProjectComponent = new ProjectComponent()
 
   languageServer: LanguageServerComponent = new LanguageServerComponent()
 
   ctagsServer: CtagsServerComponent = new CtagsServerComponent()
 
-  builtins: any | undefined = undefined
+  ////////////////////////////////////////////////
+  /// top level commands
+  ////////////////////////////////////////////////
+  reindex: CommandNode = new CommandNode(
+    {
+      title: 'Reindex',
+    },
+    async () => {
+      this.indexFiles(true)
+        .then(() => {
+          vscode.window.showInformationMessage('Reindexing complete')
+        })
+        .catch((err) => {
+          vscode.window.showErrorMessage('Reindexing failed')
+          this.logger.error(err)
+        })
+    }
+  )
+
+  instantiateModule: CommandNode = new CommandNode(
+    {
+      title: 'Instantiate Module',
+    },
+    async () => {
+      let module = await selectModuleGlobal()
+      if (module === undefined) {
+        return
+      }
+      let ctags = ext.ctags.getCtags(module.doc)
+      let snippet = ctags.getModuleSnippet(module, true)
+      if (snippet === undefined) {
+        return
+      }
+      vscode.window.activeTextEditor?.insertSnippet(snippet)
+    }
+  )
 
   async activate(context: vscode.ExtensionContext) {
     // Lets do this quickly
@@ -106,50 +150,6 @@ export class VerilogExtension extends ExtensionComponent {
     )
 
     /////////////////////////////////////////////
-    // Register Commands
-    /////////////////////////////////////////////
-
-    let commandExcecutor = new CommandExcecutor(this.logger.getChild('CommandExcecutor'))
-    vscode.commands.registerCommand(
-      'verilog.instantiateModule',
-      commandExcecutor.instantiateModuleInteract,
-      commandExcecutor
-    )
-    vscode.commands.registerCommand('verilog.lint', this.lint.runLintTool, this.lint)
-
-    // dev commands
-    if (context.extensionMode !== vscode.ExtensionMode.Production) {
-      vscode.commands.registerCommand('verilog.dev.updateConfig', async () => {
-        // update package.json
-        {
-          let filePath = context.extensionPath + '/package.json'
-          const data = await readFile(filePath, { encoding: 'utf-8' })
-          let json = JSON.parse(data)
-          json.contributes.configuration.properties = ext.getConfigJson()
-          const updatedJson = JSON.stringify(json, null, 2)
-          await writeFile(filePath, updatedJson, { encoding: 'utf-8' })
-        }
-
-        // update config.md
-        {
-          let filePath = context.extensionPath + '/CONFIG.md'
-          await writeFile(filePath, ext.getConfigMd(), { encoding: 'utf-8' })
-        }
-      })
-    }
-
-    vscode.commands.registerCommand('verilog.reindex', () => {
-      this.indexFiles(true)
-        .then(() => {
-          vscode.window.showInformationMessage('Reindexing complete')
-        })
-        .catch((err) => {
-          vscode.window.showErrorMessage('Reindexing failed')
-          this.logger.error(err)
-        })
-    })
-
-    /////////////////////////////////////////////
     // Slow async tasks
     /////////////////////////////////////////////
 
@@ -166,9 +166,15 @@ export class VerilogExtension extends ExtensionComponent {
       return
     }
 
-    this.ctags.indexIncludes(reset).then(() => {
-      this.logger.info('ctags index includes finished')
-    })
+    this.ctags
+      .indexIncludes(reset)
+      .then(() => {
+        this.logger.info('ctags index includes finished')
+      })
+      .catch((err) => {
+        this.logger.error('ctags index includes failed:')
+        this.logger.error(err)
+      })
 
     // index all files (symlinks in .sv_cache/files + in memory cache)
     this.index
@@ -220,6 +226,10 @@ export function deactivate(): Promise<void> {
 }
 
 export async function activate(context: vscode.ExtensionContext) {
-  ext = new VerilogExtension()
+  ext = new VerilogExtension({
+    id: 'verilog',
+    title: 'Verilog',
+    icon: '$(chip)',
+  })
   await ext.activateExtension('verilog', context)
 }

@@ -65,7 +65,7 @@ export default abstract class BaseLinter extends ToolConfig {
     if (this.enabled.cachedValue !== true) {
       return
     }
-    this.logger.info(`linting ${doc.uri}...`)
+    this.logger.info(`linting ${doc.uri}`)
 
     let diags = await this.lintInternal(doc)
 

@@ -287,6 +287,35 @@
           "description": "Globs to exclude files",
           "type": "string"
         },
+        "verilog.svStandard": {
+          "default": "SystemVerilog-2017",
+          "description": "System Verilog standard to use",
+          "type": "enum",
+          "enum": [
+            "SystemVerilog-2005",
+            "SystemVerilog-2009",
+            "SystemVerilog-2012",
+            "SystemVerilog-2017"
+          ]
+        },
+        "verilog.verilogStandard": {
+          "default": "Verilog-2005",
+          "description": "System Verilog standard to use",
+          "type": "enum",
+          "enum": [
+            "Verilog-95",
+            "Verilog-2001",
+            "Verilog-2005"
+          ]
+        },
+        "verilog.formatDirs": {
+          "default": [],
+          "description": "Directories to format",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "verilog.lint.slang.runAtFileLocation": {
           "default": false,
           "description": "Run at file location",
@@ -555,35 +584,6 @@
             "verible-verilog-format"
           ]
         },
-        "verilog.svStandard": {
-          "default": "SystemVerilog-2017",
-          "description": "System Verilog standard to use",
-          "type": "enum",
-          "enum": [
-            "SystemVerilog-2005",
-            "SystemVerilog-2009",
-            "SystemVerilog-2012",
-            "SystemVerilog-2017"
-          ]
-        },
-        "verilog.verilogStandard": {
-          "default": "Verilog-2005",
-          "description": "System Verilog standard to use",
-          "type": "enum",
-          "enum": [
-            "Verilog-95",
-            "Verilog-2001",
-            "Verilog-2005"
-          ]
-        },
-        "verilog.formatDirs": {
-          "default": [],
-          "description": "Directories to format",
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
         "verilog.languageServer.svls.enabled": {
           "default": false,
           "description": "Enable this Language Server",
@@ -638,22 +638,72 @@
     },
     "commands": [
       {
-        "command": "verilog.instantiateModule",
-        "title": "Verilog: Instantiate Module"
+        "command": "verilog.project.setTopLevel",
+        "title": "Verilog: Set Top Level",
+        "icon": "$(check)"
       },
       {
-        "command": "verilog.dev.updateConfig",
-        "title": "Verilog Dev: update config (package.json and CONFIG.md)"
+        "command": "verilog.project.selectTopLevel",
+        "title": "Verilog: Select Top Level"
+      },
+      {
+        "command": "verilog.project.showSourceFile",
+        "title": "Show Module"
       },
       {
         "command": "verilog.reindex",
-        "title": "Verilog: Reindex files"
+        "title": "Reindex"
       },
       {
-        "command": "verilog.lint",
-        "title": "Verilog: Rerun lint tool"
+        "command": "verilog.instantiateModule",
+        "title": "Instantiate Module"
+      },
+      {
+        "command": "extdev.updateConfig",
+        "title": "Extdev: update config (package.json and CONFIG.md)"
       }
-    ]
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "verilog",
+          "title": "Verilog",
+          "icon": "$(chip)"
+        }
+      ],
+      "panel": []
+    },
+    "views": {
+      "verilog": [
+        {
+          "id": "verilog.project",
+          "name": "Project"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "verilog.project",
+        "contents": "[Select top level](command:verilog.project.selectTopLevel)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "verilog.project.setTopLevel",
+          "when": "view == verilog.project",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "verilog.project.showSourceFile",
+          "when": "viewItem == File",
+          "group": "inline"
+        }
+      ],
+      "editor/title": []
+    }
   },
   "scripts": {
     "compile-tests": "tsc -p . --outDir out",

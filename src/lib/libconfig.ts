@@ -1,6 +1,6 @@
 import * as vscode from 'vscode'
 import { Logger, StubLogger, createLogger } from './logger'
-
+import { readFile, writeFile } from 'fs/promises'
 import * as child_process from 'child_process'
 import { IConfigurationPropertySchema } from './vscodeConfigs'
 import { JSONSchemaType } from './jsonSchema'
@@ -51,13 +51,36 @@ export abstract class ExtensionComponent extends ExtensionNode {
   ): Promise<void> {
     this.compile(nodeName)
     this.postOrderTraverse(async (node: ExtensionNode) => {
-      if (node instanceof ExtensionComponent) {
+      if (node instanceof ExtensionComponent || node instanceof CommandNode) {
         await node.activate(context)
       }
       if (node instanceof ConfigObject) {
         node.getValue()
       }
     })
+
+    if (context.extensionMode !== vscode.ExtensionMode.Production) {
+      vscode.commands.registerCommand('extdev.updateConfig', async () => {
+        // update package.json
+        {
+          let filePath = context.extensionPath + '/package.json'
+          const data = await readFile(filePath, { encoding: 'utf-8' })
+          let json = JSON.parse(data)
+
+          // update config properties
+          this.updateJson(json)
+
+          const updatedJson = JSON.stringify(json, null, 2)
+          await writeFile(filePath, updatedJson, { encoding: 'utf-8' })
+        }
+
+        // update config.md
+        {
+          let filePath = context.extensionPath + '/CONFIG.md'
+          await writeFile(filePath, this.getConfigMd(), { encoding: 'utf-8' })
+        }
+      })
+    }
   }
 
   preOrderConfigTraverse<T extends JSONSchemaType>(func: (obj: ConfigObject<T>) => void): void {
@@ -132,13 +155,125 @@ export abstract class ExtensionComponent extends ExtensionNode {
    */
   async activate(_context: vscode.ExtensionContext): Promise<void> {}
 
-  getConfigJson(): any {
-    let props: any = {}
-    this.preOrderConfigTraverse((obj: ConfigObject<any>) => {
-      props[obj.configPath!] = obj.getConfigJson()
-    })
+  getViews(): ViewComponent[] {
+    return this.children.filter((child) => child instanceof ViewComponent) as ViewComponent[]
+  }
 
-    return props
+  getViewButtons(): ViewButton[] {
+    return this.children.filter((child) => child instanceof ViewButton) as ViewButton[]
+  }
+
+  updateJson(json: any): void {
+    /// Update package.json from compiled values
+    {
+      // config
+      let props: any = {}
+      this.preOrderConfigTraverse((obj: ConfigObject<any>) => {
+        props[obj.configPath!] = obj.getConfigJson()
+      })
+      json.contributes.configuration.properties = props
+    }
+
+    {
+      // view containers
+      let contiainers: any = { activitybar: [], panel: [] }
+      let views: any = {}
+      let viewsWelcome: any = []
+      let viewsTitleButtons: any = []
+      let viewsInlineButtons: any = []
+      this.preOrderComponentTraverse((cont: ExtensionComponent) => {
+        if (!(cont instanceof ViewContainerComponent)) {
+          return
+        }
+        if (cont instanceof ActivityBarComponent) {
+          contiainers.activitybar.push(cont.obj)
+        }
+        if (cont instanceof PanelComponent) {
+          contiainers.panel.push(cont.obj)
+        }
+        // get views from containers
+        views[cont.obj.id] = []
+        for (let view of cont.getViews()) {
+          // remove vobj.welcome if exists, ad id
+          let vobjCopy: any = {
+            id: view.configPath,
+            ...view.obj,
+          }
+          delete vobjCopy.welcome
+          // vobjCopy.id = view.configPath
+          views[cont.obj.id].push(vobjCopy)
+
+          if (view.obj.welcome) {
+            let welc: any = {
+              view: view.configPath,
+              ...view.obj.welcome,
+            }
+            viewsWelcome.push(welc)
+          }
+
+          for (let button of view.getViewButtons()) {
+            // TODO: alt? more complex 'when' clause? other 'group' options?
+            let obj = {
+              command: button.configPath,
+              when: '',
+              group: '',
+            }
+            if (button instanceof TitleButton) {
+              obj.when = `view == ${view.configPath}`
+              obj.group = 'navigation'
+              viewsTitleButtons.push(obj)
+            }
+            if (button instanceof InlineButton) {
+              obj.when = `viewItem == ${button.context}`
+              obj.group = 'inline'
+              viewsInlineButtons.push(obj)
+            }
+          }
+        }
+      })
+      json.contributes.viewsContainers = contiainers
+      json.contributes.views = views
+      json.contributes.viewsWelcome = viewsWelcome
+      if (json.contributes.menus === undefined) {
+        json.contributes.menus = {}
+      }
+      json.contributes.menus['view/title'] = viewsTitleButtons
+      json.contributes.menus['view/item/context'] = viewsInlineButtons
+    }
+
+    {
+      // editor buttons
+      let editorButtons: any = []
+      this.preOrderTraverse((node: ExtensionNode) => {
+        if (node instanceof EditorButton) {
+          let obj = {
+            command: node.configPath,
+            when: node.languages.map((lang) => `resourceLangId == ${lang}`).join(' || '),
+            group: 'navigation',
+          }
+          editorButtons.push(obj)
+        }
+      })
+      json.contributes.menus['editor/title'] = editorButtons
+    }
+
+    {
+      // commands
+      let commands: any = []
+      this.preOrderTraverse((node: ExtensionNode) => {
+        if (node instanceof CommandNode) {
+          let cmd = { command: node.configPath, ...node.obj }
+          commands.push(cmd)
+        }
+      })
+
+      // TODO: maybe remove this for production?
+      commands.push({
+        command: 'extdev.updateConfig',
+        title: 'Extdev: update config (package.json and CONFIG.md)',
+      })
+      json.contributes.commands = commands
+    }
   }
 
   getConfigMd(): string {
@@ -150,6 +285,100 @@ export abstract class ExtensionComponent extends ExtensionNode {
   }
 }
 
+////////////////////////////////////////////////////
+// Commands
+////////////////////////////////////////////////////
+type iconType = string | { dark: string; light: string }
+interface CommandSpec {
+  // command: string // filled in automatically
+  title: string
+  category?: string
+  enablement?: string
+  icon?: iconType
+  when?: string
+  shortTitle?: string
+}
+export class CommandNode extends ExtensionNode {
+  obj: CommandSpec
+  func: (...args: any[]) => any
+  thisArg?: any
+  constructor(obj: CommandSpec, func: (...args: any[]) => any, thisArg?: any) {
+    super()
+    this.obj = obj
+    this.func = func
+    this.thisArg = thisArg
+  }
+
+  async activate(context: vscode.ExtensionContext): Promise<void> {
+    context.subscriptions.push(
+      vscode.commands.registerCommand(this.configPath!, this.func, this.thisArg)
+    )
+  }
+}
+
+export class EditorButton extends CommandNode {
+  languages: string[]
+  constructor(languages: string[], obj: CommandSpec, func: (...args: any[]) => any, thisArg?: any) {
+    super(obj, func, thisArg)
+    this.languages = languages
+  }
+}
+
+////////////////////////////////////////////////////
+// Views
+////////////////////////////////////////////////////
+
+export interface ViewContainerSpec {
+  id: string
+  title: string
+  icon: string
+}
+class ViewContainerComponent extends ExtensionComponent {
+  obj: ViewContainerSpec
+  constructor(obj: ViewContainerSpec) {
+    super()
+    this.obj = obj
+  }
+}
+export class ActivityBarComponent extends ViewContainerComponent {}
+export class PanelComponent extends ViewContainerComponent {}
+
+export interface WelcomeSpec {
+  // view: string // filled in automatically
+  contents: string
+  enablement?: string
+  group?: string
+  when?: string
+}
+
+export interface ViewSpec {
+  // id: string // filled in automatically
+  name: string
+  welcome?: WelcomeSpec
+}
+
+export class ViewComponent extends ExtensionComponent {
+  obj: ViewSpec
+  constructor(obj: ViewSpec) {
+    super()
+    this.obj = obj
+  }
+}
+
+class ViewButton extends CommandNode {}
+export class TitleButton extends ViewButton {}
+
+export class InlineButton extends ViewButton {
+  context: string
+  constructor(context: string, obj: CommandSpec, func: (...args: any[]) => any, thisArg?: any) {
+    super(obj, func, thisArg)
+    this.context = context
+  }
+}
+
+////////////////////////////////////////////////////
+// Config Leaf
+////////////////////////////////////////////////////
 export class ConfigObject<T extends JSONSchemaType> extends ExtensionNode {
   protected obj: any
   default: T

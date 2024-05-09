@@ -1,54 +1,44 @@
-// SPDX-License-Identifier: MIT
-import * as fs from 'fs'
-import * as path from 'path'
+import { ext } from '../extension'
 import * as vscode from 'vscode'
 import { Symbol } from './ctagsParser'
+import * as fs from 'fs'
+import * as path from 'path'
 import { getWorkspaceFolder } from '../utils'
-import { Logger } from '../lib/logger'
-import { ext } from '../extension'
 
-export class CommandExcecutor {
-  private logger: Logger
-  constructor(logger: Logger) {
-    this.logger = logger
+export async function selectModule(doc: vscode.TextDocument): Promise<Symbol | undefined> {
+  let ctags = ext.ctags.getCtags(doc)
+  let modules: Symbol[] = await ctags.getModules()
+  // No modules found
+  if (modules.length <= 0) {
+    ext.showErrorMessage('No modules found in the file')
+    return undefined
   }
-
-  async instantiateModuleInteract() {
-    if (vscode.window.activeTextEditor === undefined) {
-      return
-    }
-    let srcPath = await selectFile(path.dirname(vscode.window.activeTextEditor.document.fileName))
-    if (srcPath === undefined) {
-      return
-    }
-    let doc = await vscode.workspace.openTextDocument(srcPath)
-    let ctags = ext.ctags.getCtags(doc)
-
-    let modules: Symbol[] = await ctags.getModules()
-    // No modules found
-    if (modules.length <= 0) {
-      ext.showErrorMessage('No modules found in the file')
+  let module: Symbol = modules[0]
+  if (modules.length > 1) {
+    let moduleName = await vscode.window.showQuickPick(
+      modules.map((sym) => sym.name),
+      {
+        placeHolder: 'Choose a module to instantiate',
+      }
+    )
+    if (moduleName === undefined) {
       return undefined
     }
-    let module: Symbol = modules[0]
-    if (modules.length > 1) {
-      let moduleName = await vscode.window.showQuickPick(
-        modules.map((sym) => sym.name),
-        {
-          placeHolder: 'Choose a module to instantiate',
-        }
-      )
-      if (moduleName === undefined) {
-        return undefined
-      }
-      module = modules.filter((tag) => tag.name === moduleName)[0]
-    }
-    let snippet = ctags.getModuleSnippet(module, true)
-    if (snippet === undefined) {
-      return
-    }
-    vscode.window.activeTextEditor?.insertSnippet(snippet)
+    module = modules.filter((tag) => tag.name === moduleName)[0]
   }
+  return module
+}
+
+export async function selectModuleGlobal(): Promise<Symbol | undefined> {
+  if (vscode.window.activeTextEditor === undefined) {
+    return undefined
+  }
+  let srcPath = await selectFile(path.dirname(vscode.window.activeTextEditor.document.fileName))
+  if (srcPath === undefined) {
+    return undefined
+  }
+  let doc = await vscode.workspace.openTextDocument(srcPath)
+  return await selectModule(doc)
 }
 
 async function selectFile(currentDir?: string): Promise<string | undefined> {

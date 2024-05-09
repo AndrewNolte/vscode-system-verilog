@@ -35,6 +35,30 @@
     Globs to exclude files
 
 
+- `verilog.svStandard`: enum = SystemVerilog-2017
+
+    System Verilog standard to use
+
+    Options:
+    - SystemVerilog-2005
+    - SystemVerilog-2009
+    - SystemVerilog-2012
+    - SystemVerilog-2017
+
+- `verilog.verilogStandard`: enum = Verilog-2005
+
+    System Verilog standard to use
+
+    Options:
+    - Verilog-95
+    - Verilog-2001
+    - Verilog-2005
+
+- `verilog.formatDirs`: array = []
+
+    Directories to format
+
+
 - `verilog.lint.slang.runAtFileLocation`: boolean = false
 
     Run at file location
@@ -278,30 +302,6 @@
 - `verilog.verilogFormat.formatter`: string = "verible-verilog-format"
 
     Formatter Selection
-
-
-- `verilog.svStandard`: enum = SystemVerilog-2017
-
-    System Verilog standard to use
-
-    Options:
-    - SystemVerilog-2005
-    - SystemVerilog-2009
-    - SystemVerilog-2012
-    - SystemVerilog-2017
-
-- `verilog.verilogStandard`: enum = Verilog-2005
-
-    System Verilog standard to use
-
-    Options:
-    - Verilog-95
-    - Verilog-2001
-    - Verilog-2005
-
-- `verilog.formatDirs`: array = []
-
-    Directories to format
 
 
 - `verilog.languageServer.svls.enabled`: boolean = false

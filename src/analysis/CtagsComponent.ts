@@ -54,7 +54,7 @@ export class CtagsComponent extends ExtensionComponent {
       {
         location: vscode.ProgressLocation.Window,
         title: 'Indexing Verilog Includes',
-        cancellable: true,
+        cancellable: false,
       },
       async () => {
         let files: vscode.Uri[] = await ext.findIncludes()
@@ -65,7 +65,14 @@ export class CtagsComponent extends ExtensionComponent {
         }
 
         files.forEach(async (file: vscode.Uri) => {
-          let doc = await vscode.workspace.openTextDocument(file)
+          let doc: vscode.TextDocument
+          try {
+            doc = await vscode.workspace.openTextDocument(file)
+          } catch (e) {
+            this.logger.error('Failed to index include ' + file.fsPath)
+            return
+          }
+
           let syms = await this.getCtags(doc).getSymbols()
           syms.forEach((element: Symbol) => {
             // only want to index top level symbols, i.e. macros
@@ -102,6 +109,16 @@ export class CtagsComponent extends ExtensionComponent {
     }
     let parser = this.getCtags(file)
     return parser
+  }
+
+  async findModuleSymbol(moduleName: string): Promise<Symbol | undefined> {
+    let parser = await this.findModule(moduleName)
+    if (parser === undefined) {
+      this.logger.error('Failed to find module ' + moduleName)
+      return undefined
+    }
+    let syms = (await parser.getSymbolTree()).filter((sym) => sym.name === moduleName)
+    return syms.at(0)
   }
 
   async findDefinitionByName(moduleName: string, targetText: string): Promise<Symbol[]> {

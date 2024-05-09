@@ -63,7 +63,13 @@ export class IndexComponent extends ExtensionComponent {
     if (fs.existsSync(sym)) {
       return
     }
-    await fs.promises.symlink(uri.fsPath, sym)
+    try {
+      await fs.promises.symlink(uri.fsPath, sym)
+    } catch (e) {
+      // sometimes existsSync doesn't catch it
+      // this.logger.warn(`Failed to create symlink ${sym} -> ${uri.fsPath}`)
+      // this.logger.warn(`Error message: ${e}`)
+    }
   }
 
   indexFile(uri: vscode.Uri) {

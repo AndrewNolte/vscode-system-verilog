@@ -404,13 +404,14 @@ export class CtagsParser {
 
   clearSymbols() {
     this.isDirty = true
-    this.symbols = []
-    this.topSymbols = []
   }
 
   async getSymbols({ name, type }: { name?: string; type?: string } = {}): Promise<Symbol[]> {
     if (this.isDirty) {
-      await this.index()
+      this.logger.info('indexing ', this.doc.uri.fsPath)
+      this.clearSymbols()
+      let output = await this.execCtags(this.doc.uri.fsPath)
+      await this.buildSymbolsList(output)
     }
     if (type !== undefined) {
       return this.symbols.filter((sym) => sym.type === type)
@@ -442,7 +443,6 @@ export class CtagsParser {
     let args: string[] =
       '-f - --fields=+K --sort=no --excmd=n --fields-SystemVerilog=+{parameter}'.split(' ')
     args.push(filepath)
-    this.logger.info('Executing Command: ' + command + ' ' + args.join(' '))
     return new Promise((resolve, _reject) => {
       child_process.execFile(
         command,
@@ -501,48 +501,75 @@ export class CtagsParser {
           this.logger.error('No output from ctags')
           return
         }
-        // Parse ctags output
-        let lines: string[] = tags.split(/\r?\n/)
-        lines.forEach((line) => {
-          if (line !== '') {
-            let sym = this.parseTagLine(line)
-            if (sym !== undefined) {
-              this.symbols.push(sym)
+        // Parse ctags output into symbols
+
+        {
+          this.symbols = []
+          let lines: string[] = tags.split(/\r?\n/)
+          lines.forEach((line) => {
+            if (line !== '') {
+              let sym = this.parseTagLine(line)
+              if (sym !== undefined) {
+                this.symbols.push(sym)
+              }
+            }
+          })
+        }
+
+        {
+          // end tags are not supported yet in ctags. So, using regex
+          let match: RegExpExecArray | null = null
+          let endPosition: vscode.Position
+          let text = this.doc.getText()
+          let eRegex: RegExp = /^(?![\r\n])\s*end(\w*)*[\s:]?/gm
+          while ((match = eRegex.exec(text))) {
+            if (match === null) {
+              break
+            }
+            if (typeof match[1] === 'undefined') {
+              continue
+            }
+
+            endPosition = this.doc.positionAt(match.index + match[0].length - 1)
+            let type: string = match[1]
+            // get the starting symbols of the same type
+            // doesn't check for begin...end blocks
+            let s = this.symbols.filter((sym) => {
+              return sym.type === type && sym.startPosition.isBefore(endPosition) && !sym.isValid
+            })
+            if (s.length === 0) {
+              continue
+            }
+            // get the symbol nearest to the end tag
+            let max: Symbol = s.reduce(
+              (max, current) =>
+                current.getIdRange().start.isAfter(max.startPosition) ? current : max,
+              s[0]
+            )
+            max.setEndPosition(endPosition.line)
+          }
+        }
+
+        {
+          // Build symbol tree
+          this.topSymbols = []
+          let symMap = new Map<string, Symbol>()
+          for (let sym of this.symbols) {
+            if (sym.parentScope !== '') {
+              symMap.set(sym.parentScope + '.' + sym.name, sym)
+              let parent = symMap.get(sym.parentScope)
+              if (parent !== undefined) {
+                parent.children.push(sym)
+              } else {
+                this.logger.warn('Parent not found for ' + sym.name + ' ' + sym.parentScope)
+              }
+            } else {
+              symMap.set(sym.name, sym)
+              this.topSymbols.push(sym)
             }
           }
-        })
-
-        // end tags are not supported yet in ctags. So, using regex
-        let match: RegExpExecArray | null = null
-        let endPosition: vscode.Position
-        let text = this.doc.getText()
-        let eRegex: RegExp = /^(?![\r\n])\s*end(\w*)*[\s:]?/gm
-        while ((match = eRegex.exec(text))) {
-          if (match === null) {
-            break
-          }
-          if (typeof match[1] === 'undefined') {
-            continue
-          }
-
-          endPosition = this.doc.positionAt(match.index + match[0].length - 1)
-          let type: string = match[1]
-          // get the starting symbols of the same type
-          // doesn't check for begin...end blocks
-          let s = this.symbols.filter((sym) => {
-            return sym.type === type && sym.startPosition.isBefore(endPosition) && !sym.isValid
-          })
-          if (s.length === 0) {
-            continue
-          }
-          // get the symbol nearest to the end tag
-          let max: Symbol = s.reduce(
-            (max, current) =>
-              current.getIdRange().start.isAfter(max.startPosition) ? current : max,
-            s[0]
-          )
-          max.setEndPosition(endPosition.line)
         }
+
         this.isDirty = false
       }
     } catch (e) {
@@ -555,35 +582,8 @@ export class CtagsParser {
   }
 
   async getSymbolTree(): Promise<Symbol[]> {
-    if (this.topSymbols.length > 0) {
-      return this.topSymbols
-    }
-
-    let syms = await this.getSymbols()
-    let symMap = new Map<string, Symbol>()
-    for (let sym of syms) {
-      if (sym.parentScope !== '') {
-        symMap.set(sym.parentScope + '.' + sym.name, sym)
-        let parent = symMap.get(sym.parentScope)
-        if (parent !== undefined) {
-          parent.children.push(sym)
-        } else {
-          this.logger.warn('Parent not found for ' + sym.name + ' ' + sym.parentScope)
-        }
-      } else {
-        symMap.set(sym.name, sym)
-        this.topSymbols.push(sym)
-      }
-    }
-
+    await this.getSymbols()
     return this.topSymbols
-  }
-
-  async index(): Promise<void> {
-    this.logger.info('indexing ', this.doc.uri.fsPath)
-    this.clearSymbols()
-    let output = await this.execCtags(this.doc.uri.fsPath)
-    await this.buildSymbolsList(output)
   }
 
   async getNestedHoverText(sym: Symbol): Promise<Array<string>> {
