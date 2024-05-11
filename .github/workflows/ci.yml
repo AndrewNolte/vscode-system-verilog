@@ -5,9 +5,9 @@ on:
     branches: [main]
 
 jobs:
-  run:
-    name: Upload vsix package
+  test:
     strategy:
+      fail-fast: false
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
@@ -20,14 +20,7 @@ jobs:
           node-version: latest
       - name: npm ci
         run: npm ci
-      - name: npm run vscode:prepublish
-        run: npm run vscode:prepublish
-      - name: npm test
-        run: npm test
-      - name: build vsix package
-        run: npm run package
-      - name: upload vsix package
-        if: matrix.os == 'ubuntu-latest'
-        uses: actions/upload-artifact@v4
-        with:
-          path: vscode-system-verilog-*.vsix
+      - name: npm lint
+        run: npm run lint
+      - name: npm test-headless
+        run: npm run test-headless
