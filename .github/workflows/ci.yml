@@ -23,4 +23,8 @@ jobs:
       - name: npm lint
         run: npm run lint
       - name: npm test-headless
+        if: matrix.os == 'ubuntu-latest'
         run: npm run test-headless
+      - name: npm test
+        if: matrix.os != 'ubuntu-latest'
+        run: npm run test

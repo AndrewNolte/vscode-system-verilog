@@ -2,7 +2,7 @@ on:
   workflow_dispatch:
     inputs:
       kind:
-        description: "Update kind (major, minor, patch)"
+        description: 'Update kind (major, minor, patch)'
         default: 'patch'
 
 name: Publish extension to marketplace

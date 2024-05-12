@@ -716,7 +716,7 @@
     "format": "npx prettier --write **/*.ts",
     "test-compile": "tsc -p ./",
     "test-headless": "npm run compile-tests && xvfb-run node ./out/src/test/runTest.js",
-    "test": "echo 'Tests are disabled for now' && exit 0",
+    "test": "npm run compile-tests && node ./out/src/test/runTest.js",
     "compile": "tsc -p ./",
     "package": "vsce package",
     "watch": "tsc -w -p ./",
