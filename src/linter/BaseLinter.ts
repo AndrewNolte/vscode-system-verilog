@@ -114,7 +114,7 @@ export default abstract class BaseLinter extends ToolConfig {
     let args: string[] = []
     args.push(...this.toolArgs(doc))
     args.push(...this.formatIncludes([docFolder].concat(this.includeComputed)))
-    if (this.args.cachedValue !== undefined) {
+    if (this.args.cachedValue !== '') {
       args.push(
         ...this.args.cachedValue
           .trim()
