@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.9.10] - 2024-05-14 - the top level update
+- side panel to select top level
+- lint whole project using top level context
+- FST support from surfer
+- fix bug with no lint args being configured
+- warn on incompatible extensions
+- warn on formatDirs not being used
+- warn on invalid linter path
+
 ## [0.9.9] - 2024-05-01
 - Fix builtins
 - Add space in args for macro autocomplete
