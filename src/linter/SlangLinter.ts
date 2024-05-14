@@ -54,7 +54,7 @@ export default class SlangLinter extends BaseLinter {
 
       let spos = new vscode.Position(lineNum, colNum)
       let range = undefined
-      if (elen === 1) {
+      if (elen === 1 && args.doc.uri.fsPath.endsWith(filePath)) {
         range = args.doc.getWordRangeAtPosition(spos.translate(0, 1))
       }
       if (range === undefined) {

@@ -650,6 +650,11 @@
         "icon": "$(check)"
       },
       {
+        "command": "verilog.project.clearTopLevel",
+        "title": "Verilog: Clear Top Level",
+        "icon": "$(panel-close)"
+      },
+      {
         "command": "verilog.project.selectTopLevel",
         "title": "Verilog: Select Top Level"
       },
@@ -698,6 +703,11 @@
       "view/title": [
         {
           "command": "verilog.project.setTopLevel",
+          "when": "view == verilog.project",
+          "group": "navigation"
+        },
+        {
+          "command": "verilog.project.clearTopLevel",
           "when": "view == verilog.project",
           "group": "navigation"
         }

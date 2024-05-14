@@ -6,6 +6,10 @@ export function getWorkspaceFolder(): string | undefined {
   return vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? undefined
 }
 
+export function getWorkspaceUri(): vscode.Uri | undefined {
+  return vscode.workspace.workspaceFolders?.[0]?.uri
+}
+
 export function getPrevChar(
   document: vscode.TextDocument,
   start: vscode.Position

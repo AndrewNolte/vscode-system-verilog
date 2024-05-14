@@ -112,6 +112,18 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
       this._onDidChangeTreeData.fire()
     }
   )
+
+  clearTopLevel: TitleButton = new TitleButton(
+    {
+      title: "Verilog: Clear Top Level",
+      icon: '$(panel-close)',
+    },
+    async () => {
+      this.top = undefined
+      this._onDidChangeTreeData.fire()
+    }
+  )
+  
   selectTopLevel: CommandNode = new CommandNode(
     {
       title: 'Verilog: Select Top Level',

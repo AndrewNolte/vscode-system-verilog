@@ -3,7 +3,7 @@ import * as child_process from 'child_process'
 import * as path from 'path'
 import * as process from 'process'
 import * as vscode from 'vscode'
-import { FileDiagnostic, getAbsPath, getWorkspaceFolder, getWslPath } from '../utils'
+import { FileDiagnostic, getAbsPath, getWorkspaceFolder, getWorkspaceUri, getWslPath } from '../utils'
 import { ConfigObject } from '../lib/libconfig'
 import { ToolConfig } from '../lib/runner'
 import { ext } from '../extension'
@@ -74,15 +74,35 @@ export default abstract class BaseLinter extends ToolConfig {
 
     let diags = await this.lintInternal(doc)
 
-    this.diagnostics.set(
-      doc.uri,
-      diags.filter((diag) => {
-        return doc.uri.fsPath.endsWith(diag.file)
-      })
-    )
-    this.logger.info(
-      `found ${this.diagnostics.get(doc.uri)?.length}/${diags.length} errors in ${doc.uri}`
-    )
+    if (ext.project.top && getWorkspaceUri() !== undefined){
+      let wsUri: vscode.Uri = getWorkspaceUri()!
+      let fmap = new Map<string, FileDiagnostic[]>
+      for(let diag of diags){
+        if(!fmap.has(diag.file)){
+          fmap.set(diag.file, [])
+        }
+        fmap.get(diag.file)?.push(diag)
+        this.logger.info(diag.file)
+      }
+      this.diagnostics.clear()
+      for (const [file, diagnostics] of fmap.entries()) {
+        let uri = vscode.Uri.joinPath(wsUri, file)
+        this.diagnostics.set(uri, diagnostics)
+        this.logger.info(
+          `found ${diagnostics.length}/${diags.length} errors in ${uri}`
+        )
+      }
+    }else{
+      this.diagnostics.set(
+        doc.uri,
+        diags.filter((diag) => {
+          return doc.uri.fsPath.endsWith(diag.file)
+        })
+      )
+      this.logger.info(
+        `found ${this.diagnostics.get(doc.uri)?.length}/${diags.length} errors in ${doc.uri}`
+      )
+    }
   }
 
   protected async lintInternal(doc: vscode.TextDocument): Promise<FileDiagnostic[]> {
@@ -135,6 +155,10 @@ export default abstract class BaseLinter extends ToolConfig {
     args.push(...addargs)
 
     args.push(docUri)
+
+    if(ext.project.top){
+      args.push(this.wslAdjust(ext.project.top.doc.uri.fsPath))
+    }
 
     let cwd: string | undefined = getWorkspaceFolder()
 
