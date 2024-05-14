@@ -26,7 +26,8 @@
     "Programming Languages",
     "Snippets",
     "Linters",
-    "Formatters"
+    "Formatters",
+    "Visualization"
   ],
   "icon": "images/icon.png",
   "main": "./dist/main.js",
@@ -80,6 +81,18 @@
     ]
   },
   "contributes": {
+    "customEditors": [
+      {
+        "viewType": "surfer.waveformViewer",
+        "displayName": "Surfer Waveform Viewer",
+        "selector": [
+          {
+            "filenamePattern": "*.{vcd,fst,ghw}"
+          }
+        ],
+        "priority": "default"
+      }
+    ],
     "languages": [
       {
         "id": "verilog",
@@ -106,6 +119,14 @@
           ".SV"
         ],
         "configuration": "./configs/systemverilog.configuration.json"
+      },
+      {
+        "id": "wave-file",
+        "extensions": [
+          ".fst",
+          ".vcd",
+          ".ghw"
+        ]
       },
       {
         "id": "vhdl",

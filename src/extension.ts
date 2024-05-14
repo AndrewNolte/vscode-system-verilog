@@ -1,16 +1,17 @@
 // SPDX-License-Identifier: MIT
 import * as vscode from 'vscode'
 
-import { CtagsComponent } from './analysis/CtagsComponent'
-import LintManager from './linter/LintManager'
-import { ConfigObject, ActivityBarComponent, CommandNode } from './lib/libconfig'
 import { SystemVerilogFormatProvider, VerilogFormatProvider } from './FormatProvider'
-import { LanguageServerComponent } from './LSComponent'
 import { IndexComponent } from './IndexComponent'
-import { getWorkspaceFolder } from './utils'
-import { CtagsServerComponent } from './analysis/CtagsServerComponent'
+import { LanguageServerComponent } from './LSComponent'
 import { ProjectComponent } from './ProjectComponent'
+import { CtagsComponent } from './analysis/CtagsComponent'
+import { CtagsServerComponent } from './analysis/CtagsServerComponent'
 import { selectModuleGlobal } from './analysis/selection'
+import { ActivityBarComponent, CommandNode, ConfigObject } from './lib/libconfig'
+import LintManager from './linter/LintManager'
+import { SurferComponent } from './surferWaveformViewer'
+import { getWorkspaceFolder } from './utils'
 
 export var ext: VerilogExtension
 
@@ -86,6 +87,8 @@ export class VerilogExtension extends ActivityBarComponent {
 
   ctagsServer: CtagsServerComponent = new CtagsServerComponent()
 
+  SurferComponent: SurferComponent = new SurferComponent()
+
   ////////////////////////////////////////////////
   /// top level commands
   ////////////////////////////////////////////////
@@ -150,7 +153,9 @@ export class VerilogExtension extends ActivityBarComponent {
     )
 
     this.checkFormatDirs()
-    this.onConfigUpdated(() => {this.checkFormatDirs()})
+    this.onConfigUpdated(() => {
+      this.checkFormatDirs()
+    })
 
     /////////////////////////////////////////////
     // Slow async tasks
@@ -164,19 +169,23 @@ export class VerilogExtension extends ActivityBarComponent {
     this.logger.info(`${context.extension.id} activation finished.`)
   }
 
-  private async checkFormatDirs(){
+  private async checkFormatDirs() {
     let dirs = this.formatDirs.getValue()
-    if (dirs.length > 0){
-      const svSave = vscode.workspace.getConfiguration('editor', { languageId: 'systemverilog' }).get('formatOnSave');
-      const vSave = vscode.workspace.getConfiguration('editor', { languageId: 'verilog' }).get('formatOnSave');
+    if (dirs.length > 0) {
+      const svSave = vscode.workspace
+        .getConfiguration('editor', { languageId: 'systemverilog' })
+        .get('formatOnSave')
+      const vSave = vscode.workspace
+        .getConfiguration('editor', { languageId: 'verilog' })
+        .get('formatOnSave')
 
-      if (vSave || svSave){
-        vscode.window.showWarningMessage("Both verilog.formatDirs and editor.formatOnSave are set, so formatDirs will be ignored.")
+      if (vSave || svSave) {
+        vscode.window.showWarningMessage(
+          'Both verilog.formatDirs and editor.formatOnSave are set, so formatDirs will be ignored.'
+        )
       }
     }
   }
-
-
 
   private async indexFiles(reset: boolean = false) {
     if (!(await this.ctags.path.checkPathNotify())) {
@@ -251,6 +260,7 @@ export async function activate(context: vscode.ExtensionContext) {
   await ext.activateExtension('verilog', context, [
     'mshr-h.veriloghdl',
     'eirikpre.systemverilog',
-    'IMCTradingBV.svlangserver'
+    'IMCTradingBV.svlangserver',
+    'surfer-project.surfer',
   ])
 }

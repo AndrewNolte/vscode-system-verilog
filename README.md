@@ -2,17 +2,15 @@
 
 SystemVerilog support for VS Code with Syntax Highlighting, Snippets, Linting, Formatting, and hover/definitions
 
+Install it from the [VS Code Marketplace](https://marketplace.visualstudio.com/items/AndrewNolte.vscode-system-verilog)
+
 [![Install Count](https://img.shields.io/visual-studio-marketplace/i/AndrewNolte.vscode-system-verilog)](https://marketplace.visualstudio.com/items?itemName=AndrewNolte.vscode-system-verilog)
 [![Download Count](https://img.shields.io/visual-studio-marketplace/d/AndrewNolte.vscode-system-verilog.png)](https://marketplace.visualstudio.com/items?itemName=AndrewNolte.vscode-system-verilog)
 
 ![sample](images/sample.gif)
 
-## Installation
-
-Install it from the [VS Code Marketplace](https://marketplace.visualstudio.com/items/AndrewNolte.vscode-system-verilog)
-
 ## Linters
-  The extension will make symlinks to all sv files in .sv_cahce/files, and then pass that to tools with the -y flag so they can discover modules without the need for individual build configs. This can be disabled with `verilog.index.enableSymlinks`
+  The extension will make symlinks to all sv files in .sv_cache/files, and then pass that to tools with the -y flag so they can discover modules without the need for individual build configs. This can be disabled with `verilog.index.enableSymlinks`
 
   Multiple Linters can be used in parallel.
 ### [Slang](https://github.com/MikePopoloski/slang) - `slang` (recommended)
@@ -48,7 +46,7 @@ Install it from the [VS Code Marketplace](https://marketplace.visualstudio.com/i
 
 ###  Built-in language server
 
-![sample](images/completion.gif)
+<img src="images/completion.gif" alt="Alt text" width="50%"/> -->
 
 - Document symbols outline
 - Hover and definitions across files, including macros
@@ -77,6 +75,9 @@ Install it from the [VS Code Marketplace](https://marketplace.visualstudio.com/i
 ![](https://img.shields.io/github/stars/suoto/hdl_checker?style=flat) 
 ![](https://img.shields.io/github/commit-activity/t/suoto/hdl_checker?label=commits)
 
+
+## Fst/Vcd/Ghw support from [Surfer](https://surfer-project.org/)
+<img src="images/surfer.png" width="50%"/>
 
 ## Recommended SystemVerilog Configuration
 
