@@ -149,6 +149,9 @@ export class VerilogExtension extends ActivityBarComponent {
       })
     )
 
+    this.checkFormatDirs()
+    this.onConfigUpdated(() => {this.checkFormatDirs()})
+
     /////////////////////////////////////////////
     // Slow async tasks
     /////////////////////////////////////////////
@@ -160,6 +163,20 @@ export class VerilogExtension extends ActivityBarComponent {
 
     this.logger.info(`${context.extension.id} activation finished.`)
   }
+
+  private async checkFormatDirs(){
+    let dirs = this.formatDirs.getValue()
+    if (dirs.length > 0){
+      const svSave = vscode.workspace.getConfiguration('editor', { languageId: 'systemverilog' }).get('formatOnSave');
+      const vSave = vscode.workspace.getConfiguration('editor', { languageId: 'verilog' }).get('formatOnSave');
+
+      if (vSave || svSave){
+        vscode.window.showWarningMessage("Both verilog.formatDirs and editor.formatOnSave are set, so formatDirs will be ignored.")
+      }
+    }
+  }
+
+
 
   private async indexFiles(reset: boolean = false) {
     if (!(await this.ctags.path.checkPathNotify())) {
