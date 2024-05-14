@@ -1,9 +1,9 @@
 # Changelog
 
-## [0.9.10] - 2024-05-14 - the top level update
+## [0.9.10] - 2024-05-14
 - side panel to select top level
 - lint whole project using top level context
-- FST support from surfer
+- FST, VCD, GHW support from surfer (Pull request for FST support on theirs was not getting merged, so I merged it here)
 - fix bug with no lint args being configured
 - warn on incompatible extensions
 - warn on formatDirs not being used
