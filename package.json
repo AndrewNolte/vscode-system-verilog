@@ -339,14 +339,9 @@
           "type": "string"
         },
         "verilog.lint.slang.path": {
-          "default": "slang",
           "description": "Path to the tool",
+          "default": "{\"windows\":\"slang.exe\",\"linux\":\"slang\",\"mac\":\"slang\"}",
           "type": "string"
-        },
-        "verilog.lint.slang.enabled": {
-          "default": false,
-          "description": "Enable this lint tool",
-          "type": "boolean"
         },
         "verilog.lint.slang.includes": {
           "default": [],
@@ -355,6 +350,11 @@
           "items": {
             "type": "string"
           }
+        },
+        "verilog.lint.slang.enabled": {
+          "default": true,
+          "description": "Enable this lint tool",
+          "type": "boolean"
         },
         "verilog.lint.modelsim.runAtFileLocation": {
           "default": false,
@@ -372,14 +372,9 @@
           "type": "string"
         },
         "verilog.lint.modelsim.path": {
-          "default": "modelsim",
           "description": "Path to the tool",
+          "default": "{\"windows\":\"modelsim.exe\",\"linux\":\"modelsim\",\"mac\":\"modelsim\"}",
           "type": "string"
-        },
-        "verilog.lint.modelsim.enabled": {
-          "default": false,
-          "description": "Enable this lint tool",
-          "type": "boolean"
         },
         "verilog.lint.modelsim.includes": {
           "default": [],
@@ -388,6 +383,11 @@
           "items": {
             "type": "string"
           }
+        },
+        "verilog.lint.modelsim.enabled": {
+          "default": false,
+          "description": "Enable this lint tool",
+          "type": "boolean"
         },
         "verilog.lint.modelsim.work": {
           "default": "work",
@@ -410,14 +410,9 @@
           "type": "string"
         },
         "verilog.lint.iverilog.path": {
-          "default": "iverilog",
           "description": "Path to the tool",
+          "default": "{\"windows\":\"iverilog.exe\",\"linux\":\"iverilog\",\"mac\":\"iverilog\"}",
           "type": "string"
-        },
-        "verilog.lint.iverilog.enabled": {
-          "default": false,
-          "description": "Enable this lint tool",
-          "type": "boolean"
         },
         "verilog.lint.iverilog.includes": {
           "default": [],
@@ -426,6 +421,11 @@
           "items": {
             "type": "string"
           }
+        },
+        "verilog.lint.iverilog.enabled": {
+          "default": false,
+          "description": "Enable this lint tool",
+          "type": "boolean"
         },
         "verilog.lint.verilator.runAtFileLocation": {
           "default": false,
@@ -443,14 +443,9 @@
           "type": "string"
         },
         "verilog.lint.verilator.path": {
-          "default": "verilator",
           "description": "Path to the tool",
+          "default": "{\"windows\":\"verilator.exe\",\"linux\":\"verilator\",\"mac\":\"verilator\"}",
           "type": "string"
-        },
-        "verilog.lint.verilator.enabled": {
-          "default": false,
-          "description": "Enable this lint tool",
-          "type": "boolean"
         },
         "verilog.lint.verilator.includes": {
           "default": [],
@@ -459,6 +454,11 @@
           "items": {
             "type": "string"
           }
+        },
+        "verilog.lint.verilator.enabled": {
+          "default": false,
+          "description": "Enable this lint tool",
+          "type": "boolean"
         },
         "verilog.lint.xvlog.runAtFileLocation": {
           "default": false,
@@ -476,14 +476,9 @@
           "type": "string"
         },
         "verilog.lint.xvlog.path": {
-          "default": "xvlog",
           "description": "Path to the tool",
+          "default": "{\"windows\":\"xvlog.exe\",\"linux\":\"xvlog\",\"mac\":\"xvlog\"}",
           "type": "string"
-        },
-        "verilog.lint.xvlog.enabled": {
-          "default": false,
-          "description": "Enable this lint tool",
-          "type": "boolean"
         },
         "verilog.lint.xvlog.includes": {
           "default": [],
@@ -492,6 +487,11 @@
           "items": {
             "type": "string"
           }
+        },
+        "verilog.lint.xvlog.enabled": {
+          "default": false,
+          "description": "Enable this lint tool",
+          "type": "boolean"
         },
         "verilog.svFormat.verible.runAtFileLocation": {
           "default": false,
@@ -509,8 +509,8 @@
           "type": "string"
         },
         "verilog.svFormat.verible.path": {
-          "default": "verible-verilog-format",
           "description": "Path to the tool",
+          "default": "{\"windows\":\"verible-verilog-format.exe\",\"linux\":\"verible-verilog-format\",\"mac\":\"verible-verilog-format\"}",
           "type": "string"
         },
         "verilog.svFormat.formatter": {
@@ -537,8 +537,8 @@
           "type": "string"
         },
         "verilog.verilogFormat.verilogFormatter.path": {
-          "default": "verilogFormat",
           "description": "Path to the tool",
+          "default": "{\"windows\":\"verilogFormat.exe\",\"linux\":\"verilogFormat\",\"mac\":\"verilogFormat\"}",
           "type": "string"
         },
         "verilog.verilogFormat.iStyleFormatter.runAtFileLocation": {
@@ -557,8 +557,8 @@
           "type": "string"
         },
         "verilog.verilogFormat.iStyleFormatter.path": {
-          "default": "istyleFormat",
           "description": "Path to the tool",
+          "default": "{\"windows\":\"istyleFormat.exe\",\"linux\":\"istyleFormat\",\"mac\":\"istyleFormat\"}",
           "type": "string"
         },
         "verilog.verilogFormat.veribleFormatter.runAtFileLocation": {
@@ -577,8 +577,8 @@
           "type": "string"
         },
         "verilog.verilogFormat.veribleFormatter.path": {
-          "default": "verible",
           "description": "Path to the tool",
+          "default": "{\"windows\":\"verible.exe\",\"linux\":\"verible\",\"mac\":\"verible\"}",
           "type": "string"
         },
         "verilog.verilogFormat.formatter": {

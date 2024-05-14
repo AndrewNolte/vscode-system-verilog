@@ -19,7 +19,7 @@ enum Linter {
 export default class LintManager extends ExtensionComponent {
   private linters: Map<string, BaseLinter> = new Map()
 
-  slang: SlangLinter = new SlangLinter(Linter.Slang)
+  slang: SlangLinter = new SlangLinter(Linter.Slang, true)
   modelsim: ModelsimLinter = new ModelsimLinter(Linter.Modelsim)
   iverilog: IcarusLinter = new IcarusLinter(Linter.Iverilog)
   verilator: VerilatorLinter = new VerilatorLinter(Linter.Verilator)

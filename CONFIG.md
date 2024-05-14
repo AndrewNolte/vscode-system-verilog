@@ -74,19 +74,19 @@
     Arguments to pass to the tool
 
 
-- `verilog.lint.slang.path`: string = "slang"
+- `verilog.lint.slang.path`: string = "{"windows":"slang.exe","linux":"slang","mac":"slang"}"
 
     Path to the tool
-
-
-- `verilog.lint.slang.enabled`: boolean = false
-
-    Enable this lint tool
 
 
 - `verilog.lint.slang.includes`: array = []
 
     Include Path Overrides. Use `${includes} to include default includes
+
+
+- `verilog.lint.slang.enabled`: boolean = true
+
+    Enable this lint tool
 
 
 - `verilog.lint.modelsim.runAtFileLocation`: boolean = false
@@ -104,19 +104,19 @@
     Arguments to pass to the tool
 
 
-- `verilog.lint.modelsim.path`: string = "modelsim"
+- `verilog.lint.modelsim.path`: string = "{"windows":"modelsim.exe","linux":"modelsim","mac":"modelsim"}"
 
     Path to the tool
-
-
-- `verilog.lint.modelsim.enabled`: boolean = false
-
-    Enable this lint tool
 
 
 - `verilog.lint.modelsim.includes`: array = []
 
     Include Path Overrides. Use `${includes} to include default includes
+
+
+- `verilog.lint.modelsim.enabled`: boolean = false
+
+    Enable this lint tool
 
 
 - `verilog.lint.modelsim.work`: string = "work"
@@ -139,19 +139,19 @@
     Arguments to pass to the tool
 
 
-- `verilog.lint.iverilog.path`: string = "iverilog"
+- `verilog.lint.iverilog.path`: string = "{"windows":"iverilog.exe","linux":"iverilog","mac":"iverilog"}"
 
     Path to the tool
-
-
-- `verilog.lint.iverilog.enabled`: boolean = false
-
-    Enable this lint tool
 
 
 - `verilog.lint.iverilog.includes`: array = []
 
     Include Path Overrides. Use `${includes} to include default includes
+
+
+- `verilog.lint.iverilog.enabled`: boolean = false
+
+    Enable this lint tool
 
 
 - `verilog.lint.verilator.runAtFileLocation`: boolean = false
@@ -169,19 +169,19 @@
     Arguments to pass to the tool
 
 
-- `verilog.lint.verilator.path`: string = "verilator"
+- `verilog.lint.verilator.path`: string = "{"windows":"verilator.exe","linux":"verilator","mac":"verilator"}"
 
     Path to the tool
-
-
-- `verilog.lint.verilator.enabled`: boolean = false
-
-    Enable this lint tool
 
 
 - `verilog.lint.verilator.includes`: array = []
 
     Include Path Overrides. Use `${includes} to include default includes
+
+
+- `verilog.lint.verilator.enabled`: boolean = false
+
+    Enable this lint tool
 
 
 - `verilog.lint.xvlog.runAtFileLocation`: boolean = false
@@ -199,19 +199,19 @@
     Arguments to pass to the tool
 
 
-- `verilog.lint.xvlog.path`: string = "xvlog"
+- `verilog.lint.xvlog.path`: string = "{"windows":"xvlog.exe","linux":"xvlog","mac":"xvlog"}"
 
     Path to the tool
-
-
-- `verilog.lint.xvlog.enabled`: boolean = false
-
-    Enable this lint tool
 
 
 - `verilog.lint.xvlog.includes`: array = []
 
     Include Path Overrides. Use `${includes} to include default includes
+
+
+- `verilog.lint.xvlog.enabled`: boolean = false
+
+    Enable this lint tool
 
 
 - `verilog.svFormat.verible.runAtFileLocation`: boolean = false
@@ -229,7 +229,7 @@
     Arguments to pass to the tool
 
 
-- `verilog.svFormat.verible.path`: string = "verible-verilog-format"
+- `verilog.svFormat.verible.path`: string = "{"windows":"verible-verilog-format.exe","linux":"verible-verilog-format","mac":"verible-verilog-format"}"
 
     Path to the tool
 
@@ -254,7 +254,7 @@
     Arguments to pass to the tool
 
 
-- `verilog.verilogFormat.verilogFormatter.path`: string = "verilogFormat"
+- `verilog.verilogFormat.verilogFormatter.path`: string = "{"windows":"verilogFormat.exe","linux":"verilogFormat","mac":"verilogFormat"}"
 
     Path to the tool
 
@@ -274,7 +274,7 @@
     Arguments to pass to the tool
 
 
-- `verilog.verilogFormat.iStyleFormatter.path`: string = "istyleFormat"
+- `verilog.verilogFormat.iStyleFormatter.path`: string = "{"windows":"istyleFormat.exe","linux":"istyleFormat","mac":"istyleFormat"}"
 
     Path to the tool
 
@@ -294,7 +294,7 @@
     Arguments to pass to the tool
 
 
-- `verilog.verilogFormat.veribleFormatter.path`: string = "verible"
+- `verilog.verilogFormat.veribleFormatter.path`: string = "{"windows":"verible.exe","linux":"verible","mac":"verible"}"
 
     Path to the tool
 

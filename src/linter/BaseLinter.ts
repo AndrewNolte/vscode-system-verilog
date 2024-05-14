@@ -12,10 +12,7 @@ let isWindows = process.platform === 'win32'
 export default abstract class BaseLinter extends ToolConfig {
   protected diagnostics: vscode.DiagnosticCollection
 
-  enabled: ConfigObject<boolean> = new ConfigObject({
-    default: false,
-    description: 'Enable this lint tool',
-  })
+  enabled: ConfigObject<boolean>;
   includes: ConfigObject<string[]> = new ConfigObject({
     default: [],
     description: 'Include Path Overrides. Use `${includes} to include default includes',
@@ -23,10 +20,14 @@ export default abstract class BaseLinter extends ToolConfig {
 
   includeComputed: string[] = []
 
-  constructor(name: string) {
+  constructor(name: string, defaultOn: boolean = false) {
     super(name)
     this.diagnostics = vscode.languages.createDiagnosticCollection(this.toolName)
     this.includeComputed = []
+    this.enabled = new ConfigObject({
+      default: defaultOn,
+      description: 'Enable this lint tool',
+    })
   }
 
   async activate(context: vscode.ExtensionContext): Promise<void> {
@@ -45,6 +46,10 @@ export default abstract class BaseLinter extends ToolConfig {
         this.runAtFileLocation.getValue()
       })
     )
+
+    if(this.enabled.getValue()){
+      this.path.checkPathNotify()
+    }
   }
 
   computeIncludes() {

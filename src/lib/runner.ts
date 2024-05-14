@@ -1,4 +1,4 @@
-import { ExtensionComponent, ConfigObject } from './libconfig'
+import { ExtensionComponent, ConfigObject, PathConfigObject } from './libconfig'
 
 export class Runner extends ExtensionComponent {
   runAtFileLocation: ConfigObject<boolean> = new ConfigObject({
@@ -12,7 +12,7 @@ export class Runner extends ExtensionComponent {
 }
 
 export class ToolConfig extends Runner {
-  path: ConfigObject<string>
+  path: PathConfigObject
   args: ConfigObject<string> = new ConfigObject({
     default: '',
     description: 'Arguments to pass to the tool',
@@ -21,10 +21,14 @@ export class ToolConfig extends Runner {
   constructor(toolName: string) {
     super()
     this.toolName = toolName
-    this.path = new ConfigObject({
-      default: toolName,
-      description: 'Path to the tool',
-    })
+    this.path = new PathConfigObject(
+      {
+        description: 'Path to the tool',
+      },{
+        windows: `${toolName}.exe`,
+        linux: toolName,
+        mac: toolName
+      })
   }
 }
 

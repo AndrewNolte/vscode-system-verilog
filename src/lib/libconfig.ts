@@ -530,7 +530,7 @@ export class PathConfigObject extends ConfigObject<string> {
   async checkPathNotify(): Promise<boolean> {
     let ret = await this.checkPath()
     if (!ret) {
-      vscode.window.showErrorMessage(`${this.configPath} not found at "${this.getValue()}"`)
+      vscode.window.showErrorMessage(`"${this.getValue()}" not found. Configure ${this.configPath}, add to PATH, or disable in config.`)
     }
     return ret
   }
