@@ -248,5 +248,9 @@ export async function activate(context: vscode.ExtensionContext) {
     title: 'Verilog',
     icon: '$(chip)',
   })
-  await ext.activateExtension('verilog', context)
+  await ext.activateExtension('verilog', context, [
+    'mshr-h.veriloghdl',
+    'eirikpre.systemverilog',
+    'IMCTradingBV.svlangserver'
+  ])
 }

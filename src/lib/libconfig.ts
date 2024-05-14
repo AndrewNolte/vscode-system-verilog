@@ -47,9 +47,11 @@ export abstract class ExtensionComponent extends ExtensionNode {
 
   public async activateExtension(
     nodeName: string,
-    context: vscode.ExtensionContext
+    context: vscode.ExtensionContext,
+    incompatibleExtensions?: string[]
   ): Promise<void> {
     this.compile(nodeName)
+    
     this.postOrderTraverse(async (node: ExtensionNode) => {
       if (node instanceof ExtensionComponent || node instanceof CommandNode) {
         await node.activate(context)
@@ -80,6 +82,14 @@ export abstract class ExtensionComponent extends ExtensionNode {
           await writeFile(filePath, this.getConfigMd(), { encoding: 'utf-8' })
         }
       })
+    }
+
+    if(incompatibleExtensions !== undefined){
+      for(let id of incompatibleExtensions){
+        if (vscode.extensions.getExtension(id) !== undefined){
+          vscode.window.showErrorMessage(`Please uninstall incompatible extension: ${id}`)
+        }
+      }
     }
   }
 
