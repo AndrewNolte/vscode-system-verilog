@@ -16,6 +16,8 @@ jobs:
           node-version: 20
       - run: npm ci
       - run: npm install -g @vscode/vsce
+      - run: git config --global user.email "anolte5"12@gmail.com
+      - run: git config --global user.name "Andrew Nolte"
       - name: Publish to Visual Studio Marketplace
         run: vsce publish ${{ github.event.inputs.kind }} --pat ${{ secrets.VS_MARKETPLACE_TOKEN }}
       # - run: npm install -g ovsx
