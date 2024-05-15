@@ -87,7 +87,12 @@ export default abstract class BaseLinter extends ToolConfig {
       }
       this.diagnostics.clear()
       for (const [file, diagnostics] of fmap.entries()) {
-        let uri = vscode.Uri.joinPath(wsUri, file)
+        let uri: vscode.Uri
+        if (!file.startsWith(wsUri.fsPath)) {
+          uri = vscode.Uri.joinPath(wsUri, file)
+        } else {
+          uri = vscode.Uri.file(file)
+        }
         this.diagnostics.set(uri, diagnostics)
         this.logger.info(`found ${diagnostics.length}/${diags.length} errors in ${uri}`)
       }
