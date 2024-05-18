@@ -52,7 +52,7 @@ Install it from the [VS Code Marketplace](https://marketplace.visualstudio.com/i
 - Hover and definitions across files, including macros
 - Code completion for modules on "ModuleName #"
 - Code completion suggests relevant symbols- package refs, params, ports, macros, builtins, etc.
-- Relies on modules matching the name of the file
+- Zero config required if module names match file
 - Hover and Completion for builtin functions like $bits()
 
 ### [verible-verilog-ls](https://github.com/chipsalliance/verible?label=verible-verilog-ls)
