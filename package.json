@@ -105,7 +105,7 @@
           ".vh",
           ".vl"
         ],
-        "configuration": "./configs/verilog.configuration.json"
+        "configuration": "./languages/verilog/verilog.configuration.json"
       },
       {
         "id": "systemverilog",
@@ -118,7 +118,7 @@
           ".svh",
           ".SV"
         ],
-        "configuration": "./configs/systemverilog.configuration.json"
+        "configuration": "./languages/sv/systemverilog.configuration.json"
       },
       {
         "id": "wave-file",
@@ -137,7 +137,7 @@
         "extensions": [
           ".ucf"
         ],
-        "configuration": "./configs/ucfconstraints.configuration.json"
+        "configuration": "./languages/ucf/constraints.configuration.json"
       },
       {
         "id": "sdc",
@@ -147,7 +147,7 @@
         "extensions": [
           ".sdc"
         ],
-        "configuration": "./configs/sdc.configuration.json"
+        "configuration": "./languages/sdc/sdc.configuration.json"
       },
       {
         "id": "tcl",
@@ -160,7 +160,7 @@
           "tm",
           "tk"
         ],
-        "configuration": "./configs/tcl.configuration.json"
+        "configuration": "./languages/tcl/tcl.configuration.json"
       },
       {
         "id": "xdc",
@@ -170,80 +170,90 @@
         "extensions": [
           ".xdc"
         ],
-        "configuration": "./configs/sdc.configuration.json"
+        "configuration": "./languages/xdc/sdc.configuration.json"
       },
       {
-        "id": "verilog-filelist",
+        "id": "dotf",
         "aliases": [
           "Verilog Filelist",
-          "verilog-filelist"
+          "verilog-filelist",
+          "dotf"
         ],
         "extensions": [
           ".f"
         ],
-        "configuration": "./configs/verilog-filelist.configuration.json"
+        "configuration": "./languages/dotf/dotf.configuration.json"
       }
     ],
     "grammars": [
       {
         "language": "verilog",
         "scopeName": "source.verilog",
-        "path": "./syntaxes/verilog.tmLanguage.json"
+        "path": "./languages/verilog/verilog.tmLanguage.json"
       },
       {
         "language": "systemverilog",
         "scopeName": "source.systemverilog",
-        "path": "./syntaxes/systemverilog.tmLanguage.json"
+        "path": "./languages/sv/systemverilog.tmLanguage.json"
       },
       {
         "language": "ucf",
         "scopeName": "source.ucfconstraints",
-        "path": "./syntaxes/ucf.tmLanguage.json"
+        "path": "./languages/ucf/ucf.tmLanguage.json"
       },
       {
         "language": "sdc",
         "scopeName": "source.sdc",
-        "path": "./syntaxes/sdc.tmLanguage.json"
+        "path": "./languages/sdc/sdc.tmLanguage.json"
       },
       {
         "language": "tcl",
         "scopeName": "source.tcl",
-        "path": "./syntaxes/tcl.tmlanguage.json"
+        "path": "./languages/tcl/tcl.tmlanguage.json"
       },
       {
         "language": "xdc",
         "scopeName": "source.sdc",
-        "path": "./syntaxes/sdc.tmLanguage.json"
+        "path": "./languages/sdc/sdc.tmLanguage.json"
       },
       {
-        "scopeName": "markdown.verilog.codeblock",
-        "path": "./syntaxes/codeblock.json",
+        "scopeName": "markdown.systemverilog.codeblock",
+        "path": "./languages/sv/markdownblock.json",
         "injectTo": [
           "text.html.markdown"
         ],
         "embeddedLanguages": {
-          "meta.embedded.block.verilog": "source.verilog",
           "meta.embedded.block.systemverilog": "source.systemverilog"
         }
       },
       {
-        "language": "verilog-filelist",
-        "scopeName": "source.verilog-filelist",
-        "path": "./syntaxes/verilog-filelist.tmLanguage.json"
+        "scopeName": "markdown.verilog.codeblock",
+        "path": "./languages/verilog/markdownblock.json",
+        "injectTo": [
+          "text.html.markdown"
+        ],
+        "embeddedLanguages": {
+          "meta.embedded.block.verilog": "source.verilog"
+        }
+      },
+      {
+        "language": "dotf",
+        "scopeName": "source.f",
+        "path": "./languages/dotf/dotf.tmLanguage.json"
       }
     ],
     "snippets": [
       {
         "language": "verilog",
-        "path": "./snippets/verilog.json"
+        "path": "./languages/verilog/verilog.snippets.json"
       },
       {
         "language": "systemverilog",
-        "path": "./snippets/verilog.json"
+        "path": "./languages/verilog/verilog.snippets.json"
       },
       {
         "language": "systemverilog",
-        "path": "./snippets/systemverilog.json"
+        "path": "./languages/sv/systemverilog.snippets.json"
       }
     ],
     "configuration": {
