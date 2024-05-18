@@ -63,17 +63,9 @@ Install it from the [VS Code Marketplace](https://marketplace.visualstudio.com/i
 ![](https://img.shields.io/github/stars/vivekmalneedi/veridian?style=flat) 
 ![](https://img.shields.io/github/commit-activity/t/vivekmalneedi/veridian?label=commits)
 
-### [rust_hdl](https://github.com/VHDL-LS/rust_hdl)
-![](https://img.shields.io/github/stars/VHDL-LS/rust_hdl?style=flat) 
-![](https://img.shields.io/github/commit-activity/t/VHDL-LS/rust_hdl?label=commits)
-
 ### [svls](https://github.com/dalance/svls)
 ![](https://img.shields.io/github/stars/dalance/svls?style=flat) 
 ![](https://img.shields.io/github/commit-activity/t/dalance/svls?label=commits)
-
-### [hdl_checker](https://github.com/suoto/hdl_checker)
-![](https://img.shields.io/github/stars/suoto/hdl_checker?style=flat) 
-![](https://img.shields.io/github/commit-activity/t/suoto/hdl_checker?label=commits)
 
 
 ## Fst/Vcd/Ghw support from [Surfer](https://surfer-project.org/)

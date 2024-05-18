@@ -324,32 +324,12 @@
     
 
 
-- `verilog.languageServer.hdlChecker.enabled`: boolean = false
-
-    Enable this Language Server
-
-
-- `verilog.languageServer.hdlChecker.path`: string = "hdl_checker"
-
-    
-
-
 - `verilog.languageServer.veribleVerilogLs.enabled`: boolean = false
 
     Enable this Language Server
 
 
 - `verilog.languageServer.veribleVerilogLs.path`: string = "verible-verilog-ls"
-
-    
-
-
-- `verilog.languageServer.rustHdl.enabled`: boolean = false
-
-    Enable this Language Server
-
-
-- `verilog.languageServer.rustHdl.path`: string = "rust_hdl"
 
     
 

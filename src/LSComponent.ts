@@ -1,15 +1,13 @@
-import { LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient/node'
-import { ExtensionComponent, ConfigObject } from './lib/libconfig'
 import * as vscode from 'vscode'
+import { LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient/node'
+import { ConfigObject, ExtensionComponent } from './lib/libconfig'
 
 export class LanguageServerComponent extends ExtensionComponent {
   languageClients = new Map<string, LanguageClient>()
 
   svls: BaseLanguageServer = new BaseLanguageServer('svls')
   veridian: BaseLanguageServer = new BaseLanguageServer('veridian')
-  hdlChecker: BaseLanguageServer = new BaseLanguageServer('hdl_checker')
   veribleVerilogLs: BaseLanguageServer = new BaseLanguageServer('verible-verilog-ls')
-  rustHdl: BaseLanguageServer = new BaseLanguageServer('rust_hdl')
 
   async activate(context: vscode.ExtensionContext) {
     this.initAllLanguageClients()
@@ -32,26 +30,12 @@ export class LanguageServerComponent extends ExtensionComponent {
       documentSelector: [{ scheme: 'file', language: 'systemverilog' }],
     })
 
-    // init hdlChecker
-    this.hdlChecker.setupLanguageClient(['--lsp'], ['--lsp'], {
-      documentSelector: [
-        { scheme: 'file', language: 'verilog' },
-        { scheme: 'file', language: 'systemverilog' },
-        { scheme: 'file', language: 'vhdl' },
-      ],
-    })
-
     // init verible-verilog-ls
     this.veribleVerilogLs.setupLanguageClient([], [], {
       documentSelector: [
         { scheme: 'file', language: 'verilog' },
         { scheme: 'file', language: 'systemverilog' },
       ],
-    })
-
-    // init rustHdl
-    this.rustHdl.setupLanguageClient([], [], {
-      documentSelector: [{ scheme: 'file', language: 'vhdl' }],
     })
   }
 

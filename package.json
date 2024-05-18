@@ -30,7 +30,7 @@
     "Visualization"
   ],
   "icon": "images/icon.png",
-  "main": "./dist/main.js",
+  "main": "./out/main.js",
   "prettier": {
     "trailingComma": "es5",
     "singleQuote": true,
@@ -129,19 +129,6 @@
         ]
       },
       {
-        "id": "vhdl",
-        "aliases": [
-          "VHDL",
-          "vhdl"
-        ],
-        "extensions": [
-          ".vhd",
-          ".vhdl",
-          ".vho"
-        ],
-        "configuration": "./configs/vhdl.configuration.json"
-      },
-      {
         "id": "ucf",
         "aliases": [
           "vivado ucf",
@@ -207,11 +194,6 @@
         "language": "systemverilog",
         "scopeName": "source.systemverilog",
         "path": "./syntaxes/systemverilog.tmLanguage.json"
-      },
-      {
-        "language": "vhdl",
-        "scopeName": "source.vhdl",
-        "path": "./syntaxes/vhdl.tmLanguage.json"
       },
       {
         "language": "ucf",
@@ -632,16 +614,6 @@
           "description": "",
           "type": "string"
         },
-        "verilog.languageServer.hdlChecker.enabled": {
-          "default": false,
-          "description": "Enable this Language Server",
-          "type": "boolean"
-        },
-        "verilog.languageServer.hdlChecker.path": {
-          "default": "hdl_checker",
-          "description": "",
-          "type": "string"
-        },
         "verilog.languageServer.veribleVerilogLs.enabled": {
           "default": false,
           "description": "Enable this Language Server",
@@ -649,16 +621,6 @@
         },
         "verilog.languageServer.veribleVerilogLs.path": {
           "default": "verible-verilog-ls",
-          "description": "",
-          "type": "string"
-        },
-        "verilog.languageServer.rustHdl.enabled": {
-          "default": false,
-          "description": "Enable this Language Server",
-          "type": "boolean"
-        },
-        "verilog.languageServer.rustHdl.path": {
-          "default": "rust_hdl",
           "description": "",
           "type": "string"
         }
@@ -748,7 +710,7 @@
     "watch-tests": "tsc -p . -w --outDir out",
     "lint": "eslint src --ext ts",
     "vscode:prepublish": "npm run esbuild-base -- --minify",
-    "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=dist/main.js --external:vscode --format=cjs --platform=node",
+    "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
     "esbuild": "npm run esbuild-base -- --sourcemap",
     "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
     "format": "npx prettier --write **/*.ts",
