@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 import * as vscode from 'vscode'
+import { ExtensionComponent } from '../lib/libconfig'
 import BaseLinter from './BaseLinter'
 import IcarusLinter from './IcarusLinter'
+import ModelsimLinter from './ModelsimLinter'
 import SlangLinter from './SlangLinter'
 import VerilatorLinter from './VerilatorLinter'
 import XvlogLinter from './XvlogLinter'
-import ModelsimLinter from './ModelsimLinter'
-import { ExtensionComponent } from '../lib/libconfig'
 
 enum Linter {
   Slang = 'slang',

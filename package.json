@@ -341,11 +341,6 @@
           "description": "Run at file location",
           "type": "boolean"
         },
-        "verilog.lint.slang.useWsl": {
-          "default": false,
-          "description": "Run using wsl",
-          "type": "boolean"
-        },
         "verilog.lint.slang.args": {
           "default": "",
           "description": "Arguments to pass to the tool",
@@ -372,11 +367,6 @@
         "verilog.lint.modelsim.runAtFileLocation": {
           "default": false,
           "description": "Run at file location",
-          "type": "boolean"
-        },
-        "verilog.lint.modelsim.useWsl": {
-          "default": false,
-          "description": "Run using wsl",
           "type": "boolean"
         },
         "verilog.lint.modelsim.args": {
@@ -412,11 +402,6 @@
           "description": "Run at file location",
           "type": "boolean"
         },
-        "verilog.lint.iverilog.useWsl": {
-          "default": false,
-          "description": "Run using wsl",
-          "type": "boolean"
-        },
         "verilog.lint.iverilog.args": {
           "default": "",
           "description": "Arguments to pass to the tool",
@@ -443,11 +428,6 @@
         "verilog.lint.verilator.runAtFileLocation": {
           "default": false,
           "description": "Run at file location",
-          "type": "boolean"
-        },
-        "verilog.lint.verilator.useWsl": {
-          "default": false,
-          "description": "Run using wsl",
           "type": "boolean"
         },
         "verilog.lint.verilator.args": {
@@ -478,11 +458,6 @@
           "description": "Run at file location",
           "type": "boolean"
         },
-        "verilog.lint.xvlog.useWsl": {
-          "default": false,
-          "description": "Run using wsl",
-          "type": "boolean"
-        },
         "verilog.lint.xvlog.args": {
           "default": "",
           "description": "Arguments to pass to the tool",
@@ -511,11 +486,6 @@
           "description": "Run at file location",
           "type": "boolean"
         },
-        "verilog.svFormat.verible.useWsl": {
-          "default": false,
-          "description": "Run using wsl",
-          "type": "boolean"
-        },
         "verilog.svFormat.verible.args": {
           "default": "",
           "description": "Arguments to pass to the tool",
@@ -539,11 +509,6 @@
           "description": "Run at file location",
           "type": "boolean"
         },
-        "verilog.verilogFormat.verilogFormatter.useWsl": {
-          "default": false,
-          "description": "Run using wsl",
-          "type": "boolean"
-        },
         "verilog.verilogFormat.verilogFormatter.args": {
           "default": "",
           "description": "Arguments to pass to the tool",
@@ -559,11 +524,6 @@
           "description": "Run at file location",
           "type": "boolean"
         },
-        "verilog.verilogFormat.iStyleFormatter.useWsl": {
-          "default": false,
-          "description": "Run using wsl",
-          "type": "boolean"
-        },
         "verilog.verilogFormat.iStyleFormatter.args": {
           "default": "",
           "description": "Arguments to pass to the tool",
@@ -577,11 +537,6 @@
         "verilog.verilogFormat.veribleFormatter.runAtFileLocation": {
           "default": false,
           "description": "Run at file location",
-          "type": "boolean"
-        },
-        "verilog.verilogFormat.veribleFormatter.useWsl": {
-          "default": false,
-          "description": "Run using wsl",
           "type": "boolean"
         },
         "verilog.verilogFormat.veribleFormatter.args": {

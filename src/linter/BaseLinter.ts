@@ -1,24 +1,24 @@
 // SPDX-License-Identifier: MIT
 import * as child_process from 'child_process'
+import * as os from 'os'
 import * as path from 'path'
-import * as process from 'process'
 import * as vscode from 'vscode'
-import { FileDiagnostic, getAbsPath, getWorkspaceFolder, getWorkspaceUri, getWslPath } from '../utils'
+import { ext } from '../extension'
 import { ConfigObject } from '../lib/libconfig'
 import { ToolConfig } from '../lib/runner'
-import { ext } from '../extension'
-let isWindows = process.platform === 'win32'
+import { FileDiagnostic, getAbsPath, getWorkspaceFolder, getWorkspaceUri } from '../utils'
 
 export default abstract class BaseLinter extends ToolConfig {
   protected diagnostics: vscode.DiagnosticCollection
 
-  enabled: ConfigObject<boolean>;
+  enabled: ConfigObject<boolean>
   includes: ConfigObject<string[]> = new ConfigObject({
     default: [],
     description: 'Include Path Overrides. Use `${includes} to include default includes',
   })
 
   includeComputed: string[] = []
+  isWsl: boolean = false
 
   constructor(name: string, defaultOn: boolean = false) {
     super(name)
@@ -31,6 +31,8 @@ export default abstract class BaseLinter extends ToolConfig {
   }
 
   async activate(context: vscode.ExtensionContext): Promise<void> {
+    this.isWsl = vscode.env.shell.includes('wsl') || os.release().includes('Microsoft')
+
     this.computeIncludes()
     context.subscriptions.push(
       this.onConfigUpdated(() => {
@@ -40,14 +42,13 @@ export default abstract class BaseLinter extends ToolConfig {
         this.enabled.getValue()
         this.computeIncludes()
 
-        this.useWsl.getValue()
         this.path.getValue()
         this.args.getValue()
         this.runAtFileLocation.getValue()
       })
     )
 
-    if(this.enabled.getValue()){
+    if (this.enabled.getValue()) {
       this.path.checkPathNotify()
     }
   }
@@ -74,11 +75,11 @@ export default abstract class BaseLinter extends ToolConfig {
 
     let diags = await this.lintInternal(doc)
 
-    if (ext.project.top && getWorkspaceUri() !== undefined){
+    if (ext.project.top && getWorkspaceUri() !== undefined) {
       let wsUri: vscode.Uri = getWorkspaceUri()!
-      let fmap = new Map<string, FileDiagnostic[]>
-      for(let diag of diags){
-        if(!fmap.has(diag.file)){
+      let fmap = new Map<string, FileDiagnostic[]>()
+      for (let diag of diags) {
+        if (!fmap.has(diag.file)) {
           fmap.set(diag.file, [])
         }
         fmap.get(diag.file)?.push(diag)
@@ -88,11 +89,9 @@ export default abstract class BaseLinter extends ToolConfig {
       for (const [file, diagnostics] of fmap.entries()) {
         let uri = vscode.Uri.joinPath(wsUri, file)
         this.diagnostics.set(uri, diagnostics)
-        this.logger.info(
-          `found ${diagnostics.length}/${diags.length} errors in ${uri}`
-        )
+        this.logger.info(`found ${diagnostics.length}/${diags.length} errors in ${uri}`)
       }
-    }else{
+    } else {
       this.diagnostics.set(
         doc.uri,
         diags.filter((diag) => {
@@ -114,17 +113,6 @@ export default abstract class BaseLinter extends ToolConfig {
     this.diagnostics.set(doc.uri, [])
   }
 
-  protected wslAdjust(path: string): string {
-    if (isWindows) {
-      if (this.useWsl.cachedValue) {
-        return getWslPath(path)
-      } else {
-        return path.replace(/\\/g, '/')
-      }
-    }
-    return path
-  }
-
   protected async runTool(
     doc: vscode.TextDocument,
     addargs: string[] = []
@@ -133,44 +121,39 @@ export default abstract class BaseLinter extends ToolConfig {
     stderr: string
     doc: vscode.TextDocument
   }> {
-    let docUri: string = this.wslAdjust(doc.uri.fsPath)
-    let docFolder: string = this.wslAdjust(path.dirname(docUri))
+    let docPath: string = doc.uri.fsPath
+    let docFolder: string = path.dirname(docPath)
 
     let args: string[] = []
     args.push(...this.toolArgs(doc))
+    // -I folder + other includes
     args.push(...this.formatIncludes([docFolder].concat(this.includeComputed)))
     if (this.args.cachedValue !== '') {
-      args.push(
-        ...this.args.cachedValue
-          .trim()
-          .split(' ')
-          .map((arg) => arg.trim())
-      )
+      args.push(...this.args.cachedValue.trim().split(/\s+/))
     }
-
-    if (ext.index.enableSymlinks.cachedValue) {
+    if (ext.index.enableSymlinks.cachedValue && ext.index.dir !== undefined) {
       args.push('-y')
-      args.push('.sv_cache/files')
+      args.push(ext.index.dir.fsPath)
     }
     args.push(...addargs)
 
-    args.push(docUri)
+    args.push(docPath)
 
-    if(ext.project.top){
-      args.push(this.wslAdjust(ext.project.top.doc.uri.fsPath))
+    if (ext.project.top) {
+      args.push(ext.project.top.doc.uri.fsPath)
     }
 
     let cwd: string | undefined = getWorkspaceFolder()
-
     if (this.runAtFileLocation.cachedValue === true) {
-      if (isWindows) {
-        cwd = path.dirname(docUri)
-      } else {
-        cwd = docFolder
-      }
+      cwd = docFolder
     }
 
     let command = this.path.cachedValue
+    if (this.isWsl) {
+      args.unshift(command)
+      command = 'wsl'
+    }
+
     this.logger.info(`Running $${cwd}: ${command} ${args.join(' ')}`)
 
     return new Promise((resolve, _reject) => {

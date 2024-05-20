@@ -64,11 +64,6 @@
     Run at file location
 
 
-- `verilog.lint.slang.useWsl`: boolean = false
-
-    Run using wsl
-
-
 - `verilog.lint.slang.args`: string = ""
 
     Arguments to pass to the tool
@@ -92,11 +87,6 @@
 - `verilog.lint.modelsim.runAtFileLocation`: boolean = false
 
     Run at file location
-
-
-- `verilog.lint.modelsim.useWsl`: boolean = false
-
-    Run using wsl
 
 
 - `verilog.lint.modelsim.args`: string = ""
@@ -129,11 +119,6 @@
     Run at file location
 
 
-- `verilog.lint.iverilog.useWsl`: boolean = false
-
-    Run using wsl
-
-
 - `verilog.lint.iverilog.args`: string = ""
 
     Arguments to pass to the tool
@@ -157,11 +142,6 @@
 - `verilog.lint.verilator.runAtFileLocation`: boolean = false
 
     Run at file location
-
-
-- `verilog.lint.verilator.useWsl`: boolean = false
-
-    Run using wsl
 
 
 - `verilog.lint.verilator.args`: string = ""
@@ -189,11 +169,6 @@
     Run at file location
 
 
-- `verilog.lint.xvlog.useWsl`: boolean = false
-
-    Run using wsl
-
-
 - `verilog.lint.xvlog.args`: string = ""
 
     Arguments to pass to the tool
@@ -219,11 +194,6 @@
     Run at file location
 
 
-- `verilog.svFormat.verible.useWsl`: boolean = false
-
-    Run using wsl
-
-
 - `verilog.svFormat.verible.args`: string = ""
 
     Arguments to pass to the tool
@@ -244,11 +214,6 @@
     Run at file location
 
 
-- `verilog.verilogFormat.verilogFormatter.useWsl`: boolean = false
-
-    Run using wsl
-
-
 - `verilog.verilogFormat.verilogFormatter.args`: string = ""
 
     Arguments to pass to the tool
@@ -264,11 +229,6 @@
     Run at file location
 
 
-- `verilog.verilogFormat.iStyleFormatter.useWsl`: boolean = false
-
-    Run using wsl
-
-
 - `verilog.verilogFormat.iStyleFormatter.args`: string = ""
 
     Arguments to pass to the tool
@@ -282,11 +242,6 @@
 - `verilog.verilogFormat.veribleFormatter.runAtFileLocation`: boolean = false
 
     Run at file location
-
-
-- `verilog.verilogFormat.veribleFormatter.useWsl`: boolean = false
-
-    Run using wsl
 
 
 - `verilog.verilogFormat.veribleFormatter.args`: string = ""

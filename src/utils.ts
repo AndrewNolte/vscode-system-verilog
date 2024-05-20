@@ -1,4 +1,3 @@
-import * as child_process from 'child_process'
 import * as path from 'path'
 import * as vscode from 'vscode'
 
@@ -85,11 +84,6 @@ export function getAbsPath(inputPath: string): string {
     return inputPath
   }
   return path.join(wspath, inputPath)
-}
-
-export function getWslPath(inputPath: string): string {
-  let cmd: string = `wsl wslpath '${inputPath}'`
-  return child_process.execSync(cmd, {}).toString().replace(/\r?\n/g, '')
 }
 
 export class FileDiagnostic extends vscode.Diagnostic {

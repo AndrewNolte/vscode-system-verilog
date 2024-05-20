@@ -1,13 +1,9 @@
-import { ExtensionComponent, ConfigObject, PathConfigObject } from './libconfig'
+import { ConfigObject, ExtensionComponent, PathConfigObject } from './libconfig'
 
 export class Runner extends ExtensionComponent {
   runAtFileLocation: ConfigObject<boolean> = new ConfigObject({
     default: false,
     description: 'Run at file location',
-  })
-  useWsl: ConfigObject<boolean> = new ConfigObject({
-    default: false,
-    description: 'Run using wsl',
   })
 }
 
@@ -24,11 +20,13 @@ export class ToolConfig extends Runner {
     this.path = new PathConfigObject(
       {
         description: 'Path to the tool',
-      },{
+      },
+      {
         windows: `${toolName}.exe`,
         linux: toolName,
-        mac: toolName
-      })
+        mac: toolName,
+      }
+    )
   }
 }
 

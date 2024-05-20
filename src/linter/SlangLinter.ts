@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 import * as process from 'process'
 import * as vscode from 'vscode'
-import BaseLinter from './BaseLinter'
 import { FileDiagnostic } from '../utils'
+import BaseLinter from './BaseLinter'
 
 let isWindows = process.platform === 'win32'
 
@@ -43,7 +43,7 @@ export default class SlangLinter extends BaseLinter {
         continue
       }
 
-      let filePath = this.wslAdjust(rex[1])
+      let filePath = rex[1]
       let lineNum = Number(rex[2]) - 1
       let colNum = Number(rex[3]) - 1
 

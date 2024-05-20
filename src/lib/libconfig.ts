@@ -1,10 +1,10 @@
-import * as vscode from 'vscode'
-import { Logger, StubLogger, createLogger } from './logger'
-import { readFile, writeFile } from 'fs/promises'
 import * as child_process from 'child_process'
-import { IConfigurationPropertySchema } from './vscodeConfigs'
-import { JSONSchemaType } from './jsonSchema'
+import { readFile, writeFile } from 'fs/promises'
 import * as process from 'process'
+import * as vscode from 'vscode'
+import { JSONSchemaType } from './jsonSchema'
+import { Logger, StubLogger, createLogger } from './logger'
+import { IConfigurationPropertySchema } from './vscodeConfigs'
 
 class ExtensionNode {
   nodeName: string | undefined
@@ -51,7 +51,7 @@ export abstract class ExtensionComponent extends ExtensionNode {
     incompatibleExtensions?: string[]
   ): Promise<void> {
     this.compile(nodeName)
-    
+
     this.postOrderTraverse(async (node: ExtensionNode) => {
       if (node instanceof ExtensionComponent || node instanceof CommandNode) {
         await node.activate(context)
@@ -84,9 +84,9 @@ export abstract class ExtensionComponent extends ExtensionNode {
       })
     }
 
-    if(incompatibleExtensions !== undefined){
-      for(let id of incompatibleExtensions){
-        if (vscode.extensions.getExtension(id) !== undefined){
+    if (incompatibleExtensions !== undefined) {
+      for (let id of incompatibleExtensions) {
+        if (vscode.extensions.getExtension(id) !== undefined) {
           vscode.window.showErrorMessage(`Please uninstall incompatible extension: ${id}`)
         }
       }
@@ -497,20 +497,24 @@ export class PathConfigObject extends ConfigObject<string> {
         })
       }
     } else {
-      let userShell = process.env.SHELL ?? '/bin/bash'
+      // mac and linux
       if (!path.startsWith('/')) {
         // Using bash to execute the `which` command
-        child_process.execFile(userShell, ['-c', `which ${path}`], (error, stdout, stderr) => {
-          if (error) {
-            console.error(`Error: ${error.message}`)
-            path = ''
+        child_process.execFile(
+          vscode.env.shell,
+          ['-c', `which ${path}`],
+          (error, stdout, stderr) => {
+            if (error) {
+              console.error(`Error: ${error.message}`)
+              path = ''
+            }
+            if (stderr) {
+              console.error(`stderr: ${stderr}`)
+              path = ''
+            }
+            return stdout.trim()
           }
-          if (stderr) {
-            console.error(`stderr: ${stderr}`)
-            path = ''
-          }
-          return stdout.trim()
-        })
+        )
       }
     }
     return path
@@ -518,29 +522,28 @@ export class PathConfigObject extends ConfigObject<string> {
 
   async checkPath(): Promise<boolean> {
     return new Promise((resolve, _reject) => {
-      child_process.execFile(
-        this.getValue(),
-        ['--version'],
-        { encoding: 'utf-8' },
-        (error, _stdout, stderr) => {
-          if (error) {
-            console.error(`Error: ${error.message}`)
-            resolve(false)
-          }
-          if (stderr) {
-            console.error(`stderr: ${stderr}`)
-            resolve(false)
-          }
-          resolve(true)
+      child_process.execFile(this.getValue(), { encoding: 'utf-8' }, (error, _stdout, stderr) => {
+        if (error) {
+          console.error(`Error: ${error.message}`)
+          resolve(false)
         }
-      )
+        if (stderr) {
+          console.error(`stderr: ${stderr}`)
+          resolve(false)
+        }
+        resolve(true)
+      })
     })
   }
 
   async checkPathNotify(): Promise<boolean> {
     let ret = await this.checkPath()
     if (!ret) {
-      vscode.window.showErrorMessage(`"${this.getValue()}" not found. Configure ${this.configPath}, add to PATH, or disable in config.`)
+      vscode.window.showErrorMessage(
+        `"${this.getValue()}" not found. Configure ${
+          this.configPath
+        }, add to PATH, or disable in config.`
+      )
     }
     return ret
   }
@@ -553,6 +556,7 @@ export function getPlatform(): Platform {
     case 'darwin':
       return 'mac'
     default:
+      // includes WSL
       return 'linux'
   }
 }

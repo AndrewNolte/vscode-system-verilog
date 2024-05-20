@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 import * as vscode from 'vscode'
-import BaseLinter from './BaseLinter'
-import { FileDiagnostic } from '../utils'
 import { ConfigObject } from '../lib/libconfig'
+import { FileDiagnostic } from '../utils'
+import BaseLinter from './BaseLinter'
 
 export default class ModelsimLinter extends BaseLinter {
   work: ConfigObject<string> = new ConfigObject({
