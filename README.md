@@ -1,46 +1,27 @@
-# vscode-system-verilog
+# Verilog/SystemVerilog Tools
 
-SystemVerilog support for VS Code with Syntax Highlighting, Snippets, Linting, Formatting, and hover/definitions
+Verilog and SystemVerilog support including linting from popular tools, completions, formatting, waveform viewer, and project level analysis.
 
 Install it from the [VS Code Marketplace](https://marketplace.visualstudio.com/items/AndrewNolte.vscode-system-verilog)
 
+<!-- 
 [![Install Count](https://img.shields.io/visual-studio-marketplace/i/AndrewNolte.vscode-system-verilog)](https://marketplace.visualstudio.com/items?itemName=AndrewNolte.vscode-system-verilog)
-[![Download Count](https://img.shields.io/visual-studio-marketplace/d/AndrewNolte.vscode-system-verilog.png)](https://marketplace.visualstudio.com/items?itemName=AndrewNolte.vscode-system-verilog)
+[![Download Count](https://img.shields.io/visual-studio-marketplace/d/AndrewNolte.vscode-system-verilog.png)](https://marketplace.visualstudio.com/items?itemName=AndrewNolte.vscode-system-verilog) -->
 
 ![sample](images/sample.gif)
 
-## Linters
-  The extension will make symlinks to all sv files in .sv_cache/files, and then pass that to tools with the -y flag so they can discover modules without the need for individual build configs. This can be disabled with `verilog.index.enableSymlinks`
+## Linters 
+### [`slang`](https://github.com/MikePopoloski/slang) (recommended) || [`iverilog`](https://github.com/steveicarus/iverilog) (Icarus) || [`verilator`](https://github.com/verilator/verilator) ||  [`modelsim`](https://eda.sw.siemens.com/en-US/ic/modelsim/) || [`xvlog`](https://www.xilinx.com/products/design-tools/vivado.html) (Xilinx/Vivado)
 
-  Multiple Linters can be used in parallel.
-### [Slang](https://github.com/MikePopoloski/slang) - `slang` (recommended)
-![](https://img.shields.io/github/stars/MikePopoloski/slang?style=flat) 
-![](https://img.shields.io/github/commit-activity/t/MikePopoloski/slang?label=commits)
+  The extension will make symlinks to all sv files in .sv_cache/files, and then pass that to tools with the -y flag so they can discover modules without the need for individual build configs. This can be disabled with `verilog.index.enableSymlinks: false`
 
-### [Icarus](https://github.com/steveicarus/iverilog) - `iverilog`
-![](https://img.shields.io/github/stars/steveicarus/iverilog?style=flat) 
-![](https://img.shields.io/github/commit-activity/t/steveicarus/iverilog?label=commits)
-
-### [Verilator](https://github.com/verilator/verilator) - `verilator`
-![](https://img.shields.io/github/stars/verilator/verilator?style=flat) 
-![](https://img.shields.io/github/commit-activity/t/verilator/verilator?label=commits)
-
-### [Modelsim](https://eda.sw.siemens.com/en-US/ic/modelsim/) - `modelsim`
-### [Vivado Logical Simulation](https://www.xilinx.com/products/design-tools/vivado.html) - `xvlog` 
 
 ## Formatters
 
-### [verible](https://github.com/chipsalliance/verible) - `verible-verilog-format` (recommended)
-![](https://img.shields.io/github/stars/chipsalliance/verible?style=flat) 
-![](https://img.shields.io/github/commit-activity/t/chipsalliance/verible?label=commits)
+### [`verible-verilog-format`](https://github.com/chipsalliance/verible/tree/master/verilog/formatting) (recommended) || [`verilog-format`](https://github.com/ericsonj/verilog-format) || [`istyle`](https://github.com/thomasrussellmurphy/istyle-verilog-formatter)
 
-### [verilog-format](https://github.com/ericsonj/verilog-format) - `verilog-format`
-![](https://img.shields.io/github/stars/ericsonj/verilog-format?style=flat) 
-![](https://img.shields.io/github/commit-activity/t/ericsonj/verilog-format?label=commits)
-### [istyle](https://github.com/thomasrussellmurphy/istyle-verilog-formatter) - `verilog-format` 
-![](https://img.shields.io/github/stars/thomasrussellmurphy/istyle-verilog-formatter?style=flat) 
-![](https://img.shields.io/github/commit-activity/t/thomasrussellmurphy/istyle-verilog-formatter?label=commits)
 
+Verible supports both SystemVerilog and Verilog, while the others are only verilog. `verilog.formatDirs` lets you specify directories that you want to format on save, or you can use the global formatOnSave option for verilog/systemverilog.
 
 ## Language Servers
 
@@ -49,23 +30,13 @@ Install it from the [VS Code Marketplace](https://marketplace.visualstudio.com/i
 <img src="images/completion.gif" alt="Alt text" width="50%"/> -->
 
 - Document symbols outline
-- Hover and definitions across files, including macros
+- Hover and definitions across files, including macros defined in svh files or whatever you choose to pre-index
 - Code completion for modules on "ModuleName #"
-- Code completion suggests relevant symbols- package refs, params, ports, macros, builtins, etc.
 - Zero config required if module names match file
+- Code completion suggests relevant symbols- package refs, params, ports, macros, builtins, etc.
 - Hover and Completion for builtin functions like $bits()
 
-### [verible-verilog-ls](https://github.com/chipsalliance/verible?label=verible-verilog-ls)
-![](https://img.shields.io/github/stars/chipsalliance/verible?style=flat) 
-![](https://img.shields.io/github/commit-activity/t/chipsalliance/verible?label=commits)
-
-### [veridian](https://github.com/vivekmalneedi/veridian)
-![](https://img.shields.io/github/stars/vivekmalneedi/veridian?style=flat) 
-![](https://img.shields.io/github/commit-activity/t/vivekmalneedi/veridian?label=commits)
-
-### [svls](https://github.com/dalance/svls)
-![](https://img.shields.io/github/stars/dalance/svls?style=flat) 
-![](https://img.shields.io/github/commit-activity/t/dalance/svls?label=commits)
+#### Third party options: [`verible-verilog-ls`](https://github.com/chipsalliance/verible/tree/master/verilog/tools/ls) || [`veridian`](https://github.com/vivekmalneedi/veridian) || [`svls`](https://github.com/dalance/svls)
 
 
 ## Fst/Vcd/Ghw support from [Surfer](https://surfer-project.org/)
@@ -115,7 +86,7 @@ This is the recommended linter because it's the [fastest and most compliant](htt
 ],
 ```
 
-Explore all configuration options [here](CONFIG.md)
+### [All Config Options](CONFIG.md)
 
 For debugging your config, you can see the logs in Output tab > select 'verilog' in the dropdown
 
@@ -140,7 +111,10 @@ Since forking, these features have been added:
   - fixed verilator lint
   - Passes -y .sv_cache/files for tools 
   - more precise slang and verilator lint ranges
-- autocomplete module/interface while typing - 'Module #(' will trigger completion
+- Top level context
+  - Select top level to brose hierarchy (not fully elaborated)
+  - Lint the whole core, including elaboration
+- autocomplete module/interface while typing - 'ModuleName #' will trigger completion
 - format on save for directories specified in config
 - simplified configuration
 
@@ -148,7 +122,6 @@ There's a lot more planned as well:
 - expanded hover support for hierarchical references (ctags needs a fix)
 - slang language server
 - expand macros on hover + expansion command
-- project or top level selection
-  - instance selection within project
-  - context aware inlay hints for elaboration
+- context aware inlay hints for elaboration
+- project selection, build configs
 
