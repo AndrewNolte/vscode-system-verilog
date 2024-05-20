@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 import * as vscode from 'vscode'
-import BaseLinter from './BaseLinter'
-import { FileDiagnostic } from '../utils'
 import { SvStandard, VerilogStandard, ext } from '../extension'
+import { FileDiagnostic, getWorkspaceFolder } from '../utils'
+import BaseLinter from './BaseLinter'
 
 let verilogArgs: Map<string, string> = new Map([
   [VerilogStandard.V1995, '-g1995'],
@@ -27,8 +27,7 @@ export default class IcarusLinter extends BaseLinter {
     return vscode.DiagnosticSeverity.Information
   }
   protected toolArgs(doc: vscode.TextDocument): string[] {
-    let args = []
-    args.push('-t null')
+    let args = ['-t', 'null']
     if (doc.languageId === 'systemverilog') {
       args.push(svArgs.get(ext.svStandard.getValue()) ?? '')
     } else {
@@ -49,27 +48,31 @@ export default class IcarusLinter extends BaseLinter {
     // /home/ubuntu/project1/property_1.sv:3: error: Invalid module instantiation"
     args.stderr.split(/\r?\n/g).forEach((line, _) => {
       let terms = line.split(':')
-      let lineNum = parseInt(terms[1].trim()) - 1
-      if (terms.length === 3) {
-        diagnostics.push({
-          file: terms[0],
-          severity: vscode.DiagnosticSeverity.Error,
-          range: new vscode.Range(lineNum, 0, lineNum, Number.MAX_VALUE),
-          message: terms[2].trim(),
-          code: 'iverilog',
-          source: 'iverilog',
-        })
-      } else if (terms.length >= 4) {
-        let sev: vscode.DiagnosticSeverity = this.convertToSeverity(terms[2].trim())
-        diagnostics.push({
-          file: terms[0],
-          severity: sev,
-          range: new vscode.Range(lineNum, 0, lineNum, Number.MAX_VALUE),
-          message: terms[3].trim(),
-          code: 'iverilog',
-          source: 'Icarus Verilog',
-        })
+      if (terms.length < 2) {
+        return
       }
+      let file = terms[0]
+
+      let ws = getWorkspaceFolder()
+      if (ws && file.startsWith(ws)) {
+        file = file.substring(ws.length + 1)
+      }
+      let lineNum = parseInt(terms[1].trim()) - 1
+
+      let code = 'error'
+      let sev: vscode.DiagnosticSeverity = vscode.DiagnosticSeverity.Error
+      if (terms.length > 3) {
+        code = terms[2].trim()
+        sev = this.convertToSeverity(code)
+      }
+      diagnostics.push({
+        file: file,
+        severity: sev,
+        range: new vscode.Range(lineNum, 0, lineNum, Number.MAX_VALUE),
+        message: terms[terms.length - 1].trim(),
+        code: code,
+        source: 'iverilog',
+      })
     })
     return diagnostics
   }
