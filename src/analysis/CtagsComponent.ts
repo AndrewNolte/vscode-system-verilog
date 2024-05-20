@@ -65,11 +65,20 @@ export class CtagsComponent extends ExtensionComponent {
         }
 
         files.forEach(async (file: vscode.Uri) => {
-          let doc: vscode.TextDocument
-          try {
-            doc = await vscode.workspace.openTextDocument(file)
-          } catch (e) {
-            this.logger.error('Failed to index include ' + file.fsPath)
+          let doc: vscode.TextDocument | undefined = undefined
+          let retryCount = 0
+          while (retryCount < 3) {
+            try {
+              doc = await vscode.workspace.openTextDocument(file)
+              break
+            } catch (e) {
+              retryCount++
+              await new Promise((resolve) => setTimeout(resolve, 10))
+            }
+          }
+
+          if (doc === undefined) {
+            this.logger.error('Failed to index file: ' + file.fsPath)
             return
           }
 
