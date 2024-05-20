@@ -19,6 +19,7 @@ export default abstract class BaseLinter extends ToolConfig {
 
   includeComputed: string[] = []
   isWsl: boolean = false
+  indexDir: string | undefined = undefined
 
   constructor(name: string, defaultOn: boolean = false) {
     super(name)
@@ -35,22 +36,27 @@ export default abstract class BaseLinter extends ToolConfig {
 
     this.computeIncludes()
     context.subscriptions.push(
-      this.onConfigUpdated(() => {
-        this.diagnostics.clear()
-        // We want to cache these values so we don't fetch every lint cycle
-        this.logger.info('linter config updated')
-        this.enabled.getValue()
-        this.computeIncludes()
-
-        this.path.getValue()
-        this.args.getValue()
-        this.runAtFileLocation.getValue()
+      this.onConfigUpdated(async () => {
+        await this.refreshConfg()
       })
     )
+    this.refreshConfg()
 
     if (this.enabled.getValue()) {
       this.path.checkPathNotify()
     }
+    this.indexDir = (await ext.index.getDir())?.fsPath
+  }
+  async refreshConfg() {
+    this.diagnostics.clear()
+    // We want to cache these values so we don't fetch every lint cycle
+    this.logger.info('linter config updated')
+    this.enabled.getValue()
+    this.computeIncludes()
+
+    this.args.getValue()
+    this.runAtFileLocation.getValue()
+    await this.path.getValueAsync()
   }
 
   computeIncludes() {
@@ -136,9 +142,9 @@ export default abstract class BaseLinter extends ToolConfig {
     if (this.args.cachedValue !== '') {
       args.push(...this.args.cachedValue.trim().split(/\s+/))
     }
-    if (ext.index.enableSymlinks.cachedValue && ext.index.dir !== undefined) {
+    if (ext.index.enableSymlinks.cachedValue && this.indexDir !== undefined) {
       args.push('-y')
-      args.push(ext.index.dir.fsPath)
+      args.push(this.indexDir)
     }
     args.push(...addargs)
 

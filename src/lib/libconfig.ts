@@ -5,6 +5,9 @@ import * as vscode from 'vscode'
 import { JSONSchemaType } from './jsonSchema'
 import { Logger, StubLogger, createLogger } from './logger'
 import { IConfigurationPropertySchema } from './vscodeConfigs'
+import { promisify } from 'util'
+
+const execFilePromise = promisify(child_process.execFile)
 
 class ExtensionNode {
   nodeName: string | undefined
@@ -468,72 +471,75 @@ export class PathConfigObject extends ConfigObject<string> {
     configObj.default = JSON.stringify(platformDefaults)
     super(configObj)
     this.platformDefaults = platformDefaults
+    this.onConfigUpdated(async () => {
+      await this.getAbsPath()
+    })
+  }
+
+  compile(nodeName: string, parentNode?: ExtensionComponent | undefined): void {
+    super.compile(nodeName, parentNode)
+    this.cachedValue = JSON.stringify(this.platformDefaults)
+    this.getAbsPath()
   }
 
   getValue(): string {
+    return this.cachedValue
+  }
+
+  async getValueAsync(): Promise<string> {
+    if (this.cachedValue.startsWith('/') || this.cachedValue.startsWith('C:')) {
+      return this.cachedValue
+    }
+    return await this.getAbsPath()
+  }
+
+  async getAbsPath(): Promise<string> {
     let path = super.getValue()
     if (path === '' || path.startsWith('{')) {
       path = this.platformDefaults[getPlatform()]
     }
-    path = this.getAbsPath(path)
 
-    this.cachedValue = path
-    return path
-  }
-
-  getAbsPath(path: string): string {
     if (getPlatform() === 'windows') {
       if (!path.match(/^[a-zA-Z]:\\/)) {
-        child_process.execFile('cmd.exe', ['/c', `where ${path}`], (error, stdout, stderr) => {
-          if (error) {
-            console.error(`Error: ${error.message}`)
-            path = ''
-          }
-          if (stderr) {
-            console.error(`stderr: ${stderr}`)
-            path = ''
-          }
-          path = stdout.split('\r\n')[0].trim() // Taking the first result if multiple are returned
-        })
+        path = await this.which(path)
       }
     } else {
       // mac and linux
       if (!path.startsWith('/')) {
-        // Using bash to execute the `which` command
-        child_process.execFile(
-          vscode.env.shell,
-          ['-c', `which ${path}`],
-          (error, stdout, stderr) => {
-            if (error) {
-              console.error(`Error: ${error.message}`)
-              path = ''
-            }
-            if (stderr) {
-              console.error(`stderr: ${stderr}`)
-              path = ''
-            }
-            return stdout.trim()
-          }
-        )
+        path = await this.which(path)
       }
     }
+
+    this.cachedValue = path
+
     return path
   }
 
+  async which(path: string): Promise<string> {
+    let args = ['-c', `which ${path}`]
+    if (getPlatform() === 'windows') {
+      args = ['/c', `where ${path}`]
+    }
+    try {
+      const { stdout, stderr } = await execFilePromise(vscode.env.shell, args)
+      if (stderr) {
+        console.error(`Error: ${stderr}`)
+        return ''
+      }
+      if (getPlatform() === 'windows') {
+        // where returns multiple
+        return stdout.split('\r\n')[0].trim()
+      }
+      return stdout.trim()
+    } catch (error) {
+      console.error(`Error: ${error}`)
+      return ''
+    }
+  }
+
   async checkPath(): Promise<boolean> {
-    return new Promise((resolve, _reject) => {
-      child_process.execFile(this.getValue(), { encoding: 'utf-8' }, (error, _stdout, stderr) => {
-        if (error) {
-          console.error(`Error: ${error.message}`)
-          resolve(false)
-        }
-        if (stderr) {
-          console.error(`stderr: ${stderr}`)
-          resolve(false)
-        }
-        resolve(true)
-      })
-    })
+    let abspath = await this.getAbsPath()
+    return abspath !== ''
   }
 
   async checkPathNotify(): Promise<boolean> {
