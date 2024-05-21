@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.11] - 2024-05-20
+- Remove HDL support, rename title, refine focus on systemverilog/verilog
+- Fix icarus lint parser
+- Fix windows and wsl code, removes need for "useWSL" config
+- Fix project-level file paths for verilator lint
+- Fix initial include file indexing, needed some retries
+
 ## [0.9.10] - 2024-05-14
 - side panel to select top level
 - lint whole project using top level context
