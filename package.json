@@ -1,8 +1,8 @@
 {
   "name": "vscode-system-verilog",
-  "displayName": "vscode-system-verilog",
-  "description": "SystemVerilog, Verilog, and VHDL support for VS Code",
-  "version": "0.9.9",
+  "displayName": "Verilog/SystemVerilog Tools",
+  "description": "Verilog and SystemVerilog support including linting from popular tools, completions, formatting, and project level analysis.",
+  "version": "0.9.10",
   "publisher": "AndrewNolte",
   "keywords": [
     "verilog",
