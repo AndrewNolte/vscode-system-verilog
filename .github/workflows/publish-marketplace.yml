@@ -20,9 +20,9 @@ jobs:
       - run: git config --global user.name "Andrew Nolte"
       - name: Publish to Visual Studio Marketplace
         run: vsce publish ${{ github.event.inputs.kind }} --pat ${{ secrets.VS_MARKETPLACE_TOKEN }}
-        run: git add .
-        run: git commit -m "cut release"
-        run: git push
+      - run: git add .
+      - run: git commit -m "cut release"
+      - run: git push
       # - run: npm install -g ovsx
       # - name: Publish to Open Vsix
       #   run: npx ovsx publish -p ${{ secrets.OPEN_VSX_TOKEN }}
