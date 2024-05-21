@@ -3,7 +3,7 @@ import * as child_process from 'child_process'
 import * as os from 'os'
 import * as path from 'path'
 import * as vscode from 'vscode'
-import { ext } from '../extension'
+import { ext, getCacheDir } from '../extension'
 import { ConfigObject } from '../lib/libconfig'
 import { ToolConfig } from '../lib/runner'
 import { FileDiagnostic, getAbsPath, getWorkspaceFolder, getWorkspaceUri } from '../utils'
@@ -19,7 +19,7 @@ export default abstract class BaseLinter extends ToolConfig {
 
   includeComputed: string[] = []
   isWsl: boolean = false
-  indexDir: string | undefined = undefined
+  indexDir: vscode.Uri | undefined = undefined
 
   constructor(name: string, defaultOn: boolean = false) {
     super(name)
@@ -45,7 +45,7 @@ export default abstract class BaseLinter extends ToolConfig {
     if (this.enabled.getValue()) {
       this.path.checkPathNotify()
     }
-    this.indexDir = (await ext.index.getDir())?.fsPath
+    this.indexDir = getCacheDir()
   }
   async refreshConfg() {
     this.diagnostics.clear()
@@ -144,7 +144,7 @@ export default abstract class BaseLinter extends ToolConfig {
     }
     if (ext.index.enableSymlinks.cachedValue && this.indexDir !== undefined) {
       args.push('-y')
-      args.push(this.indexDir)
+      args.push(this.indexDir.fsPath)
     }
     args.push(...addargs)
 

@@ -264,3 +264,11 @@ export async function activate(context: vscode.ExtensionContext) {
     'surfer-project.surfer',
   ])
 }
+
+export function getCacheDir(): vscode.Uri | undefined {
+  let ws = vscode.workspace.workspaceFolders?.[0]?.uri
+  if (ws === undefined) {
+    return undefined
+  }
+  return vscode.Uri.joinPath(ws, '.sv_cache', 'files')
+}

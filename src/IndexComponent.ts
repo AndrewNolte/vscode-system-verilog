@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 import * as vscode from 'vscode'
 import { ConfigObject, ExtensionComponent } from './lib/libconfig'
-import { ext } from './extension'
+import { ext, getCacheDir } from './extension'
 import fs = require('fs')
 import path = require('path')
 
@@ -38,11 +38,10 @@ export class IndexComponent extends ExtensionComponent {
   }
 
   async getDir(reset: boolean = false): Promise<vscode.Uri | undefined> {
-    let ws = vscode.workspace.workspaceFolders?.[0]?.uri
-    if (ws === undefined) {
+    this.dir = getCacheDir()
+    if (this.dir === undefined) {
       return undefined
     }
-    this.dir = vscode.Uri.joinPath(ws, '.sv_cache', 'files')
     if (!fs.existsSync(this.dir.fsPath)) {
       fs.mkdirSync(this.dir.fsPath, { recursive: true })
     } else if (reset) {
