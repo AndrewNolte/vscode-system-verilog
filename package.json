@@ -30,7 +30,7 @@
     "Visualization"
   ],
   "icon": "images/icon.png",
-  "main": "./out/main.js",
+  "main": "./dist/main.js",
   "prettier": {
     "trailingComma": "es5",
     "singleQuote": true,
@@ -674,10 +674,10 @@
     "compile-tests": "tsc -p . --outDir out",
     "watch-tests": "tsc -p . -w --outDir out",
     "lint": "eslint src --ext ts",
-    "vscode:prepublish": "npm run esbuild-base -- --minify",
-    "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
-    "esbuild": "npm run esbuild-base -- --sourcemap",
-    "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
+    "vscode:prepublish": "npm run esbuild-base -- --minify --outfile=dist/main.js",
+    "esbuild-base": "esbuild ./src/extension.ts --bundle --external:vscode --format=cjs --platform=node",
+    "esbuild": "npm run esbuild-base -- --sourcemap --outfile=out/main.js",
+    "esbuild-watch": "npm run esbuild -- --watch",
     "format": "npx prettier --write **/*.ts",
     "test-compile": "tsc -p ./",
     "test-headless": "npm run compile-tests && xvfb-run node ./out/src/test/runTest.js",
