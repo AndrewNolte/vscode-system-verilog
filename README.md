@@ -86,42 +86,10 @@ This is the recommended linter because it's the [fastest and most compliant](htt
 ],
 ```
 
-### [All Config Options](CONFIG.md)
+### See all config options in [CONFIG.md](CONFIG.md)
 
 For debugging your config, you can see the logs in Output tab > select 'verilog' in the dropdown
 
 
-## Why this extension?
-
-This was forked from https://github.com/mshr-h/vscode-verilog-hdl-support because I wanted to move faster with shipping features and refine the focus on system verilog and large monorepos.
-
-Since forking, these features have been added:
-- Indexing
-  - in memory index for ModuleName.sv -> path/to/ModuleName.sv
-  - symlink file index in .sv_cache/files
-  - indexes .svh files to pick up macros
-  - works on the assumption that ModuleName.sv contains ModuleName
-- Definition Provider
-  - port/params definitions
-  - Interface.var definitions
-  - InterfaceArray[x].var definitions
-  - greatly improved hover/definition performance
-- Linters
-  - ability to run multiple linters
-  - fixed verilator lint
-  - Passes -y .sv_cache/files for tools 
-  - more precise slang and verilator lint ranges
-- Top level context
-  - Select top level to brose hierarchy (not fully elaborated)
-  - Lint the whole core, including elaboration
-- autocomplete module/interface while typing - 'ModuleName #' will trigger completion
-- format on save for directories specified in config
-- simplified configuration
-
-There's a lot more planned as well:
-- expanded hover support for hierarchical references (ctags needs a fix)
-- slang language server
-- expand macros on hover + expansion command
-- context aware inlay hints for elaboration
-- project selection, build configs
-
+## Features 
+See a detailed feature list and roadmap in [FEATURES.md](FEATURES.md)
