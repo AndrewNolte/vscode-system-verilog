@@ -100,7 +100,7 @@ export default abstract class BaseLinter extends ToolConfig {
           uri = vscode.Uri.file(file)
         }
         this.diagnostics.set(uri, diagnostics)
-        this.logger.info(`found ${diagnostics.length}/${diags.length} errors in ${uri}`)
+        this.logger.info(`found ${diagnostics.length}/${diags.length} errors in ${uri.fsPath}`)
       }
     } else {
       this.diagnostics.set(
@@ -110,7 +110,7 @@ export default abstract class BaseLinter extends ToolConfig {
         })
       )
       this.logger.info(
-        `found ${this.diagnostics.get(doc.uri)?.length}/${diags.length} errors in ${doc.uri}`
+        `found ${this.diagnostics.get(doc.uri)?.length}/${diags.length} errors in ${doc.uri.fsPath}`
       )
     }
   }
