@@ -41,11 +41,11 @@ export default abstract class BaseLinter extends ToolConfig {
       })
     )
     this.refreshConfg()
+    this.indexDir = getCacheDir()
 
     if (this.enabled.getValue()) {
-      this.path.checkPathNotify()
+      await this.path.checkPathNotify()
     }
-    this.indexDir = getCacheDir()
   }
   async refreshConfg() {
     this.diagnostics.clear()

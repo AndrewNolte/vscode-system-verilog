@@ -473,42 +473,36 @@ export class PathConfigObject extends ConfigObject<string> {
     })
     this.platformDefaults = platformDefaults
     this.onConfigUpdated(async () => {
-      await this.getAbsPath()
+      await this.checkPathNotify()
     })
   }
 
   compile(nodeName: string, parentNode?: ExtensionComponent | undefined): void {
     super.compile(nodeName, parentNode)
-    this.cachedValue = JSON.stringify(this.platformDefaults)
-    this.getAbsPath()
-  }
-
-  getValue(): string {
-    return this.cachedValue
+    this.getValueAsync()
   }
 
   async getValueAsync(): Promise<string> {
-    if (this.cachedValue.startsWith('/') || this.cachedValue.startsWith('C:')) {
+    let path = vscode.workspace.getConfiguration().get(this.configPath!, this.default!)
+
+    // if we already performed which, use that
+    if (path === '' && (this.cachedValue.startsWith('/') || this.cachedValue.startsWith('C:'))) {
       return this.cachedValue
     }
-    return await this.getAbsPath()
-  }
-
-  async getAbsPath(): Promise<string> {
-    let path = super.getValue()
 
     if (path === '') {
+      // if it's a platform default, check the path
       path = this.platformDefaults[getPlatform()]
-    }
 
-    if (getPlatform() === 'windows') {
-      if (!path.match(/^[a-zA-Z]:\\/)) {
-        path = await this.which(path)
-      }
-    } else {
-      // mac and linux
-      if (!path.startsWith('/')) {
-        path = await this.which(path)
+      if (getPlatform() === 'windows') {
+        if (!path.match(/^[a-zA-Z]:\\/)) {
+          path = await this.which(path)
+        }
+      } else {
+        // mac and linux
+        if (!path.startsWith('/')) {
+          path = await this.which(path)
+        }
       }
     }
 
@@ -539,21 +533,17 @@ export class PathConfigObject extends ConfigObject<string> {
     }
   }
 
-  async checkPath(): Promise<boolean> {
-    let abspath = await this.getAbsPath()
-    return abspath !== ''
-  }
-
   async checkPathNotify(): Promise<boolean> {
-    let ret = await this.checkPath()
-    if (!ret) {
+    let path = await this.getValueAsync()
+    if ((await this.which(path)) === '') {
       vscode.window.showErrorMessage(
-        `"${this.getValue()}" not found. Configure ${
+        `"${this.getValue()}" not found. Configure abs path at ${
           this.configPath
         }, add to PATH, or disable in config.`
       )
+      return false
     }
-    return ret
+    return true
   }
 
   getMarkdownString(): string {
