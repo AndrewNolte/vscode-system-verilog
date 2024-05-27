@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.9.12] - 2024-05-27
+- Publish on OpenVSX
+- minor project UI tweaks
+- Remove path defaults in json schema, show them in CONFIG.md instead
+- fix repeat files in project view
+
 ## [0.9.11] - 2024-05-20
 - Remove HDL support, rename title, refine focus on systemverilog/verilog
 - Fix icarus lint parser
