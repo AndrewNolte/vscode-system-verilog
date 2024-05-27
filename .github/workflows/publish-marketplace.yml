@@ -23,5 +23,5 @@ jobs:
         run: vsce publish ${{ github.event.inputs.kind }} --pat ${{ secrets.VS_MARKETPLACE_TOKEN }}
       - run: npm install -g ovsx
       - name: Publish to Open Vsix
-        run: npx ovsx publish -p ${{ secrets.OPEN_VSX_TOKEN }} *.vsix
+        run: npx ovsx publish -p ${{ secrets.OPEN_VSX_TOKEN }}
       - run: git push
