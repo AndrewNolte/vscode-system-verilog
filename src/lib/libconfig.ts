@@ -1,11 +1,11 @@
 import * as child_process from 'child_process'
 import { readFile, writeFile } from 'fs/promises'
 import * as process from 'process'
+import { promisify } from 'util'
 import * as vscode from 'vscode'
 import { JSONSchemaType } from './jsonSchema'
 import { Logger, StubLogger, createLogger } from './logger'
 import { IConfigurationPropertySchema } from './vscodeConfigs'
-import { promisify } from 'util'
 
 const execFilePromise = promisify(child_process.execFile)
 
@@ -467,9 +467,10 @@ type PathConfigSchema = Omit<IConfigurationPropertySchema, 'default'>
 export class PathConfigObject extends ConfigObject<string> {
   platformDefaults: PlatformMap
   constructor(obj: PathConfigSchema, platformDefaults: PlatformMap) {
-    let configObj: IConfigurationPropertySchema = obj
-    configObj.default = JSON.stringify(platformDefaults)
-    super(configObj)
+    super({
+      ...obj,
+      default: '',
+    })
     this.platformDefaults = platformDefaults
     this.onConfigUpdated(async () => {
       await this.getAbsPath()
@@ -495,7 +496,8 @@ export class PathConfigObject extends ConfigObject<string> {
 
   async getAbsPath(): Promise<string> {
     let path = super.getValue()
-    if (path === '' || path.startsWith('{')) {
+
+    if (path === '') {
       path = this.platformDefaults[getPlatform()]
     }
 
@@ -552,6 +554,16 @@ export class PathConfigObject extends ConfigObject<string> {
       )
     }
     return ret
+  }
+
+  getMarkdownString(): string {
+    let out = `- \`${this.configPath}\`: path\n\n`
+    out += `  Platform Defaults:\n\n`
+    out += `    linux:   \`${this.platformDefaults.linux}\`\n\n`
+    out += `    mac:     \`${this.platformDefaults.mac}\`\n\n`
+    out += `    windows: \`${this.platformDefaults.windows}\`\n\n`
+    out += '\n'
+    return out
   }
 }
 

@@ -5,9 +5,15 @@
     Enable creating file symlinks in .sv_cache/files for the -y flag that most tools have
 
 
-- `verilog.ctags.path`: string = "{"windows":"ctags.exe","linux":"ctags-universal","mac":"ctags"}"
+- `verilog.ctags.path`: path
 
-    Path to ctags universal executable
+  Platform Defaults:
+
+    linux:   `ctags-universal`
+
+    mac:     `ctags`
+
+    windows: `ctags.exe`
 
 
 - `verilog.ctags.indexAllIncludes`: boolean = false
@@ -69,9 +75,15 @@
     Arguments to pass to the tool
 
 
-- `verilog.lint.slang.path`: string = "{"windows":"slang.exe","linux":"slang","mac":"slang"}"
+- `verilog.lint.slang.path`: path
 
-    Path to the tool
+  Platform Defaults:
+
+    linux:   `slang`
+
+    mac:     `slang`
+
+    windows: `slang.exe`
 
 
 - `verilog.lint.slang.includes`: array = []
@@ -94,9 +106,15 @@
     Arguments to pass to the tool
 
 
-- `verilog.lint.modelsim.path`: string = "{"windows":"modelsim.exe","linux":"modelsim","mac":"modelsim"}"
+- `verilog.lint.modelsim.path`: path
 
-    Path to the tool
+  Platform Defaults:
+
+    linux:   `modelsim`
+
+    mac:     `modelsim`
+
+    windows: `modelsim.exe`
 
 
 - `verilog.lint.modelsim.includes`: array = []
@@ -124,9 +142,15 @@
     Arguments to pass to the tool
 
 
-- `verilog.lint.iverilog.path`: string = "{"windows":"iverilog.exe","linux":"iverilog","mac":"iverilog"}"
+- `verilog.lint.iverilog.path`: path
 
-    Path to the tool
+  Platform Defaults:
+
+    linux:   `iverilog`
+
+    mac:     `iverilog`
+
+    windows: `iverilog.exe`
 
 
 - `verilog.lint.iverilog.includes`: array = []
@@ -149,9 +173,15 @@
     Arguments to pass to the tool
 
 
-- `verilog.lint.verilator.path`: string = "{"windows":"verilator.exe","linux":"verilator","mac":"verilator"}"
+- `verilog.lint.verilator.path`: path
 
-    Path to the tool
+  Platform Defaults:
+
+    linux:   `verilator`
+
+    mac:     `verilator`
+
+    windows: `verilator.exe`
 
 
 - `verilog.lint.verilator.includes`: array = []
@@ -174,9 +204,15 @@
     Arguments to pass to the tool
 
 
-- `verilog.lint.xvlog.path`: string = "{"windows":"xvlog.exe","linux":"xvlog","mac":"xvlog"}"
+- `verilog.lint.xvlog.path`: path
 
-    Path to the tool
+  Platform Defaults:
+
+    linux:   `xvlog`
+
+    mac:     `xvlog`
+
+    windows: `xvlog.exe`
 
 
 - `verilog.lint.xvlog.includes`: array = []
@@ -199,9 +235,15 @@
     Arguments to pass to the tool
 
 
-- `verilog.svFormat.verible.path`: string = "{"windows":"verible-verilog-format.exe","linux":"verible-verilog-format","mac":"verible-verilog-format"}"
+- `verilog.svFormat.verible.path`: path
 
-    Path to the tool
+  Platform Defaults:
+
+    linux:   `verible-verilog-format`
+
+    mac:     `verible-verilog-format`
+
+    windows: `verible-verilog-format.exe`
 
 
 - `verilog.svFormat.formatter`: string = "verible-verilog-format"
@@ -221,9 +263,15 @@
     Arguments to pass to the tool
 
 
-- `verilog.verilogFormat.verilogFormatter.path`: string = "{"windows":"verilogFormat.exe","linux":"verilogFormat","mac":"verilogFormat"}"
+- `verilog.verilogFormat.verilogFormatter.path`: path
 
-    Path to the tool
+  Platform Defaults:
+
+    linux:   `verilogFormat`
+
+    mac:     `verilogFormat`
+
+    windows: `verilogFormat.exe`
 
 
 - `verilog.verilogFormat.iStyleFormatter.runAtFileLocation`: boolean = false
@@ -236,9 +284,15 @@
     Arguments to pass to the tool
 
 
-- `verilog.verilogFormat.iStyleFormatter.path`: string = "{"windows":"istyleFormat.exe","linux":"istyleFormat","mac":"istyleFormat"}"
+- `verilog.verilogFormat.iStyleFormatter.path`: path
 
-    Path to the tool
+  Platform Defaults:
+
+    linux:   `istyleFormat`
+
+    mac:     `istyleFormat`
+
+    windows: `istyleFormat.exe`
 
 
 - `verilog.verilogFormat.veribleFormatter.runAtFileLocation`: boolean = false
@@ -251,9 +305,15 @@
     Arguments to pass to the tool
 
 
-- `verilog.verilogFormat.veribleFormatter.path`: string = "{"windows":"verible.exe","linux":"verible","mac":"verible"}"
+- `verilog.verilogFormat.veribleFormatter.path`: path
 
-    Path to the tool
+  Platform Defaults:
+
+    linux:   `verible`
+
+    mac:     `verible`
+
+    windows: `verible.exe`
 
 
 - `verilog.verilogFormat.formatter`: string = "verible-verilog-format"
