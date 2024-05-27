@@ -101,6 +101,7 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
       title: 'Verilog: Set Top Level',
       shortTitle: 'Set Top',
       languages: ['verilog', 'systemverilog'],
+      isTitleButton: true,
       icon: '$(chip)',
     },
     async () => {
@@ -111,6 +112,11 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
       }
       this.top = await selectModule(doc)
       this._onDidChangeTreeData.fire()
+      // show view
+      if (this.top !== undefined && this.treeView !== undefined) {
+        // this.treeView.reveal(new RootItem(), { select: true, focus: true })
+        this.treeView.reveal(new RootItem(this.top), { select: true, focus: true })
+      }
     }
   )
 
@@ -182,6 +188,11 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
       return [new RootItem(this.top)]
     }
     return await element.getChildren()
+  }
+
+  getParent(): ScopeItem | undefined {
+    // we want to be able to reveal the root item
+    return undefined
   }
 
   async resolveTreeItem(

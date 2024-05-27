@@ -600,6 +600,7 @@
           "verilog",
           "systemverilog"
         ],
+        "isTitleButton": true,
         "icon": "$(chip)"
       },
       {
@@ -658,6 +659,11 @@
     ],
     "menus": {
       "view/title": [
+        {
+          "command": "verilog.project.setTopLevel",
+          "when": "view == verilog.project",
+          "group": "navigation"
+        },
         {
           "command": "verilog.project.clearTopLevel",
           "when": "view == verilog.project",
