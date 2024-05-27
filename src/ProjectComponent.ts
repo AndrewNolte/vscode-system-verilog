@@ -1,9 +1,9 @@
-import { CommandNode, InlineButton, TitleButton, ViewComponent } from './lib/libconfig'
 import * as vscode from 'vscode'
-import { TreeItem, TreeDataProvider } from 'vscode'
-import { ext } from './extension'
-import { selectModule, selectModuleGlobal } from './analysis/selection'
+import { TreeDataProvider, TreeItem } from 'vscode'
 import { Symbol } from './analysis/ctagsParser'
+import { selectModule, selectModuleGlobal } from './analysis/selection'
+import { ext } from './extension'
+import { CommandNode, ViewComponent } from './lib/libconfig'
 
 class ScopeItem {
   // the symbol to get children from
@@ -96,11 +96,12 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
   readonly onDidChangeTreeData: vscode.Event<void> = this._onDidChangeTreeData.event
   treeView: vscode.TreeView<ScopeItem> | undefined
 
-  setTopLevel: TitleButton = new TitleButton(
-    // ['verilog', 'systemverilog'],
+  setTopLevel: CommandNode = new CommandNode(
     {
       title: 'Verilog: Set Top Level',
-      icon: '$(check)',
+      shortTitle: 'Set Top',
+      languages: ['verilog', 'systemverilog'],
+      icon: '$(chip)',
     },
     async () => {
       let doc = vscode.window.activeTextEditor?.document
@@ -113,20 +114,23 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
     }
   )
 
-  clearTopLevel: TitleButton = new TitleButton(
+  clearTopLevel: CommandNode = new CommandNode(
     {
-      title: "Verilog: Clear Top Level",
+      title: 'Verilog: Clear Top Level',
       icon: '$(panel-close)',
+      isTitleButton: true,
     },
     async () => {
       this.top = undefined
       this._onDidChangeTreeData.fire()
     }
   )
-  
+
   selectTopLevel: CommandNode = new CommandNode(
     {
       title: 'Verilog: Select Top Level',
+      icon: '$(folder-opened)',
+      isTitleButton: true,
     },
     async () => {
       this.top = await selectModuleGlobal()
@@ -134,10 +138,10 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
     }
   )
 
-  showSourceFile: InlineButton = new InlineButton(
-    'File',
+  showSourceFile: CommandNode = new CommandNode(
     {
       title: 'Show Module',
+      inlineContext: 'File',
     },
     async (item: ScopeItem) => {
       if (item.definition) {

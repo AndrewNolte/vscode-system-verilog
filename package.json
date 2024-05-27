@@ -595,20 +595,29 @@
       {
         "command": "verilog.project.setTopLevel",
         "title": "Verilog: Set Top Level",
-        "icon": "$(check)"
+        "shortTitle": "Set Top",
+        "languages": [
+          "verilog",
+          "systemverilog"
+        ],
+        "icon": "$(chip)"
       },
       {
         "command": "verilog.project.clearTopLevel",
         "title": "Verilog: Clear Top Level",
-        "icon": "$(panel-close)"
+        "icon": "$(panel-close)",
+        "isTitleButton": true
       },
       {
         "command": "verilog.project.selectTopLevel",
-        "title": "Verilog: Select Top Level"
+        "title": "Verilog: Select Top Level",
+        "icon": "$(folder-opened)",
+        "isTitleButton": true
       },
       {
         "command": "verilog.project.showSourceFile",
-        "title": "Show Module"
+        "title": "Show Module",
+        "inlineContext": "File"
       },
       {
         "command": "verilog.reindex",
@@ -650,12 +659,12 @@
     "menus": {
       "view/title": [
         {
-          "command": "verilog.project.setTopLevel",
+          "command": "verilog.project.clearTopLevel",
           "when": "view == verilog.project",
           "group": "navigation"
         },
         {
-          "command": "verilog.project.clearTopLevel",
+          "command": "verilog.project.selectTopLevel",
           "when": "view == verilog.project",
           "group": "navigation"
         }
@@ -667,7 +676,13 @@
           "group": "inline"
         }
       ],
-      "editor/title": []
+      "editor/title": [
+        {
+          "command": "verilog.project.setTopLevel",
+          "when": "resourceLangId == verilog || resourceLangId == systemverilog",
+          "group": "navigation"
+        }
+      ]
     }
   },
   "scripts": {

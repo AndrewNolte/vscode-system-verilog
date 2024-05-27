@@ -172,8 +172,8 @@ export abstract class ExtensionComponent extends ExtensionNode {
     return this.children.filter((child) => child instanceof ViewComponent) as ViewComponent[]
   }
 
-  getViewButtons(): ViewButton[] {
-    return this.children.filter((child) => child instanceof ViewButton) as ViewButton[]
+  getCommands(): CommandNode[] {
+    return this.children.filter((child) => child instanceof CommandNode) as CommandNode[]
   }
 
   updateJson(json: any): void {
@@ -224,20 +224,20 @@ export abstract class ExtensionComponent extends ExtensionNode {
             viewsWelcome.push(welc)
           }
 
-          for (let button of view.getViewButtons()) {
+          for (let button of view.getCommands()) {
             // TODO: alt? more complex 'when' clause? other 'group' options?
             let obj = {
               command: button.configPath,
               when: '',
               group: '',
             }
-            if (button instanceof TitleButton) {
+            if (button.obj.isTitleButton) {
               obj.when = `view == ${view.configPath}`
               obj.group = 'navigation'
               viewsTitleButtons.push(obj)
             }
-            if (button instanceof InlineButton) {
-              obj.when = `viewItem == ${button.context}`
+            if (button.obj.inlineContext) {
+              obj.when = `viewItem == ${button.obj.inlineContext}`
               obj.group = 'inline'
               viewsInlineButtons.push(obj)
             }
@@ -258,10 +258,10 @@ export abstract class ExtensionComponent extends ExtensionNode {
       // editor buttons
       let editorButtons: any = []
       this.preOrderTraverse((node: ExtensionNode) => {
-        if (node instanceof EditorButton) {
+        if (node instanceof CommandNode && node.obj.languages !== undefined) {
           let obj = {
             command: node.configPath,
-            when: node.languages.map((lang) => `resourceLangId == ${lang}`).join(' || '),
+            when: node.obj.languages.map((lang) => `resourceLangId == ${lang}`).join(' || '),
             group: 'navigation',
           }
           editorButtons.push(obj)
@@ -302,14 +302,22 @@ export abstract class ExtensionComponent extends ExtensionNode {
 // Commands
 ////////////////////////////////////////////////////
 type iconType = string | { dark: string; light: string }
-interface CommandSpec {
-  // command: string // filled in automatically
+
+interface CommandConfigSpec {
+  // command: string // filled in
   title: string
+  shortTitle?: string
+  icon?: iconType
+
   category?: string
   enablement?: string
-  icon?: iconType
+}
+interface CommandSpec extends CommandConfigSpec {
+  // command: string // filled in automatically
   when?: string
-  shortTitle?: string
+  isTitleButton?: boolean
+  inlineContext?: string
+  languages?: string[]
 }
 export class CommandNode extends ExtensionNode {
   obj: CommandSpec
@@ -326,14 +334,6 @@ export class CommandNode extends ExtensionNode {
     context.subscriptions.push(
       vscode.commands.registerCommand(this.configPath!, this.func, this.thisArg)
     )
-  }
-}
-
-export class EditorButton extends CommandNode {
-  languages: string[]
-  constructor(languages: string[], obj: CommandSpec, func: (...args: any[]) => any, thisArg?: any) {
-    super(obj, func, thisArg)
-    this.languages = languages
   }
 }
 
@@ -375,17 +375,6 @@ export class ViewComponent extends ExtensionComponent {
   constructor(obj: ViewSpec) {
     super()
     this.obj = obj
-  }
-}
-
-class ViewButton extends CommandNode {}
-export class TitleButton extends ViewButton {}
-
-export class InlineButton extends ViewButton {
-  context: string
-  constructor(context: string, obj: CommandSpec, func: (...args: any[]) => any, thisArg?: any) {
-    super(obj, func, thisArg)
-    this.context = context
   }
 }
 
