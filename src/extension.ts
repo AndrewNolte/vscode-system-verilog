@@ -60,13 +60,11 @@ export class VerilogExtension extends ActivityBarComponent {
   svStandard: ConfigObject<SvStandard> = new ConfigObject({
     default: SvStandard.SV2017,
     description: 'System Verilog standard to use',
-    type: 'enum',
     enum: Object.values(SvStandard),
   })
   verilogStandard: ConfigObject<VerilogStandard> = new ConfigObject({
     default: VerilogStandard.V2005,
     description: 'System Verilog standard to use',
-    type: 'enum',
     enum: Object.values(VerilogStandard),
   })
   formatDirs: ConfigObject<string[]> = new ConfigObject({

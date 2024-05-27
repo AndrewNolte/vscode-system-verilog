@@ -35,7 +35,7 @@
     Globs to exclude files
 
 
-- `verilog.svStandard`: enum = SystemVerilog-2017
+- `verilog.svStandard`: string = "SystemVerilog-2017"
 
     System Verilog standard to use
 
@@ -45,7 +45,7 @@
     - SystemVerilog-2012
     - SystemVerilog-2017
 
-- `verilog.verilogStandard`: enum = Verilog-2005
+- `verilog.verilogStandard`: string = "Verilog-2005"
 
     System Verilog standard to use
 
@@ -208,6 +208,8 @@
 
     Formatter Selection
 
+    Options:
+    - verible-verilog-format
 
 - `verilog.verilogFormat.verilogFormatter.runAtFileLocation`: boolean = false
 
@@ -258,6 +260,10 @@
 
     Formatter Selection
 
+    Options:
+    - verilog-format
+    - istyle-format
+    - verible-verilog-format
 
 - `verilog.languageServer.svls.enabled`: boolean = false
 

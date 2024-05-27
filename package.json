@@ -310,23 +310,23 @@
         "verilog.svStandard": {
           "default": "SystemVerilog-2017",
           "description": "System Verilog standard to use",
-          "type": "enum",
           "enum": [
             "SystemVerilog-2005",
             "SystemVerilog-2009",
             "SystemVerilog-2012",
             "SystemVerilog-2017"
-          ]
+          ],
+          "type": "string"
         },
         "verilog.verilogStandard": {
           "default": "Verilog-2005",
           "description": "System Verilog standard to use",
-          "type": "enum",
           "enum": [
             "Verilog-95",
             "Verilog-2001",
             "Verilog-2005"
-          ]
+          ],
+          "type": "string"
         },
         "verilog.formatDirs": {
           "default": [],

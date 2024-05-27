@@ -448,7 +448,7 @@ export class ConfigObject<T extends JSONSchemaType> extends ExtensionNode {
       out += `${this.default}\n\n`
     }
     out += `    ${cfgjson.description}\n\n`
-    if (cfgjson.type === 'enum') {
+    if ('enum' in cfgjson) {
       out += `    Options:\n`
       for (let option of cfgjson.enum) {
         out += `    - ${option}\n`
