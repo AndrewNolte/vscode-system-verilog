@@ -18,9 +18,10 @@ jobs:
       - run: npm install -g @vscode/vsce
       - run: git config --global user.email "anolte5"12@gmail.com
       - run: git config --global user.name "Andrew Nolte"
+        # Use vsce first- this will bump the version number
       - name: Publish to Visual Studio Marketplace
         run: vsce publish ${{ github.event.inputs.kind }} --pat ${{ secrets.VS_MARKETPLACE_TOKEN }}
+      - run: npm install -g ovsx
+      - name: Publish to Open Vsix
+        run: npx ovsx publish -p ${{ secrets.OPEN_VSX_TOKEN }} *.vsix
       - run: git push
-      # - run: npm install -g ovsx
-      # - name: Publish to Open Vsix
-      #   run: npx ovsx publish -p ${{ secrets.OPEN_VSX_TOKEN }}
