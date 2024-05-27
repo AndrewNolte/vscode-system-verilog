@@ -148,10 +148,11 @@ export default abstract class BaseLinter extends ToolConfig {
     }
     args.push(...addargs)
 
-    args.push(docPath)
-
+    // top module
     if (ext.project.top) {
       args.push(ext.project.top.doc.uri.fsPath)
+    } else {
+      args.push(docPath)
     }
 
     let cwd: string | undefined = getWorkspaceFolder()
