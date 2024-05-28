@@ -506,7 +506,7 @@ export class PathConfigObject extends ConfigObject<string> {
       args = ['/c', `where ${path}`]
     }
     try {
-      const { stdout, stderr } = await execFilePromise(vscode.env.shell, args)
+      const { stdout, stderr } = await execFilePromise(getShell(), args)
       if (stderr) {
         console.error(`Error: ${stderr}`)
         return ''
@@ -526,9 +526,7 @@ export class PathConfigObject extends ConfigObject<string> {
     let path = await this.getValueAsync()
     if ((await this.which(path)) === '') {
       vscode.window.showErrorMessage(
-        `"${this.getValue()}" not found. Configure abs path at ${
-          this.configPath
-        }, add to PATH, or disable in config.`
+        `"${path}" not found. Configure abs path at ${this.configPath}, add to PATH, or disable in config.`
       )
       return false
     }
@@ -555,5 +553,21 @@ export function getPlatform(): Platform {
     default:
       // includes WSL
       return 'linux'
+  }
+}
+
+export function getShell(): string {
+  if (vscode.env.shell !== '') {
+    return vscode.env.shell
+  }
+
+  if (process.env.SHELL !== undefined) {
+    return process.env.SHELL
+  }
+
+  if (getPlatform() === 'windows') {
+    return 'cmd.exe'
+  } else {
+    return '/bin/bash'
   }
 }
