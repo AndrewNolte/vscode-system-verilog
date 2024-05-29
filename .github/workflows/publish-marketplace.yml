@@ -6,6 +6,8 @@ on:
         default: 'patch'
 
 name: Publish extension to marketplace
+permissions:
+  contents: write
 jobs:
   deploy:
     runs-on: ubuntu-latest
