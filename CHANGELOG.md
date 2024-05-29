@@ -1,5 +1,8 @@
 # Changelog
 
+## [0.9.13] - 2024-05-28
+- Fix bug where the tool paths weren't being found
+
 ## [0.9.12] - 2024-05-27
 - Publish on OpenVSX
 - minor project UI tweaks
