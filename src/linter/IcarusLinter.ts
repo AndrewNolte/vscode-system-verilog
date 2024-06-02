@@ -47,29 +47,25 @@ export default class IcarusLinter extends BaseLinter {
     // /home/ubuntu/project1/module_1.sv:3: syntax error"
     // /home/ubuntu/project1/property_1.sv:3: error: Invalid module instantiation"
     args.stderr.split(/\r?\n/g).forEach((line, _) => {
-      let terms = line.split(':')
-      if (terms.length < 2) {
+      // let terms = line.split(':')
+      let match = line.match(/(.*?):(\d+):(?: (error|warning):)? (.*)/)
+      if (!match) {
         return
       }
-      let file = terms[0]
+
+      let file = match[1]
 
       let ws = getWorkspaceFolder()
       if (ws && file.startsWith(ws)) {
         file = file.substring(ws.length + 1)
       }
-      let lineNum = parseInt(terms[1].trim()) - 1
-
-      let code = 'error'
-      let sev: vscode.DiagnosticSeverity = vscode.DiagnosticSeverity.Error
-      if (terms.length > 3) {
-        code = terms[2].trim()
-        sev = this.convertToSeverity(code)
-      }
+      let lineNum = parseInt(match[2].trim()) - 1
+      let code = match[3] ?? 'error'
       diagnostics.push({
         file: file,
-        severity: sev,
+        severity: this.convertToSeverity(code),
         range: new vscode.Range(lineNum, 0, lineNum, Number.MAX_VALUE),
-        message: terms[terms.length - 1].trim(),
+        message: match[match.length - 1].trim(),
         code: code,
         source: 'iverilog',
       })

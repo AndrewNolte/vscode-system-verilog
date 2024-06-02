@@ -41,7 +41,6 @@ export default abstract class BaseLinter extends ToolConfig {
       })
     )
     this.refreshConfg()
-    this.indexDir = getCacheDir()
 
     if (this.enabled.getValue()) {
       await this.path.checkPathNotify()
@@ -56,6 +55,7 @@ export default abstract class BaseLinter extends ToolConfig {
 
     this.args.getValue()
     this.runAtFileLocation.getValue()
+    this.indexDir = getCacheDir()
     await this.path.getValueAsync()
   }
 
