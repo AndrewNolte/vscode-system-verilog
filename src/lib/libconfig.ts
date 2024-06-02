@@ -75,7 +75,7 @@ export abstract class ExtensionComponent extends ExtensionNode {
           // update config properties
           this.updateJson(json)
 
-          const updatedJson = JSON.stringify(json, null, 2)
+          const updatedJson = JSON.stringify(json, null, 2) + '\n'
           await writeFile(filePath, updatedJson, { encoding: 'utf-8' })
         }
 

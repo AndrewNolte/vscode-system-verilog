@@ -246,7 +246,7 @@
     windows: `verible-verilog-format.exe`
 
 
-- `verilog.svFormat.formatter`: string = "verible-verilog-format"
+- `verilog.svFormat.formatter`: string = ""
 
     Formatter Selection
 
@@ -316,7 +316,7 @@
     windows: `verible.exe`
 
 
-- `verilog.verilogFormat.formatter`: string = "verible-verilog-format"
+- `verilog.verilogFormat.formatter`: string = ""
 
     Formatter Selection
 

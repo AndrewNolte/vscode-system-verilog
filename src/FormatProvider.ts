@@ -6,9 +6,9 @@ import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 import * as vscode from 'vscode'
-import { getWorkspaceFolder } from './utils'
+import { ConfigObject, ExtensionComponent } from './lib/libconfig'
 import { ToolConfig } from './lib/runner'
-import { ExtensionComponent, ConfigObject } from './lib/libconfig'
+import { getWorkspaceFolder } from './utils'
 // handle temporary file
 class TemporaryFile {
   public readonly path: string
@@ -133,9 +133,9 @@ export class VerilogFormatProvider
     '.v'
   )
 
-  formatter: ConfigObject<VerilogFormatter> = new ConfigObject({
+  formatter: ConfigObject<VerilogFormatter | ''> = new ConfigObject({
     description: 'Formatter Selection',
-    default: VerilogFormatter.Verible,
+    default: '',
     type: 'string',
     enum: [VerilogFormatter.VerilogFormat, VerilogFormatter.IstyleFormat, VerilogFormatter.Verible],
   })
@@ -155,8 +155,7 @@ export class VerilogFormatProvider
     _token: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.TextEdit[]> {
     let fmt = this.formatter.getValue()
-    if (fmt === null) {
-      this.logger.warn('null formatter')
+    if (fmt === null || fmt === '') {
       return
     }
 
@@ -187,9 +186,9 @@ export class SystemVerilogFormatProvider
     '.sv'
   )
 
-  formatter: ConfigObject<SvFormatter> = new ConfigObject({
+  formatter: ConfigObject<SvFormatter | ''> = new ConfigObject({
     description: 'Formatter Selection',
-    default: SvFormatter.VeribleVerilogFormat,
+    default: '',
     type: 'string',
     enum: [SvFormatter.VeribleVerilogFormat],
   })
@@ -209,11 +208,14 @@ export class SystemVerilogFormatProvider
     _token: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.TextEdit[]> {
     let fmt = this.formatter.getValue()
-    this.logger.info(`formatting ${document.uri.fsPath}`)
+    if (fmt === null || fmt === '') {
+      return
+    }
     if (fmt !== 'verible-verilog-format') {
       this.logger.warn(`Unknown formatter: ${fmt}`)
       return
     }
+    this.logger.info(`formatting ${document.uri.fsPath}`)
     return this.verible.provideDocumentFormattingEdits(document, _options, _token)
   }
 }

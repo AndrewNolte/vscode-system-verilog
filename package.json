@@ -498,7 +498,7 @@
         },
         "verilog.svFormat.formatter": {
           "description": "Formatter Selection",
-          "default": "verible-verilog-format",
+          "default": "",
           "type": "string",
           "enum": [
             "verible-verilog-format"
@@ -551,7 +551,7 @@
         },
         "verilog.verilogFormat.formatter": {
           "description": "Formatter Selection",
-          "default": "verible-verilog-format",
+          "default": "",
           "type": "string",
           "enum": [
             "verilog-format",
