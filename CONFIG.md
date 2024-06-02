@@ -65,6 +65,11 @@
     Directories to format
 
 
+- `verilog.expandMacroScript`: string = ""
+
+    Script to expand macros. Takes the file as an argument, expects output on stdout
+
+
 - `verilog.lint.slang.runAtFileLocation`: boolean = false
 
     Run at file location

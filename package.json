@@ -394,6 +394,11 @@
             "type": "string"
           }
         },
+        "verilog.expandMacroScript": {
+          "default": "",
+          "description": "Script to expand macros. Takes the file as an argument, expects output on stdout",
+          "type": "string"
+        },
         "verilog.lint.slang.runAtFileLocation": {
           "default": false,
           "description": "Run at file location",
@@ -687,6 +692,17 @@
         "title": "Instantiate Module"
       },
       {
+        "command": "verilog.expandMacros",
+        "title": "Verilog: Expand Macros",
+        "shortTitle": "Expand macros",
+        "languages": [
+          "verilog",
+          "systemverilog"
+        ],
+        "isTitleButton": true,
+        "icon": "$(open-preview)"
+      },
+      {
         "command": "extdev.updateConfig",
         "title": "Extdev: update config (package.json and CONFIG.md)"
       }
@@ -743,6 +759,11 @@
       "editor/title": [
         {
           "command": "verilog.project.setTopLevel",
+          "when": "resourceLangId == verilog || resourceLangId == systemverilog",
+          "group": "navigation"
+        },
+        {
+          "command": "verilog.expandMacros",
           "when": "resourceLangId == verilog || resourceLangId == systemverilog",
           "group": "navigation"
         }

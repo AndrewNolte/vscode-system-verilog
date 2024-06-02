@@ -12,6 +12,7 @@ import { ActivityBarComponent, CommandNode, ConfigObject } from './lib/libconfig
 import LintManager from './linter/LintManager'
 import { SurferComponent } from './surferWaveformViewer'
 import { getWorkspaceFolder, isAnyVerilog } from './utils'
+import * as child_process from 'child_process'
 
 export var ext: VerilogExtension
 
@@ -71,6 +72,11 @@ export class VerilogExtension extends ActivityBarComponent {
     default: [],
     description: 'Directories to format',
   })
+
+  expandMacroScript: ConfigObject<string> = new ConfigObject({
+    default: '',
+    description: 'Script to expand macros. Takes the file as an argument, expects output on stdout',
+  })
   ////////////////////////////////////////////////
   /// extension subcomponents
   ////////////////////////////////////////////////
@@ -121,6 +127,51 @@ export class VerilogExtension extends ActivityBarComponent {
         return
       }
       vscode.window.activeTextEditor?.insertSnippet(snippet)
+    }
+  )
+
+  expandMacros: CommandNode = new CommandNode(
+    {
+      title: 'Verilog: Expand Macros',
+      shortTitle: 'Expand macros',
+      languages: ['verilog', 'systemverilog'],
+      isTitleButton: true,
+      icon: '$(open-preview)',
+    },
+    async () => {
+      if (ext.expandMacroScript.getValue() === '') {
+        vscode.window.showErrorMessage('Verilog: `verilog.expandMacroScript` not provided')
+        return
+      }
+      let doc = vscode.window.activeTextEditor?.document
+      if (doc === undefined) {
+        vscode.window.showErrorMessage('Open a verilog document to expand macros')
+        return
+      }
+      let expDir = getExpandedDir()
+      if (expDir === undefined) {
+        return
+      }
+      await vscode.window.withProgress(
+        {
+          location: vscode.ProgressLocation.Notification,
+          title: 'Expanding macros',
+        },
+        async (progress) => {
+          progress.report({ increment: 0, message: 'Expanding macros' })
+          let expanded = child_process.execSync(
+            ext.expandMacroScript.getValue() + ' ' + doc.uri.fsPath,
+            {
+              cwd: getWorkspaceFolder(),
+            }
+          )
+
+          let uri: vscode.Uri = vscode.Uri.joinPath(expDir, doc.uri.path.split('/').pop()!)
+          await vscode.workspace.fs.writeFile(uri, expanded)
+          await vscode.workspace.openTextDocument(uri)
+          await vscode.commands.executeCommand('vscode.diff', uri, doc.uri)
+        }
+      )
     }
   )
 
@@ -269,4 +320,12 @@ export function getCacheDir(): vscode.Uri | undefined {
     return undefined
   }
   return vscode.Uri.joinPath(ws, '.sv_cache', 'files')
+}
+
+export function getExpandedDir(): vscode.Uri | undefined {
+  let ws = vscode.workspace.workspaceFolders?.[0]?.uri
+  if (ws === undefined) {
+    return undefined
+  }
+  return vscode.Uri.joinPath(ws, '.sv_cache', 'expanded')
 }
