@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 import * as vscode from 'vscode'
 import { SvStandard, VerilogStandard, ext } from '../extension'
-import { FileDiagnostic, getWorkspaceFolder } from '../utils'
+import { FileDiagnostic, getWorkspaceFolder, isSystemVerilog } from '../utils'
 import BaseLinter from './BaseLinter'
 
 let verilogArgs: Map<string, string> = new Map([
@@ -28,7 +28,7 @@ export default class IcarusLinter extends BaseLinter {
   }
   protected toolArgs(doc: vscode.TextDocument): string[] {
     let args = ['-t', 'null']
-    if (doc.languageId === 'systemverilog') {
+    if (isSystemVerilog(doc.languageId)) {
       args.push(svArgs.get(ext.svStandard.getValue()) ?? '')
     } else {
       args.push(verilogArgs.get(ext.verilogStandard.getValue()) ?? '')

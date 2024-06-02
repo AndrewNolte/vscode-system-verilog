@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 import * as vscode from 'vscode'
 import BaseLinter from './BaseLinter'
-import { FileDiagnostic } from '../utils'
+import { FileDiagnostic, isSystemVerilog } from '../utils'
 import { ext } from '../extension'
 
 export default class VerilatorLinter extends BaseLinter {
@@ -22,7 +22,7 @@ export default class VerilatorLinter extends BaseLinter {
 
   protected toolArgs(doc: vscode.TextDocument): string[] {
     let args = ['--lint-only']
-    if (doc.languageId === 'systemverilog') {
+    if (isSystemVerilog(doc.languageId)) {
       args.push('-sv')
     }
     return args

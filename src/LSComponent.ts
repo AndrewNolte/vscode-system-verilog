@@ -1,6 +1,7 @@
 import * as vscode from 'vscode'
 import { LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient/node'
 import { ConfigObject, ExtensionComponent } from './lib/libconfig'
+import { anyVerilogSelector, systemverilogSelector } from './utils'
 
 export class LanguageServerComponent extends ExtensionComponent {
   languageClients = new Map<string, LanguageClient>()
@@ -22,20 +23,17 @@ export class LanguageServerComponent extends ExtensionComponent {
   initAllLanguageClients() {
     // init svls
     this.svls.setupLanguageClient([], ['--debug'], {
-      documentSelector: [{ scheme: 'file', language: 'systemverilog' }],
+      documentSelector: systemverilogSelector,
     })
 
     // init veridian
     this.veridian.setupLanguageClient([], [], {
-      documentSelector: [{ scheme: 'file', language: 'systemverilog' }],
+      documentSelector: systemverilogSelector,
     })
 
     // init verible-verilog-ls
     this.veribleVerilogLs.setupLanguageClient([], [], {
-      documentSelector: [
-        { scheme: 'file', language: 'verilog' },
-        { scheme: 'file', language: 'systemverilog' },
-      ],
+      documentSelector: anyVerilogSelector,
     })
   }
 

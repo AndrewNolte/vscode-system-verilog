@@ -7,8 +7,8 @@ import * as os from 'os'
 import * as path from 'path'
 import * as vscode from 'vscode'
 import { ConfigObject, ExtensionComponent } from './lib/libconfig'
+import { getWorkspaceFolder, systemverilogSelector } from './utils'
 import { ToolConfig } from './lib/runner'
-import { getWorkspaceFolder } from './utils'
 // handle temporary file
 class TemporaryFile {
   public readonly path: string
@@ -195,10 +195,7 @@ export class SystemVerilogFormatProvider
 
   async activate(context: vscode.ExtensionContext): Promise<void> {
     context.subscriptions.push(
-      vscode.languages.registerDocumentFormattingEditProvider(
-        { scheme: 'file', language: 'systemverilog' },
-        this
-      )
+      vscode.languages.registerDocumentFormattingEditProvider(systemverilogSelector, this)
     )
   }
 

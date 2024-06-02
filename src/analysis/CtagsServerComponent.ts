@@ -2,7 +2,7 @@
 import * as vscode from 'vscode'
 import { Symbol } from './ctagsParser'
 import { ext } from '../extension'
-import { getParentText, getPrev2Char, getPrevChar } from '../utils'
+import { anyVerilogSelector, getParentText, getPrev2Char, getPrevChar } from '../utils'
 import { ExtensionComponent } from '../lib/libconfig'
 import builtins from './builtins.json'
 
@@ -20,31 +20,29 @@ export class CtagsServerComponent
 
   async activate(context: vscode.ExtensionContext) {
     // push provider subs to .v and .sv files
-    const selectors = [
-      { scheme: 'file', language: 'verilog' },
-      { scheme: 'file', language: 'systemverilog' },
-    ]
-    selectors.forEach((selector) => {
-      context.subscriptions.push(vscode.languages.registerDocumentSymbolProvider(selector, this))
+    context.subscriptions.push(
+      vscode.languages.registerDocumentSymbolProvider(anyVerilogSelector, this)
+    )
 
-      context.subscriptions.push(
-        vscode.languages.registerCompletionItemProvider(
-          selector,
-          this,
-          '.', // params, ports, hierarchical references
-          '(', // query normal completion
-          ':', // pkg scope (::), wire width
-          '`', // macros
-          '[', // wire width, filter for params
-          '#', // module inst
-          '$' // builtins
-        )
+    context.subscriptions.push(
+      vscode.languages.registerCompletionItemProvider(
+        anyVerilogSelector,
+        this,
+        '.', // params, ports, hierarchical references
+        '(', // query normal completion
+        ':', // pkg scope (::), wire width
+        '`', // macros
+        '[', // wire width, filter for params
+        '#', // module inst
+        '$' // builtins
       )
+    )
 
-      context.subscriptions.push(vscode.languages.registerHoverProvider(selector, this))
+    context.subscriptions.push(vscode.languages.registerHoverProvider(anyVerilogSelector, this))
 
-      context.subscriptions.push(vscode.languages.registerDefinitionProvider(selector, this))
-    })
+    context.subscriptions.push(
+      vscode.languages.registerDefinitionProvider(anyVerilogSelector, this)
+    )
   }
 
   async loadBuiltins() {

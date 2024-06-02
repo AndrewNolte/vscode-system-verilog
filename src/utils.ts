@@ -99,6 +99,44 @@ export class FileDiagnostic extends vscode.Diagnostic {
   }
 }
 
+export const VerilogLanguages = ['verilog', 'verilogheader']
+export const SystemVerilogLanguages = ['systemverilog', 'systemverilogheader']
+export const AnyVerilogLanguages = [
+  'verilog',
+  'systemverilog',
+  'systemverilogheader',
+  'verilogheader',
+]
+
+export const verilogSelector = [
+  { scheme: 'file', language: 'verilog' },
+  { scheme: 'file', language: 'verilogheader' },
+]
+
+export const systemverilogSelector = [
+  { scheme: 'file', language: 'systemverilog' },
+  { scheme: 'file', language: 'systemverilogheader' },
+]
+
+export const anyVerilogSelector = [
+  { scheme: 'file', language: 'verilog' },
+  { scheme: 'file', language: 'systemverilog' },
+  { scheme: 'file', language: 'systemverilogheader' },
+  { scheme: 'file', language: 'verilogheader' },
+]
+
+export function isVerilog(langid: string): boolean {
+  return VerilogLanguages.includes(langid)
+}
+
+export function isSystemVerilog(langid: string): boolean {
+  return SystemVerilogLanguages.includes(langid)
+}
+
+export function isAnyVerilog(langid: string): boolean {
+  return AnyVerilogLanguages.includes(langid)
+}
+
 // end position in line
 // getWordRanges(
 //   doc: vscode.TextDocument,

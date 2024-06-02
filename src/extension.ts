@@ -11,7 +11,7 @@ import { selectModuleGlobal } from './analysis/selection'
 import { ActivityBarComponent, CommandNode, ConfigObject } from './lib/libconfig'
 import LintManager from './linter/LintManager'
 import { SurferComponent } from './surferWaveformViewer'
-import { getWorkspaceFolder } from './utils'
+import { getWorkspaceFolder, isAnyVerilog } from './utils'
 
 export var ext: VerilogExtension
 
@@ -136,7 +136,7 @@ export class VerilogExtension extends ActivityBarComponent {
 
     context.subscriptions.push(
       vscode.workspace.onDidSaveTextDocument(async (document: vscode.TextDocument) => {
-        if (document.languageId === 'systemverilog' || document.languageId === 'verilog') {
+        if (isAnyVerilog(document.languageId)) {
           let dirs: string[] = this.formatDirs.getValue() ?? []
           for (let dir of dirs) {
             if (vscode.workspace.asRelativePath(document.uri.fsPath).startsWith(dir)) {

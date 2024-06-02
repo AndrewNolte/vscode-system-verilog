@@ -102,23 +102,59 @@
         ],
         "extensions": [
           ".v",
-          ".vh",
           ".vl"
         ],
+        "icon": {
+          "light": "./resources/sv_light.svg",
+          "dark": "./resources/sv_dark.svg"
+        },
+        "configuration": "./languages/verilog/verilog.configuration.json"
+      },
+      {
+        "id": "verilogheader",
+        "aliases": [
+          "Verilog",
+          "verilog"
+        ],
+        "extensions": [
+          ".vh"
+        ],
+        "icon": {
+          "light": "./resources/svh_light.svg",
+          "dark": "./resources/svh_dark.svg"
+        },
         "configuration": "./languages/verilog/verilog.configuration.json"
       },
       {
         "id": "systemverilog",
         "aliases": [
           "System Verilog",
-          "systemverilog"
+          "systemverilog",
+          "systemverilogheader"
         ],
         "extensions": [
           ".sv",
-          ".svh",
           ".SV"
         ],
-        "configuration": "./languages/sv/systemverilog.configuration.json"
+        "configuration": "./languages/sv/systemverilog.configuration.json",
+        "icon": {
+          "light": "./resources/sv_light.svg",
+          "dark": "./resources/sv_dark.svg"
+        }
+      },
+      {
+        "id": "systemverilogheader",
+        "aliases": [
+          "systemverilog"
+        ],
+        "extensions": [
+          ".svh"
+        ],
+        "configuration": "./languages/sv/systemverilog.configuration.json",
+        "icon": {
+          "light": "./resources/svh_light.svg",
+          "dark": "./resources/svh_dark.svg"
+        }
       },
       {
         "id": "wave-file",
@@ -192,7 +228,17 @@
         "path": "./languages/verilog/verilog.tmLanguage.json"
       },
       {
+        "language": "verilogheader",
+        "scopeName": "source.systemverilog",
+        "path": "./languages/verilog/verilog.tmLanguage.json"
+      },
+      {
         "language": "systemverilog",
+        "scopeName": "source.systemverilog",
+        "path": "./languages/sv/systemverilog.tmLanguage.json"
+      },
+      {
+        "language": "systemverilogheader",
         "scopeName": "source.systemverilog",
         "path": "./languages/sv/systemverilog.tmLanguage.json"
       },
@@ -253,6 +299,18 @@
       },
       {
         "language": "systemverilog",
+        "path": "./languages/sv/systemverilog.snippets.json"
+      },
+      {
+        "language": "verilogheader",
+        "path": "./languages/verilog/verilog.snippets.json"
+      },
+      {
+        "language": "systemverilogheader",
+        "path": "./languages/verilog/verilog.snippets.json"
+      },
+      {
+        "language": "systemverilogheader",
         "path": "./languages/sv/systemverilog.snippets.json"
       }
     ],
