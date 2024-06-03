@@ -7,11 +7,19 @@ import { ext, getCacheDir } from '../extension'
 import { ConfigObject } from '../lib/libconfig'
 import { ToolConfig } from '../lib/runner'
 import { FileDiagnostic, getAbsPath, getWorkspaceFolder, getWorkspaceUri } from '../utils'
+import * as util from 'util'
+import * as fs from 'fs'
+
+const realpath = util.promisify(fs.realpath)
 
 export default abstract class BaseLinter extends ToolConfig {
   protected diagnostics: vscode.DiagnosticCollection
 
   enabled: ConfigObject<boolean>
+  projectEnabled: ConfigObject<boolean> = new ConfigObject({
+    default: false,
+    description: 'Enable this linter only when the project is selected',
+  })
   includes: ConfigObject<string[]> = new ConfigObject({
     default: [],
     description: 'Include Path Overrides. Use `${includes} to include default includes',
@@ -42,7 +50,7 @@ export default abstract class BaseLinter extends ToolConfig {
     )
     this.refreshConfg()
 
-    if (this.enabled.getValue()) {
+    if (this.enabled.getValue() || this.projectEnabled.getValue()) {
       await this.path.checkPathNotify()
     }
   }
@@ -51,6 +59,7 @@ export default abstract class BaseLinter extends ToolConfig {
     // We want to cache these values so we don't fetch every lint cycle
     this.logger.info('linter config updated')
     this.enabled.getValue()
+    this.projectEnabled.getValue()
     this.computeIncludes()
 
     this.args.getValue()
@@ -75,7 +84,9 @@ export default abstract class BaseLinter extends ToolConfig {
 
   async lint(doc: vscode.TextDocument): Promise<void> {
     if (this.enabled.cachedValue !== true) {
-      return
+      if (this.projectEnabled.cachedValue !== true || ext.project.top === undefined) {
+        return
+      }
     }
     this.logger.info(`linting ${doc.uri}`)
 
@@ -96,6 +107,9 @@ export default abstract class BaseLinter extends ToolConfig {
         let uri: vscode.Uri
         if (!file.startsWith(wsUri.fsPath)) {
           uri = vscode.Uri.joinPath(wsUri, file)
+        } else if (file.includes('sv_cache')) {
+          // resolve symlink
+          uri = ext.index.findModuleUri(file) ?? vscode.Uri.file(await realpath(file))
         } else {
           uri = vscode.Uri.file(file)
         }

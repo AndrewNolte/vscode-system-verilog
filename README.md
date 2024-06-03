@@ -75,7 +75,8 @@ This is the recommended linter because it's the [fastest and most compliant](htt
 "verilog.lint.slang.args": "--error-limit 200",
 "verilog.lint.slang.path": "/usr/local/bin/slang",
 // multiple linters can run concurrently
-"verilog.lint.verilator.enabled": true,
+// you can specify if some can only run at the project level
+"verilog.lint.verilator.projectEnabled": true,
 // tools will use the default name on the path if not given
 "verilog.svFormat.formatter": "verible-verilog-format",
 "verilog.svFormat.verible.args": "--flagfile=myflags.txt",

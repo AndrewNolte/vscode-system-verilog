@@ -414,6 +414,11 @@
           "default": "",
           "type": "string"
         },
+        "verilog.lint.slang.projectEnabled": {
+          "default": false,
+          "description": "Enable this linter only when the project is selected",
+          "type": "boolean"
+        },
         "verilog.lint.slang.includes": {
           "default": [],
           "description": "Include Path Overrides. Use `${includes} to include default includes",
@@ -441,6 +446,11 @@
           "description": "Path to the tool",
           "default": "",
           "type": "string"
+        },
+        "verilog.lint.modelsim.projectEnabled": {
+          "default": false,
+          "description": "Enable this linter only when the project is selected",
+          "type": "boolean"
         },
         "verilog.lint.modelsim.includes": {
           "default": [],
@@ -475,6 +485,11 @@
           "default": "",
           "type": "string"
         },
+        "verilog.lint.iverilog.projectEnabled": {
+          "default": false,
+          "description": "Enable this linter only when the project is selected",
+          "type": "boolean"
+        },
         "verilog.lint.iverilog.includes": {
           "default": [],
           "description": "Include Path Overrides. Use `${includes} to include default includes",
@@ -503,6 +518,11 @@
           "default": "",
           "type": "string"
         },
+        "verilog.lint.verilator.projectEnabled": {
+          "default": false,
+          "description": "Enable this linter only when the project is selected",
+          "type": "boolean"
+        },
         "verilog.lint.verilator.includes": {
           "default": [],
           "description": "Include Path Overrides. Use `${includes} to include default includes",
@@ -530,6 +550,11 @@
           "description": "Path to the tool",
           "default": "",
           "type": "string"
+        },
+        "verilog.lint.xvlog.projectEnabled": {
+          "default": false,
+          "description": "Enable this linter only when the project is selected",
+          "type": "boolean"
         },
         "verilog.lint.xvlog.includes": {
           "default": [],

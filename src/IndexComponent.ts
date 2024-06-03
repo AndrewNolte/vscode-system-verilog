@@ -86,6 +86,11 @@ export class IndexComponent extends ExtensionComponent {
     return await vscode.workspace.openTextDocument(file)
   }
 
+  findModuleUri(path: string): vscode.Uri | undefined {
+    let name = path.split('/').pop()?.split('.').shift() ?? ''
+    return this.moduleMap.get(name)
+  }
+
   async indexFiles(reset: boolean = false): Promise<void> {
     let dir = await this.getDir(reset)
     if (dir === undefined) {

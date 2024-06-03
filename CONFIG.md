@@ -91,6 +91,11 @@
     windows: `slang.exe`
 
 
+- `verilog.lint.slang.projectEnabled`: boolean = false
+
+    Enable this linter only when the project is selected
+
+
 - `verilog.lint.slang.includes`: array = []
 
     Include Path Overrides. Use `${includes} to include default includes
@@ -120,6 +125,11 @@
     mac:     `modelsim`
 
     windows: `modelsim.exe`
+
+
+- `verilog.lint.modelsim.projectEnabled`: boolean = false
+
+    Enable this linter only when the project is selected
 
 
 - `verilog.lint.modelsim.includes`: array = []
@@ -158,6 +168,11 @@
     windows: `iverilog.exe`
 
 
+- `verilog.lint.iverilog.projectEnabled`: boolean = false
+
+    Enable this linter only when the project is selected
+
+
 - `verilog.lint.iverilog.includes`: array = []
 
     Include Path Overrides. Use `${includes} to include default includes
@@ -189,6 +204,11 @@
     windows: `verilator.exe`
 
 
+- `verilog.lint.verilator.projectEnabled`: boolean = false
+
+    Enable this linter only when the project is selected
+
+
 - `verilog.lint.verilator.includes`: array = []
 
     Include Path Overrides. Use `${includes} to include default includes
@@ -218,6 +238,11 @@
     mac:     `xvlog`
 
     windows: `xvlog.exe`
+
+
+- `verilog.lint.xvlog.projectEnabled`: boolean = false
+
+    Enable this linter only when the project is selected
 
 
 - `verilog.lint.xvlog.includes`: array = []
