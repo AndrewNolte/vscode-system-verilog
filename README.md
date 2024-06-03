@@ -77,9 +77,9 @@ This is the recommended linter because it's the [fastest and most compliant](htt
 // multiple linters can run concurrently
 "verilog.lint.verilator.enabled": true,
 // tools will use the default name on the path if not given
-"verilog.format.svFormatter": "verible-verilog-format",
-"verilog.format.verible.args": "--flagfile=myflags.txt",
-"verilog.format.verible.path": "/usr/local/bin/verible-verilog-format",
+"verilog.svFormat.formatter": "verible-verilog-format",
+"verilog.svFormat.verible.args": "--flagfile=myflags.txt",
+"verilog.svFormat.verible.path": "/usr/local/bin/verible-verilog-format",
 // select directories to format on save
 "verilog.formatDirs": [
     "hdl/my/project/with/formatting"
