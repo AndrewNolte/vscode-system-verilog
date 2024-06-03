@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.9.14] - 2024-06-02
+- fix icarus parsing on windows
+- formatting off by default, formatter must be specified
+- file icons, with colors matching .cpp/.h colors
+- expand-macros command + script config
+- verilator lint resolves packages correctly now with zero-config
+- don't show non-instance-holding scopes as a collapsed tree in project view (nit)
+- projectEnabled for lint tools- only run lint tool if top is selected
+- lint resolved symlinks if tool doesn't already do so
+
 ## [0.9.13] - 2024-05-28
 - Fix bug where the tool paths weren't being found
 
