@@ -685,7 +685,7 @@
       },
       {
         "command": "verilog.reindex",
-        "title": "Reindex"
+        "title": "Verilog: reindex"
       },
       {
         "command": "verilog.instantiateModule",

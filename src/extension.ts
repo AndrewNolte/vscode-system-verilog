@@ -98,7 +98,7 @@ export class VerilogExtension extends ActivityBarComponent {
   ////////////////////////////////////////////////
   reindex: CommandNode = new CommandNode(
     {
-      title: 'Reindex',
+      title: 'Verilog: reindex',
     },
     async () => {
       this.indexFiles(true)
