@@ -46,10 +46,12 @@ export default class VerilatorLinter extends BaseLinter {
           }
           let pkg = await ext.index.findModule(match[1])
           if (pkg) {
-            if (!pkgs.includes(pkg.uri.fsPath)) {
-              addedPkgs = true
-              pkgs.unshift(pkg.uri.fsPath)
+            let ind = pkgs.indexOf(pkg.uri.fsPath)
+            if (ind !== -1) {
+              pkgs.splice(ind, 1)
             }
+            pkgs.unshift(pkg.uri.fsPath)
+            addedPkgs = true
           } else {
             this.logger.info("couldn't find package " + pkg)
           }
