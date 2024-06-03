@@ -35,6 +35,7 @@ Verible supports both SystemVerilog and Verilog, while the others are only veril
 - Zero config required if module names match file
 - Code completion suggests relevant symbols- package refs, params, ports, macros, builtins, etc.
 - Hover and Completion for builtin functions like $bits()
+### See a detailed feature list and roadmap in [FEATURES.md](FEATURES.md)
 
 #### Third party options: [`verible-verilog-ls`](https://github.com/chipsalliance/verible/tree/master/verilog/tools/ls) || [`veridian`](https://github.com/vivekmalneedi/veridian) || [`svls`](https://github.com/dalance/svls)
 
@@ -90,7 +91,3 @@ This is the recommended linter because it's the [fastest and most compliant](htt
 ### See all config options in [CONFIG.md](CONFIG.md)
 
 For debugging your config, you can see the logs in Output tab > select 'verilog' in the dropdown
-
-
-## Features 
-See a detailed feature list and roadmap in [FEATURES.md](FEATURES.md)
