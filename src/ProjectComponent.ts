@@ -39,11 +39,7 @@ class ScopeItem {
     if (this.definition === undefined) {
       return false
     }
-    return (
-      this.definition.children.filter(
-        (child) => child.type === 'instance' || child.type === 'block'
-      ).length > 0
-    )
+    return this.definition.hasInstanceChildren()
   }
 
   async getTreeItem(): Promise<TreeItem> {

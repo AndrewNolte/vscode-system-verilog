@@ -51,6 +51,18 @@ export class Symbol {
     return ret
   }
 
+  hasInstanceChildren(): boolean {
+    if (this.children.filter((child) => child.type === 'instance').length > 0) {
+      return true
+    }
+    // return true if any block children have instance children
+    return this.children
+      .filter((child) => child.type === 'block')
+      .some((child) => {
+        return child.hasInstanceChildren()
+      })
+  }
+
   getIdRange(): vscode.Range {
     if (this.idRange === undefined) {
       this.idRange = this.doc.getWordRangeAtPosition(
