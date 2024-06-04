@@ -2,7 +2,7 @@
 
 Verilog and SystemVerilog support including linting from popular tools, completions, formatting, waveform viewer, and project level analysis.
 
-Install it from the [VS Code Marketplace](https://marketplace.visualstudio.com/items/AndrewNolte.vscode-system-verilog)
+Install it from the [VS Code Marketplace](https://marketplace.visualstudio.com/items/AndrewNolte.vscode-system-verilog) or [OpenVSX](https://open-vsx.org/extension/AndrewNolte/vscode-system-verilog)
 
 <!-- 
 [![Install Count](https://img.shields.io/visual-studio-marketplace/i/AndrewNolte.vscode-system-verilog)](https://marketplace.visualstudio.com/items?itemName=AndrewNolte.vscode-system-verilog)
@@ -60,7 +60,7 @@ Use 6.1 or later for port/param definition support
 
 
 
-This is the recommended linter because it's the [fastest and most compliant](https://github.com/MikePopoloski/slang?tab=readme-ov-file#:~:text=slang%20is%20the%20fastest%20and%20most%20compliant%20SystemVerilog%20frontend%20(according%20to%20the%20open%20source%20chipsalliance%20test%20suite).) language frontend, and it has very precise error messages.
+This is the recommended linter because it's the [fastest and most compliant](https://github.com/MikePopoloski/slang?tab=readme-ov-file#:~:text=slang%20is%20the%20fastest%20and%20most%20compliant%20SystemVerilog%20frontend%20(according%20to%20the%20open%20source%20chipsalliance%20test%20suite).) language frontend, and it has so many more useful warnings than other tools.
 
 ### Example Configuration
 
@@ -91,3 +91,6 @@ This is the recommended linter because it's the [fastest and most compliant](htt
 ### See all config options in [CONFIG.md](CONFIG.md)
 
 For debugging your config, you can see the logs in Output tab > select 'verilog' in the dropdown
+
+
+### Contributions are welcome, see [DEVELOPING.md](DEVELOPING.md)

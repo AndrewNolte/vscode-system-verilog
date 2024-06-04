@@ -15,7 +15,7 @@ Underlined features show what was available in the project this was based on: ht
 - <u>Modules/Packages in the form ModuleName.sv</u>
 - Module Ports/Params
 - Macros and global symbols in .svh files
-- In-memory lazy module cache, makes everything a lot snappier
+- In-memory lazy module cache, which makes everything a lot snappier
 - Hierarchical references, interface array references
 
 ### Formatting
@@ -24,13 +24,17 @@ Underlined features show what was available in the project this was based on: ht
 
 ### Linting
 - <u>Slang and Verilator linting</u>
-- Managed symlink index in `.sv_cache/files`
-- Verilog.includes passed to all tools
-- Parses lint width as well instead of showing whole line
+- Managed symlink index in `.sv_cache/files`, allowing module discovery
+- `verilog.includes` passed to all tools
+- Parses lint width from tool instead of underlining whole line
+- Fixed Icarus linting on windows
 
 ### Top level context
 - Lint an entire project
 - Explore module hierarchy
+
+### Analysis
+- Split view macro expansion
 
 <br>
 
@@ -38,23 +42,20 @@ Underlined features show what was available in the project this was based on: ht
 
 ### General
 - Goto defs on includes
-- Expand macros on hover / Inlay hints
-- Split view macro expansion
+- Expand macros on hover
 - Slang language server
 - Improved codecomplete/defs for OOP/UVM
 
 ### Top level context
-- Specify build.f file, not just top level
+- Specify build.f file (defines, param overrides), not just top level
 - Specify flags for each tool
-- Provide terminal links for hierarchy
 - Generate build.f file
-- Fuzzy search for hierarchical references
-- Need to start async index process when setting top level
-- Slang json
-- Inlay hints for params from slang json
-- Select instance
+- Hierarchical paths
+  - instance selection
+  - param inlay hints for selected instance
+  - Fuzzy search for hierarchical paths
+  - paths in terminal link to instance
 
 ### Lint
-- Add Xcelium Lint
-- Add VCS Lint
-- Support Verilator packages via topo sort
+- Xcelium Lint
+- VCS Lint
