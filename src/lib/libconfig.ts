@@ -6,7 +6,7 @@ import * as vscode from 'vscode'
 import { JSONSchemaType } from './jsonSchema'
 import { Logger, StubLogger, createLogger } from './logger'
 import { IConfigurationPropertySchema } from './vscodeConfigs'
-
+import * as path from 'path'
 const execFilePromise = promisify(child_process.execFile)
 
 class ExtensionNode {
@@ -471,33 +471,34 @@ export class PathConfigObject extends ConfigObject<string> {
     this.getValueAsync()
   }
 
+  getValue(): string {
+    let toolpath = vscode.workspace.getConfiguration().get(this.configPath!, this.default!)
+    if (toolpath === ''){
+      return this.platformDefaults[getPlatform()]
+    }
+    return toolpath
+  }
+
   async getValueAsync(): Promise<string> {
-    let path = vscode.workspace.getConfiguration().get(this.configPath!, this.default!)
+    let toolpath = vscode.workspace.getConfiguration().get(this.configPath!, this.default!)
 
     // if we already performed which, use that
-    if (path === '' && (this.cachedValue.startsWith('/') || this.cachedValue.startsWith('C:'))) {
+    if (toolpath === '' && path.isAbsolute(this.cachedValue)) {
       return this.cachedValue
     }
 
-    if (path === '') {
+    if (toolpath === '') {
       // if it's a platform default, check the path
-      path = this.platformDefaults[getPlatform()]
+      toolpath = this.platformDefaults[getPlatform()]
 
-      if (getPlatform() === 'windows') {
-        if (!path.match(/^[a-zA-Z]:\\/)) {
-          path = await this.which(path)
-        }
-      } else {
-        // mac and linux
-        if (!path.startsWith('/')) {
-          path = await this.which(path)
-        }
+      if (!path.isAbsolute(toolpath)){
+        toolpath = await this.which(toolpath)
       }
     }
 
-    this.cachedValue = path
+    this.cachedValue = toolpath
 
-    return path
+    return toolpath
   }
 
   async which(path: string): Promise<string> {
@@ -523,10 +524,10 @@ export class PathConfigObject extends ConfigObject<string> {
   }
 
   async checkPathNotify(): Promise<boolean> {
-    let path = await this.getValueAsync()
-    if ((await this.which(path)) === '') {
+    let toolpath = await this.getValueAsync()
+    if (toolpath === '') {
       vscode.window.showErrorMessage(
-        `"${path}" not found. Configure abs path at ${this.configPath}, add to PATH, or disable in config.`
+        `"${this.getValue()}" not found. Configure abs path at ${this.configPath}, add to PATH, or disable in config.`
       )
       return false
     }

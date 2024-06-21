@@ -44,7 +44,7 @@ export default abstract class BaseLinter extends ToolConfig {
 
     this.computeIncludes()
     context.subscriptions.push(
-      this.onConfigUpdated(async () => {
+      ext.onConfigUpdated(async () => {
         await this.refreshConfg()
       })
     )
@@ -87,6 +87,10 @@ export default abstract class BaseLinter extends ToolConfig {
       if (this.projectEnabled.cachedValue !== true || ext.project.top === undefined) {
         return
       }
+    }
+    if (this.path.cachedValue === '') {
+      this.logger.warn(`skipping lint because tool is not found`)
+      return
     }
     this.logger.info(`linting ${doc.uri}`)
 

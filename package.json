@@ -31,6 +31,9 @@
   ],
   "icon": "images/icon.png",
   "main": "./dist/main.js",
+  "activationEvents": [
+    "workspaceContains:**/*.{v,sv,vh,svh}"
+  ],
   "prettier": {
     "trailingComma": "es5",
     "singleQuote": true,
