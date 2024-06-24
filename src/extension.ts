@@ -13,6 +13,10 @@ import LintManager from './linter/LintManager'
 import { SurferComponent } from './surferWaveformViewer'
 import { getWorkspaceFolder, isAnyVerilog } from './utils'
 import * as child_process from 'child_process'
+import path from 'path'
+import { glob } from 'glob'
+import { promisify } from 'util'
+const asyncGlob = promisify(glob)
 
 export var ext: VerilogExtension
 
@@ -271,8 +275,12 @@ export class VerilogExtension extends ActivityBarComponent {
     const exclude: string = this.excludeGlob.getValue()
 
     const find = async (str: string): Promise<vscode.Uri[]> => {
-      let searchPattern = new vscode.RelativePattern(ws, str)
-      let ret = await vscode.workspace.findFiles(searchPattern, exclude)
+      let ret: vscode.Uri[]
+      if (path.isAbsolute(str)) {
+        ret = (await asyncGlob(str)).map((p) => vscode.Uri.file(p))
+      } else {
+        ret = await vscode.workspace.findFiles(new vscode.RelativePattern(ws, str), exclude)
+      }
       return ret
     }
     let uriList: vscode.Uri[][] = await Promise.all(globs.map(find))
