@@ -2,6 +2,7 @@
 import * as vscode from 'vscode'
 
 import { SystemVerilogFormatProvider, VerilogFormatProvider } from './FormatProvider'
+import { IncludeConfig } from './IncludeConfig'
 import { IndexComponent } from './IndexComponent'
 import { LanguageServerComponent } from './LSComponent'
 import { ProjectComponent } from './ProjectComponent'
@@ -43,7 +44,7 @@ export class VerilogExtension extends ActivityBarComponent {
   ////////////////////////////////////////////////
   /// top level configs
   ////////////////////////////////////////////////
-  includes: ConfigObject<string[]> = new ConfigObject({
+  includes: IncludeConfig = new IncludeConfig({
     default: [],
     description: 'Include paths to pass as -I to tools',
   })
