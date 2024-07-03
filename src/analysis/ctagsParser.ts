@@ -1,7 +1,7 @@
 import * as child_process from 'child_process'
 import * as vscode from 'vscode'
-import { Logger } from '../lib/logger'
 import { ext } from '../extension'
+import { Logger } from '../lib/logger'
 
 export class Symbol {
   name: string
@@ -396,6 +396,22 @@ export class Symbol {
   }
 }
 
+// select one
+interface SymbolFilter {
+  name?: string
+  type?: string
+}
+
+function filterSymbols(symbols: Symbol[], filter: SymbolFilter): Symbol[] {
+  if (filter.type !== undefined) {
+    symbols = symbols.filter((sym) => sym.type === filter.type)
+  }
+  if (filter.name !== undefined) {
+    symbols = symbols.filter((sym) => sym.name === filter.name)
+  }
+  return symbols
+}
+
 // TODO: add a user setting to enable/disable all ctags based operations
 export class CtagsParser {
   /// Symbol definitions (no rhs)
@@ -418,20 +434,46 @@ export class CtagsParser {
     this.isDirty = true
   }
 
-  async getSymbols({ name, type }: { name?: string; type?: string } = {}): Promise<Symbol[]> {
+  async getSymbols(filter: SymbolFilter = {}): Promise<Symbol[]> {
     if (this.isDirty) {
       this.logger.info('indexing ', this.doc.uri.fsPath)
       this.clearSymbols()
+      // parse raw symbols
       let output = await this.execCtags(this.doc.uri.fsPath)
       await this.buildSymbolsList(output)
+
+      // TODO: make this parallel, need to make buildSymbolsList functional
+      let addSymbols = await this.parseImports()
+      this.symbols.push(...addSymbols)
     }
-    if (type !== undefined) {
-      return this.symbols.filter((sym) => sym.type === type)
+    return filterSymbols(this.symbols, filter)
+  }
+
+  async parseImports(): Promise<Symbol[]> {
+    // search for import pkg::*;
+    let importedFiles: vscode.Uri[] = []
+    const importRe = /[^\w]import ([^:]+)::\*;/g
+    const text = this.doc.getText()
+    let match
+    while ((match = importRe.exec(text)) !== null) {
+      const uri = ext.index.moduleMap.get(match[1])
+      if (uri !== undefined) {
+        importedFiles.push(uri)
+      }
     }
-    if (name !== undefined) {
-      return this.symbols.filter((sym) => sym.name === name)
-    }
-    return this.symbols
+
+    // TODO: maybe do includes? The thing is includes are recommended to be preindexed (svh),
+    // so the parsing here would not really be needed
+    // const includeRe = new RegExp(/^\s*`include "([^"]+)"/g)
+
+    // parse each import in parallel
+    const symbols: Promise<Symbol[]>[] = importedFiles.map(async (uri) => {
+      let doc = await vscode.workspace.openTextDocument(uri)
+      const ctags = ext.ctags.getCtags(doc)
+      return ctags.getSymbols()
+    })
+
+    return (await Promise.all(symbols)).reduce((acc, curr) => acc.concat(curr), [])
   }
 
   async getModules(): Promise<Symbol[]> {
