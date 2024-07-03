@@ -92,6 +92,9 @@ export default abstract class BaseLinter extends ToolConfig {
       this.logger.warn(`skipping lint because tool is not found`)
       return
     }
+    if (this.path.cachedValue === '') {
+      return
+    }
     this.logger.info(`linting ${doc.uri}`)
 
     let diags = await this.lintInternal(doc)
