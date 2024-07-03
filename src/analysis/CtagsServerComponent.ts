@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 import * as vscode from 'vscode'
-import { Symbol } from './ctagsParser'
 import { ext } from '../extension'
-import { anyVerilogSelector, getParentText, getPrev2Char, getPrevChar } from '../utils'
 import { ExtensionComponent } from '../lib/libconfig'
+import { anyVerilogSelector, getParentText, getPrev2Char, getPrevChar } from '../utils'
 import builtins from './builtins.json'
+import { Symbol } from './ctagsParser'
 
 export class CtagsServerComponent
   extends ExtensionComponent
@@ -149,6 +149,7 @@ export class CtagsServerComponent
     }
 
     let symbols: Symbol[] = []
+    let additionalCompletions: vscode.CompletionItem[] = []
 
     // Find which file to source symbols from
     if (context.triggerCharacter === ':' && prev2Char === ':') {
@@ -203,12 +204,21 @@ export class CtagsServerComponent
         symbols = symbols.filter((sym) => sym.isConstant())
       } else if (context.triggerCharacter === '[') {
         symbols = symbols.filter((sym) => sym.isData())
+      } else if (context.triggerCharacter === undefined) {
+        for (let name of ext.index.moduleMap.keys()) {
+          // The 'kind' just affects the icon
+          additionalCompletions.push(
+            new vscode.CompletionItem(name, vscode.CompletionItemKind.Module)
+          )
+        }
       }
     }
 
     let items = symbols.map((symbol: Symbol) => {
       return symbol.getCompletionItem()
     })
+
+    items.push(...additionalCompletions)
 
     this.logger.info(`Returning ${items.length} completion items`)
     return items
