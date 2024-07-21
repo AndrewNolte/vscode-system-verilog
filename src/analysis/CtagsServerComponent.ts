@@ -278,8 +278,39 @@ export class CtagsServerComponent
     this.logger.info('Definitions Requested: ' + document.uri)
     // find all matching symbols
     let syms: Symbol[] = await ext.ctags.findSymbol(document, position)
-    this.logger.info(syms.length + ' definitions returned')
-    return syms.map((sym) => sym.getDefinitionLink())
+    this.logger.info(syms.length + ' definitions returned from ctags')
+    if (syms.length > 0) {
+      return syms.map((sym) => sym.getDefinitionLink())
+    }
+    // handle files referenced in strings
+    const line = document.lineAt(position.line).text
+    let match
+    while ((match = /"([^"]*)"/g.exec(line)) !== null) {
+      // check bounds
+      if (
+        !(match.index <= position.character && position.character < match.index + match[0].length)
+      ) {
+        continue
+      }
+
+      let resolvedPath = await ext.includes.resolve(document, match[1])
+      if (!resolvedPath) {
+        continue
+      }
+      return [
+        {
+          targetUri: vscode.Uri.file(resolvedPath),
+          originSelectionRange: new vscode.Range(
+            position.line,
+            match.index,
+            position.line,
+            match.index + match[0].length
+          ),
+          targetRange: new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0)),
+        },
+      ]
+    }
+    return []
   }
   ////////////////////////////////////////////////
   // Document Symbol Provider
