@@ -434,7 +434,7 @@ export class CtagsParser {
     this.isDirty = true
   }
 
-  async getSymbols(filter: SymbolFilter = {}): Promise<Symbol[]> {
+  async getSymbols(filter: SymbolFilter = {}, addImports = true): Promise<Symbol[]> {
     if (this.isDirty) {
       this.logger.info('indexing ', this.doc.uri.fsPath)
       this.clearSymbols()
@@ -443,8 +443,10 @@ export class CtagsParser {
       await this.buildSymbolsList(output)
 
       // TODO: make this parallel, need to make buildSymbolsList functional
-      let addSymbols = await this.parseImports()
-      this.symbols.push(...addSymbols)
+      if (addImports) {
+        let addSymbols = await this.parseImports()
+        this.symbols.push(...addSymbols)
+      }
     }
     return filterSymbols(this.symbols, filter)
   }
@@ -486,7 +488,7 @@ export class CtagsParser {
   }
 
   async getPackageSymbols(): Promise<Symbol[]> {
-    let syms = await this.getSymbols()
+    let syms = await this.getSymbols({}, false)
     return syms.filter(
       (tag) => tag.type !== 'member' && tag.type !== 'register' && tag.type !== 'port'
     )
