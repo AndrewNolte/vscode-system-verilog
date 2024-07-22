@@ -416,6 +416,7 @@ function filterSymbols(symbols: Symbol[], filter: SymbolFilter): Symbol[] {
 export class CtagsParser {
   /// Symbol definitions (no rhs)
   symbols: Symbol[]
+  importSymbols: Symbol[] | undefined
   topSymbols: Symbol[]
   doc: vscode.TextDocument
   isDirty: boolean
@@ -423,6 +424,7 @@ export class CtagsParser {
 
   constructor(logger: Logger, document: vscode.TextDocument) {
     this.symbols = []
+    this.importSymbols = undefined
     this.topSymbols = []
     this.isDirty = true
     this.logger = logger
@@ -441,12 +443,15 @@ export class CtagsParser {
       // parse raw symbols
       let output = await this.execCtags(this.doc.uri.fsPath)
       await this.buildSymbolsList(output)
+      this.importSymbols = undefined
 
       // TODO: make this parallel, need to make buildSymbolsList functional
-      if (addImports) {
-        let addSymbols = await this.parseImports()
-        this.symbols.push(...addSymbols)
+    }
+    if (addImports) {
+      if (this.importSymbols === undefined) {
+        this.importSymbols = await this.parseImports()
       }
+      return filterSymbols(this.symbols.concat(this.importSymbols), filter)
     }
     return filterSymbols(this.symbols, filter)
   }
@@ -609,10 +614,15 @@ export class CtagsParser {
 
         {
           // Build symbol tree
+          this.logger.info('Building symbol tree for ', this.doc.uri.fsPath)
           this.topSymbols = []
           let symMap = new Map<string, Symbol>()
           for (let sym of this.symbols) {
             if (sym.parentScope !== '') {
+              if (sym.name.startsWith('`')) {
+                // macro calls sometimes get counted as being in a hierarchy
+                continue
+              }
               symMap.set(sym.parentScope + '.' + sym.name, sym)
               let parent = symMap.get(sym.parentScope)
               if (parent !== undefined) {
@@ -639,7 +649,7 @@ export class CtagsParser {
   }
 
   async getSymbolTree(): Promise<Symbol[]> {
-    await this.getSymbols()
+    await this.getSymbols({}, false)
     return this.topSymbols
   }
 

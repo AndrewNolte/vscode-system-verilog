@@ -322,8 +322,13 @@ export class CtagsServerComponent
   ): Promise<vscode.DocumentSymbol[]> {
     this.logger.info(`provideDocumentSymbols(${document.uri}) => ...`)
     const tree = await ext.ctags.getCtags(document).getSymbolTree()
-    const docSymbols = tree.map((sym) => sym.getDocumentSymbol())
-    this.logger.info(`provideDocumentSymbols(${document.uri}) => ${docSymbols.length} symbols`)
-    return docSymbols
+    try {
+      const docSymbols = tree.map((sym) => sym.getDocumentSymbol())
+      this.logger.info(`provideDocumentSymbols(${document.uri}) => ${docSymbols.length} symbols`)
+      return docSymbols
+    } catch (e) {
+      this.logger.error(`provideDocumentSymbols(${document.uri}) => ${e}`)
+      return []
+    }
   }
 }
