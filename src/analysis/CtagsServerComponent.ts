@@ -152,7 +152,7 @@ export class CtagsServerComponent
     let additionalCompletions: vscode.CompletionItem[] = []
 
     // Find which file to source symbols from
-    if (context.triggerCharacter === ':' && prev2Char === ':') {
+    if (prevChar === ':' && prev2Char === ':') {
       // package file
       let pkgRange = document.getWordRangeAtPosition(position.translate(0, -2))
       let pkgName = document.getText(pkgRange)
