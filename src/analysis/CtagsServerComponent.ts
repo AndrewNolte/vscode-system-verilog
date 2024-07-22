@@ -320,11 +320,10 @@ export class CtagsServerComponent
     document: vscode.TextDocument,
     _token: vscode.CancellationToken
   ): Promise<vscode.DocumentSymbol[]> {
-    this.logger.info('[VerilogSymbol] Symbols Requested: ' + document.uri)
-    let docSymbols = (await ext.ctags.getCtags(document).getSymbolTree()).map((sym) =>
-      sym.getDocumentSymbol()
-    )
-    this.logger.info(docSymbols.length + ' top-level symbols returned')
+    this.logger.info(`provideDocumentSymbols(${document.uri}) => ...`)
+    const tree = await ext.ctags.getCtags(document).getSymbolTree()
+    const docSymbols = tree.map((sym) => sym.getDocumentSymbol())
+    this.logger.info(`provideDocumentSymbols(${document.uri}) => ${docSymbols.length} symbols`)
     return docSymbols
   }
 }
