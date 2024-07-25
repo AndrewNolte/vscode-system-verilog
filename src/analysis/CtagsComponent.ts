@@ -12,6 +12,9 @@ export class CtagsComponent extends ExtensionComponent {
   /// symbol name -> symbols (from includes)
   private symbolMap: Map<string, Symbol[]> = new Map()
 
+  /// uri -> set of instance names. Used to update inlay hints on hover
+  hoverHistory: Map<vscode.Uri, Set<string>> = new Map()
+
   path: PathConfigObject = new PathConfigObject(
     {
       description: 'Path to ctags universal executable',
@@ -158,6 +161,13 @@ export class CtagsComponent extends ExtensionComponent {
         let insts = await parser.getInstances()
         insts = insts.filter((inst) => inst.getFullRange().contains(position))
         if (insts.length > 0 && insts[0].typeRef !== null) {
+          let s = this.hoverHistory.get(document.uri)
+          if (s === undefined) {
+            this.hoverHistory.set(document.uri, new Set([insts[0].name]))
+          } else {
+            s.add(insts[0].name)
+          }
+          ext.ctagsServer.onDidChangeInlayHintsEmitter.fire()
           return await this.findDefinitionByName(insts[0].typeRef, targetText)
         }
       } else if (parentScope !== undefined) {

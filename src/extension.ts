@@ -17,6 +17,7 @@ import * as child_process from 'child_process'
 import path from 'path'
 import { glob } from 'glob'
 import { promisify } from 'util'
+import { InlayHintsComponent } from './InlayHintsComponent'
 const asyncGlob = promisify(glob)
 
 export var ext: VerilogExtension
@@ -95,6 +96,7 @@ export class VerilogExtension extends ActivityBarComponent {
   languageServer: LanguageServerComponent = new LanguageServerComponent()
 
   ctagsServer: CtagsServerComponent = new CtagsServerComponent()
+  inlayHints: InlayHintsComponent = new InlayHintsComponent()
 
   SurferComponent: SurferComponent = new SurferComponent()
 

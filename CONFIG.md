@@ -385,3 +385,20 @@
     
 
 
+- `verilog.inlayHints.wildcardPorts`: string = "on"
+
+    Show wildcard port hints (.*: port1, port2, etc.) in module instantiation
+
+    Options:
+    - on
+    - off
+
+- `verilog.inlayHints.ports`: string = "off"
+
+    Show port type hints in module instantiation
+
+    Options:
+    - on
+    - off
+    - hover
+

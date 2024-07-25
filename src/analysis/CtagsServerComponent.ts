@@ -12,11 +12,13 @@ export class CtagsServerComponent
     vscode.CompletionItemProvider,
     vscode.DocumentSymbolProvider,
     vscode.DefinitionProvider,
-    vscode.HoverProvider
+    vscode.HoverProvider,
+    vscode.InlayHintsProvider
 {
   builtinsPath: string | undefined
   builtinCompletions: Map<string, vscode.CompletionItem> = new Map()
   builtinHovers: Map<string, vscode.Hover> = new Map()
+  hoverHistory: Map<vscode.Uri, Set<string>> = new Map()
 
   async activate(context: vscode.ExtensionContext) {
     // push provider subs to .v and .sv files
@@ -43,10 +45,14 @@ export class CtagsServerComponent
     context.subscriptions.push(
       vscode.languages.registerDefinitionProvider(anyVerilogSelector, this)
     )
+
+    context.subscriptions.push(
+      vscode.languages.registerInlayHintsProvider(anyVerilogSelector, this)
+    )
   }
 
   async loadBuiltins() {
-    // load builtins for json
+    // load builtins from json
 
     for (let key in builtins) {
       // builtin completion
@@ -264,6 +270,46 @@ export class CtagsServerComponent
     })
     this.logger.info('Hover object returned')
     return new vscode.Hover(mds)
+  }
+
+  ////////////////////////////////////////////////
+  // Inlay Hints Provider
+  ////////////////////////////////////////////////
+  onDidChangeInlayHintsEmitter: vscode.EventEmitter<void> = new vscode.EventEmitter<void>()
+  readonly onDidChangeInlayHints: vscode.Event<void> = this.onDidChangeInlayHintsEmitter.event
+
+  async provideInlayHints(
+    document: vscode.TextDocument,
+    range: vscode.Range,
+    _token: vscode.CancellationToken
+  ): Promise<vscode.InlayHint[]> {
+    const wildcardPorts = ext.inlayHints.wildcardPorts.getValue() === 'on'
+    const ports = ext.inlayHints.ports.getValue()
+    if (!wildcardPorts && ports === 'off') {
+      return []
+    }
+    let hints = []
+    // get module insts in range with a typeRef
+    const ctags = ext.ctags.getCtags(document)
+    let insts = await ctags.getSymbols({ type: 'instance' })
+    insts = insts.filter((inst) => inst.getFullRange().intersection(range) !== undefined)
+    insts = insts.filter((inst) => inst.typeRef !== null)
+    const hintPromises = insts.map(async (inst) => {
+      return await ctags.getPortHints(
+        inst,
+        wildcardPorts,
+        ports === 'on' ||
+          (ports === 'hover' && !!ext.ctags.hoverHistory.get(document.uri)?.has(inst.name))
+      )
+    })
+    this.logger.info(`provideInlayHints() => Found ${insts.length} module instances`)
+    for (let hintPromise of hintPromises) {
+      const instHints = await hintPromise
+      if (instHints !== undefined) {
+        hints.push(...instHints)
+      }
+    }
+    return hints
   }
 
   ////////////////////////////////////////////////

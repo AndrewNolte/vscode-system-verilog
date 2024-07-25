@@ -679,6 +679,25 @@
           "default": "verible-verilog-ls",
           "description": "",
           "type": "string"
+        },
+        "verilog.inlayHints.wildcardPorts": {
+          "default": "on",
+          "description": "Show wildcard port hints (.*: port1, port2, etc.) in module instantiation",
+          "enum": [
+            "on",
+            "off"
+          ],
+          "type": "string"
+        },
+        "verilog.inlayHints.ports": {
+          "default": "off",
+          "description": "Show port type hints in module instantiation",
+          "enum": [
+            "on",
+            "off",
+            "hover"
+          ],
+          "type": "string"
         }
       }
     },
