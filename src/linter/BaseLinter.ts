@@ -108,6 +108,7 @@ export default abstract class BaseLinter extends ToolConfig {
     // Run the tool, making adjustments if we can fix some missing pkgs, etc.
     let madeAdjustments = false
     let diags: FileDiagnostic[]
+    let lintCount = 0 // safeguard against infinite looping
     do {
       const output: any = await this.runTool(doc)
       diags = this.parseDiagnostics({
@@ -116,7 +117,8 @@ export default abstract class BaseLinter extends ToolConfig {
         stderr: output.stderr,
       })
       madeAdjustments = await this.makeAdjustments(targetUri.fsPath, diags)
-    } while (madeAdjustments)
+      lintCount++
+    } while (madeAdjustments && lintCount < 50)
 
     // parse project level errors if top is set
     if (ext.project.top && getWorkspaceUri() !== undefined) {
