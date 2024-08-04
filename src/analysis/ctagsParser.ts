@@ -707,7 +707,6 @@ export class CtagsParser {
     wildcardPorts: boolean,
     normalPorts: boolean
   ): Promise<VerilogPortHint[] | undefined> {
-    this.logger.info(`getting port hints for ${inst.name}`)
     // can only operate on insts
     if (inst.type !== 'instance' || inst.typeRef === null) {
       return undefined
@@ -734,7 +733,6 @@ export class CtagsParser {
 
     // do implicit ports
     if (wildcardPorts) {
-      this.logger.info(`wildcard ports for ${inst.name}, range ${fullRange}`)
       const dotStar = instText.indexOf('.*')
       if (dotStar !== -1) {
         // return all ports as a single multiline hint
