@@ -5,11 +5,8 @@ import { FileDiagnostic, isSystemVerilog } from '../utils'
 import { ext } from '../extension'
 
 export default class VerilatorLinter extends BaseLinter {
-  pkgs: Map<string, string[]>
   constructor(name: string) {
     super(name)
-
-    this.pkgs = new Map<string, string[]>()
   }
   protected convertToSeverity(severityString: string): vscode.DiagnosticSeverity {
     if (severityString.startsWith('Error')) {
@@ -28,38 +25,34 @@ export default class VerilatorLinter extends BaseLinter {
     return args
   }
 
-  protected async lintInternal(doc: vscode.TextDocument): Promise<FileDiagnostic[]> {
-    /// Verilator expects packages in a previous compilation, so add those here for the second run
-    let addedPkgs = true
-    let diags: FileDiagnostic[] = []
-    let pkgs = this.pkgs.get(doc.uri.fsPath) ?? []
-    while (addedPkgs) {
-      addedPkgs = false
-      let output: any = await this.runTool(doc, pkgs)
-      diags = this.parseDiagnostics(output)
-      for (let diag of diags) {
-        if (diag.code === 'PKGNODECL') {
-          const pattern = /'([^']+)'/
-          const match = diag.message.match(pattern)
-          if (match === null || match?.length < 2) {
-            continue
-          }
-          let pkg = await ext.index.findModule(match[1])
-          if (pkg) {
-            let ind = pkgs.indexOf(pkg.uri.fsPath)
-            if (ind !== -1) {
-              pkgs.splice(ind, 1)
-            }
-            pkgs.unshift(pkg.uri.fsPath)
-            addedPkgs = true
-          } else {
-            this.logger.info("couldn't find package " + pkg)
-          }
-        }
+  protected async makeAdjustments(targetKey: string, diags: FileDiagnostic[]): Promise<boolean> {
+    let addedPkgs = false
+    let pkgs = this.addArgs.get(targetKey) ?? []
+
+    for (let diag of diags) {
+      if (diag.code !== 'PKGNODECL') {
+        continue
       }
+      const pattern = /'([^']+)'/
+      const match = diag.message.match(pattern)
+      if (match === null || match?.length < 2) {
+        continue
+      }
+      let pkg = await ext.index.findModule(match[1])
+      if (!pkg) {
+        this.logger.info("couldn't find package " + pkg)
+        continue
+      }
+      let ind = pkgs.indexOf(pkg.uri.fsPath)
+      if (ind !== -1) {
+        pkgs.splice(ind, 1)
+      }
+      pkgs.unshift(pkg.uri.fsPath)
+      addedPkgs = true
     }
-    this.pkgs.set(doc.uri.fsPath, pkgs)
-    return diags
+
+    this.addArgs.set(targetKey, pkgs)
+    return addedPkgs
   }
 
   protected parseDiagnostics(args: {
@@ -68,9 +61,6 @@ export default class VerilatorLinter extends BaseLinter {
     stderr: string
   }): FileDiagnostic[] {
     let diagnostics: FileDiagnostic[] = []
-    // this.logger.info('stdout: ' + args.stdout)
-    // this.logger.info('stderr: ' + args.stderr)
-    // let lines = args.stderr.split(/\n/, 20)
     let lines = args.stderr.split(/\r?\n/g)
     for (let n = 0; n < lines.length; n++) {
       let line: string = lines[n]

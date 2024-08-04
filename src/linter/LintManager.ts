@@ -8,13 +8,16 @@ import SlangLinter from './SlangLinter'
 import VerilatorLinter from './VerilatorLinter'
 import XvlogLinter from './XvlogLinter'
 import { isAnyVerilog } from '../utils'
+import XceliumLinter from './XceliumLinter'
 
 enum Linter {
   Slang = 'slang',
   Verilator = 'verilator',
   Iverilog = 'iverilog',
-  Xvlog = 'xvlog',
-  Modelsim = 'modelsim',
+  Xvlog = 'xvlog', // Xilinx/Vivado
+  Modelsim = 'modelsim', // Mentor Graphics
+  Xcelium = 'xrun', // Cadence
+  // Vcs = 'vcs', // synopsys - TODO
 }
 
 export default class LintManager extends ExtensionComponent {
@@ -25,6 +28,7 @@ export default class LintManager extends ExtensionComponent {
   iverilog: IcarusLinter = new IcarusLinter(Linter.Iverilog)
   verilator: VerilatorLinter = new VerilatorLinter(Linter.Verilator)
   xvlog: XvlogLinter = new XvlogLinter(Linter.Xvlog)
+  xcelium: XceliumLinter = new XceliumLinter(Linter.Xcelium)
 
   constructor() {
     super()
@@ -33,6 +37,7 @@ export default class LintManager extends ExtensionComponent {
     this.linters.set(Linter.Iverilog, this.iverilog)
     this.linters.set(Linter.Xvlog, this.xvlog)
     this.linters.set(Linter.Modelsim, this.modelsim)
+    this.linters.set(Linter.Xcelium, this.xcelium)
   }
 
   async activate(context: vscode.ExtensionContext): Promise<void> {

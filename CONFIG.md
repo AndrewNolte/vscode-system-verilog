@@ -255,6 +255,42 @@
     Enable this lint tool
 
 
+- `verilog.lint.xcelium.runAtFileLocation`: boolean = false
+
+    Run at file location
+
+
+- `verilog.lint.xcelium.args`: string = ""
+
+    Arguments to pass to the tool
+
+
+- `verilog.lint.xcelium.path`: path
+
+  Platform Defaults:
+
+    linux:   `xcelium`
+
+    mac:     `xcelium`
+
+    windows: `xcelium.exe`
+
+
+- `verilog.lint.xcelium.projectEnabled`: boolean = false
+
+    Enable this linter only when the project is selected
+
+
+- `verilog.lint.xcelium.includes`: array = []
+
+    Include Path Overrides. Use `${includes} to include default includes
+
+
+- `verilog.lint.xcelium.enabled`: boolean = false
+
+    Enable this lint tool
+
+
 - `verilog.svFormat.verible.runAtFileLocation`: boolean = false
 
     Run at file location

@@ -12,6 +12,11 @@ import * as fs from 'fs'
 
 const realpath = util.promisify(fs.realpath)
 
+type ToolOutput = {
+  stdout: string
+  stderr: string
+}
+
 export default abstract class BaseLinter extends ToolConfig {
   protected diagnostics: vscode.DiagnosticCollection
 
@@ -28,6 +33,7 @@ export default abstract class BaseLinter extends ToolConfig {
   includeComputed: string[] = []
   isWsl: boolean = false
   indexDir: vscode.Uri | undefined = undefined
+  addArgs: Map<string, string[]>
 
   constructor(name: string, defaultOn: boolean = false) {
     super(name)
@@ -37,6 +43,9 @@ export default abstract class BaseLinter extends ToolConfig {
       default: defaultOn,
       description: 'Enable this lint tool',
     })
+
+    // target fsPath -> args
+    this.addArgs = new Map<string, string[]>()
   }
 
   async activate(context: vscode.ExtensionContext): Promise<void> {
@@ -92,13 +101,24 @@ export default abstract class BaseLinter extends ToolConfig {
       this.logger.warn(`skipping lint because tool is not found`)
       return
     }
-    if (this.path.cachedValue === '') {
-      return
-    }
     this.logger.info(`linting ${doc.uri}`)
 
-    let diags = await this.lintInternal(doc)
+    const targetUri = this.getTarget(doc.uri)
 
+    // Run the tool, making adjustments if we can fix some missing pkgs, etc.
+    let madeAdjustments = false
+    let diags: FileDiagnostic[]
+    do {
+      const output: any = await this.runTool(doc)
+      diags = this.parseDiagnostics({
+        doc: doc,
+        stdout: output.stdout,
+        stderr: output.stderr,
+      })
+      madeAdjustments = await this.makeAdjustments(targetUri.fsPath, diags)
+    } while (madeAdjustments)
+
+    // parse project level errors if top is set
     if (ext.project.top && getWorkspaceUri() !== undefined) {
       let wsUri: vscode.Uri = getWorkspaceUri()!
       let fmap = new Map<string, FileDiagnostic[]>()
@@ -107,9 +127,12 @@ export default abstract class BaseLinter extends ToolConfig {
           fmap.set(diag.file, [])
         }
         fmap.get(diag.file)?.push(diag)
-        this.logger.info(diag.file)
       }
       this.diagnostics.clear()
+      this.logger.info('cleared diags')
+      this.diagnostics.forEach((uri, diags) => {
+        this.logger.info(`diags for ${uri.fsPath}: ${diags.length}`)
+      })
       for (const [file, diagnostics] of fmap.entries()) {
         let uri: vscode.Uri
         if (!file.startsWith(wsUri.fsPath)) {
@@ -124,6 +147,7 @@ export default abstract class BaseLinter extends ToolConfig {
         this.logger.info(`found ${diagnostics.length}/${diags.length} errors in ${uri.fsPath}`)
       }
     } else {
+      // parse errors in current file, ignoring others since this may be an invalid setting
       this.diagnostics.set(
         doc.uri,
         diags.filter((diag) => {
@@ -136,25 +160,23 @@ export default abstract class BaseLinter extends ToolConfig {
     }
   }
 
-  protected async lintInternal(doc: vscode.TextDocument): Promise<FileDiagnostic[]> {
-    let output: any = await this.runTool(doc)
-    return this.parseDiagnostics(output)
+  /// make adjustments to lint settings, based on diagnostics
+  /// Typically adds missing packages or modules to path
+  /// returns true if adjustments were made
+  protected async makeAdjustments(_targetKey: string, _diags: FileDiagnostic[]): Promise<boolean> {
+    return false
   }
 
   clear(doc: vscode.TextDocument) {
     this.diagnostics.set(doc.uri, [])
   }
 
-  protected async runTool(
-    doc: vscode.TextDocument,
-    addargs: string[] = []
-  ): Promise<{
-    stdout: string
-    stderr: string
-    doc: vscode.TextDocument
-  }> {
-    let docPath: string = doc.uri.fsPath
-    let docFolder: string = path.dirname(docPath)
+  // make stdout/stderr types
+
+  protected async runTool(doc: vscode.TextDocument): Promise<ToolOutput> {
+    // Either current file or top module
+    const targetUri = this.getTarget(doc.uri)
+    let docFolder: string = path.dirname(targetUri.fsPath)
 
     let args: string[] = []
     args.push(...this.toolArgs(doc))
@@ -167,14 +189,14 @@ export default abstract class BaseLinter extends ToolConfig {
       args.push('-y')
       args.push(this.indexDir.fsPath)
     }
-    args.push(...addargs)
+
+    // Additional flags needed for this target
+    if (this.addArgs.has(targetUri.fsPath)) {
+      args.push(...(this.addArgs.get(targetUri.fsPath) ?? []))
+    }
 
     // top module
-    if (ext.project.top) {
-      args.push(ext.project.top.doc.uri.fsPath)
-    } else {
-      args.push(docPath)
-    }
+    args.push(targetUri.fsPath)
 
     let cwd: string | undefined = getWorkspaceFolder()
     if (this.runAtFileLocation.cachedValue === true) {
@@ -198,10 +220,14 @@ export default abstract class BaseLinter extends ToolConfig {
           if (error !== null) {
             this.logger.error(error.toString())
           }
-          resolve({ stdout, stderr, doc })
+          resolve({ stdout, stderr })
         }
       )
     })
+  }
+
+  protected getTarget(currentUri: vscode.Uri): vscode.Uri {
+    return ext.project.top ? ext.project.top.doc.uri : currentUri
   }
 
   protected formatIncludes(includes: string[]): string[] {

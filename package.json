@@ -572,6 +572,39 @@
           "description": "Enable this lint tool",
           "type": "boolean"
         },
+        "verilog.lint.xcelium.runAtFileLocation": {
+          "default": false,
+          "description": "Run at file location",
+          "type": "boolean"
+        },
+        "verilog.lint.xcelium.args": {
+          "default": "",
+          "description": "Arguments to pass to the tool",
+          "type": "string"
+        },
+        "verilog.lint.xcelium.path": {
+          "description": "Path to the tool",
+          "default": "",
+          "type": "string"
+        },
+        "verilog.lint.xcelium.projectEnabled": {
+          "default": false,
+          "description": "Enable this linter only when the project is selected",
+          "type": "boolean"
+        },
+        "verilog.lint.xcelium.includes": {
+          "default": [],
+          "description": "Include Path Overrides. Use `${includes} to include default includes",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "verilog.lint.xcelium.enabled": {
+          "default": false,
+          "description": "Enable this lint tool",
+          "type": "boolean"
+        },
         "verilog.svFormat.verible.runAtFileLocation": {
           "default": false,
           "description": "Run at file location",
