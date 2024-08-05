@@ -865,10 +865,11 @@
     "compile": "tsc -p ./",
     "package": "vsce package",
     "watch": "tsc -w -p ./",
+    "syntax": "js-yaml ./languages/sv/systemverilog.tmLanguage.yaml >./languages/sv/systemverilog.tmLanguage.json",
     "pretest": "npm run compile-tests && npm run compile && npm run lint"
   },
   "dependencies": {
-    "@types/deep-diff": "^1.0.5",
+    "js-yaml": "^4.1.0",
     "semver": "^7.6.0",
     "vscode-languageclient": "^9.0.1",
     "which": "^4.0.0"
