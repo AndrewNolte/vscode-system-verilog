@@ -132,12 +132,10 @@
         "id": "systemverilog",
         "aliases": [
           "System Verilog",
-          "systemverilog",
-          "systemverilogheader"
+          "systemverilog"
         ],
         "extensions": [
-          ".sv",
-          ".SV"
+          ".sv"
         ],
         "configuration": "./languages/sv/systemverilog.configuration.json",
         "icon": {
