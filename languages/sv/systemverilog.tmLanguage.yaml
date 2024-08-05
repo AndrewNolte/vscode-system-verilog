@@ -264,7 +264,7 @@ repository:
       [ \t\r\n]*\b(begin|fork)\b(?:[ \t\r\n]*(:)[ \t\r\n]*([a-zA-Z_][a-zA-Z0-9_$]*))?
     captures:
       '1':
-        name: keyword.control.systemverilog
+        name: keyword.control.begin.systemverilog
       '2':
         name: punctuation.definition.label.systemverilog
       '3':
