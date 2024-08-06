@@ -374,6 +374,16 @@ repository:
   sv-rand:
     match: '[ \t\r\n]*\b(?:rand|randc)\b'
     name: storage.type.rand.systemverilog
+  module-inst:
+    begin: >-
+      ([a-zA-Z_][a-zA-Z0-9_$]*)[ \t\r\n]+\(
+    beginCaptures:
+      '1':
+        name: entity.name.type.module.systemverilog
+    end: \),?
+    patterns:
+      - include: '#port-net-parameter'
+      - include: '#module-binding'
   module-parameters:
     begin: >-
       [ \t\r\n]*\b(?:(bind)[ \t\r\n]+([a-zA-Z_][a-zA-Z0-9_$\.]*)[ \t\r\n]+)?([a-zA-Z_][a-zA-Z0-9_$]*)[ \t\r\n]+(?!intersect|and|or|throughout|within)(?=#[^#])
@@ -384,7 +394,7 @@ repository:
         name: entity.name.type.module.systemverilog
       '3':
         name: entity.name.type.module.systemverilog
-    end: \)(?:[ \t\r\n]*(;))?
+    end: ;
     endCaptures:
       '1':
         name: punctuation.module.instantiation.end.systemverilog
@@ -396,6 +406,7 @@ repository:
       - include: '#comments'
       - include: '#operators'
       - include: '#constants'
+      - include: '#module-inst'
       - include: '#strings'
       - include: '#port-net-parameter'
       - match: '\b([a-zA-Z_][a-zA-Z0-9_$]*)\b(?=[ \t\r\n]*$)'
