@@ -737,6 +737,9 @@
           "include": "#module-binding"
         },
         {
+          "include": "#implicit-binding"
+        },
+        {
           "include": "#parameters"
         },
         {
@@ -799,6 +802,9 @@
       "patterns": [
         {
           "include": "#module-binding"
+        },
+        {
+          "include": "#implicit-binding"
         },
         {
           "include": "#comments"
@@ -1214,6 +1220,55 @@
         }
       ],
       "name": "meta.port.binding.systemverilog"
+    },
+    "implicit-binding": {
+      "begin": "\\.([a-zA-Z_][a-zA-Z0-9_$]*)[ \\t\\r\\n]*",
+      "beginCaptures": {
+        "1": {
+          "name": "support.function.port.systemverilog"
+        }
+      },
+      "end": ",?",
+      "patterns": [
+        {
+          "include": "#constants"
+        },
+        {
+          "include": "#comments"
+        },
+        {
+          "include": "#operators"
+        },
+        {
+          "include": "#strings"
+        },
+        {
+          "include": "#constants"
+        },
+        {
+          "include": "#storage-scope"
+        },
+        {
+          "include": "#cast-operator"
+        },
+        {
+          "include": "#system-tf"
+        },
+        {
+          "include": "#functions"
+        },
+        {
+          "include": "#base-grammar"
+        },
+        {
+          "match": "\\bvirtual\\b",
+          "name": "storage.modifier.systemverilog"
+        },
+        {
+          "include": "#identifiers"
+        }
+      ],
+      "name": "meta.port.binding.implicit.systemverilog"
     },
     "parameters": {
       "begin": "[ \\t\\r\\n]*(#)[ \\t\\r\\n]*(\\()",
