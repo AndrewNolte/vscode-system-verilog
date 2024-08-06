@@ -433,8 +433,8 @@ repository:
       - include: '#identifiers'
     name: meta.module.no_parameters.systemverilog
   functions:
-    match: '[ \t\r\n]*\b(?!while|for|if|iff|else|case|casex|casez)([a-zA-Z_][a-zA-Z0-9_$]*)(?=[ \t\r\n]*\()'
-    name: entity.name.function.systemverilog
+    match: '(?<!\.)[ \t\r\n]*\b(?!while|for|if|iff|else|case|casex|casez)([a-zA-Z_][a-zA-Z0-9_$]*)(?=[ \t\r\n]*\()'
+    name: entity.name.function.systemverilog3
   all-types:
     patterns:
       - include: '#built-ins'
@@ -639,6 +639,8 @@ repository:
       - include: '#storage-scope'
       - include: '#cast-operator'
       - include: '#system-tf'
+      - include: '#functions'
+      - include: '#base-grammar'
       - match: \bvirtual\b
         name: storage.modifier.systemverilog
       - include: '#identifiers'
