@@ -733,7 +733,8 @@ export class CtagsParser {
 
     // do implicit ports
     if (wildcardPorts) {
-      const dotStar = instText.indexOf('.*')
+      const instNameInd = instText.indexOf(inst.name)
+      const dotStar = instText.indexOf('.*', instNameInd)
       if (dotStar !== -1) {
         // return all ports as a single multiline hint
         let hover = ports.map((port) => port.name).join(', ')
