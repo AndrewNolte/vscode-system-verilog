@@ -647,7 +647,7 @@
     },
     "system-tf": {
       "match": "\\$[a-zA-Z0-9_$][a-zA-Z0-9_$]*\\b",
-      "name": "support.function.systemverilog"
+      "name": "entity.name.function.systemverilog"
     },
     "cast-operator": {
       "match": "[ \\t\\r\\n]*([0-9]+|[a-zA-Z_][a-zA-Z0-9_$]*)(')(?=\\()",
@@ -1346,7 +1346,7 @@
       "patterns": [
         {
           "match": "\\$(?![a-z])",
-          "name": "constant.language.systemverilog"
+          "name": "entity.name.function.systemverilog"
         },
         {
           "include": "#system-tf"
