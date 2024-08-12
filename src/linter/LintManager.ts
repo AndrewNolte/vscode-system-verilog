@@ -53,6 +53,7 @@ export default class LintManager extends ExtensionComponent {
     context.subscriptions.push(
       vscode.workspace.onDidCloseTextDocument(this.removeFileDiagnostics, this)
     )
+    context.subscriptions.push(vscode.window.registerTerminalLinkProvider(this.xcelium))
   }
 
   async lint(doc: vscode.TextDocument) {

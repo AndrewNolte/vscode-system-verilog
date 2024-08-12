@@ -4,7 +4,20 @@ import { FileDiagnostic, isSystemVerilog } from '../utils'
 import BaseLinter from './BaseLinter'
 import { ext } from '../extension'
 
-export default class XceliumLinter extends BaseLinter {
+class VerilogFileLink extends vscode.TerminalLink {
+  fileName: string
+  position: vscode.Position
+  constructor(fileName: string, position: vscode.Position, startIndex: number, length: number) {
+    super(startIndex, length)
+    this.fileName = fileName
+    this.position = position
+  }
+}
+
+export default class XceliumLinter
+  extends BaseLinter
+  implements vscode.TerminalLinkProvider<VerilogFileLink>
+{
   // error code -> regex for extracting package name
   pkgDiags: Map<string, RegExp>
   constructor(name: string) {
@@ -12,6 +25,38 @@ export default class XceliumLinter extends BaseLinter {
     this.pkgDiags = new Map<string, RegExp>()
     this.pkgDiags.set('NOPBIND', /Package\s([\w_]+)\scould\snot\sbe\sbound\./)
     this.pkgDiags.set('ILLHIN', /illegal\slocation\sfor\sa\shierarchical\sname\s\(([\w_]+)\)\./)
+  }
+
+  provideTerminalLinks(
+    context: vscode.TerminalLinkContext,
+    _token: vscode.CancellationToken
+  ): VerilogFileLink[] {
+    // TODO: have this update diagnostics too?
+    const re = /\((.*),(\d+)\|(\d+)\)/g
+    let links: VerilogFileLink[] = []
+    let match
+    while ((match = re.exec(context.line)) !== null) {
+      this.logger.info('found link', match)
+      const filePath = match[1]
+      const lineNum = Number(match[2]) - 1
+      const colNum = Number(match[3]) - 1
+      const link = new VerilogFileLink(
+        filePath,
+        new vscode.Position(lineNum, colNum),
+        match.index,
+        match[0].length
+      )
+      links.push(link)
+    }
+    return links
+  }
+
+  async handleTerminalLink(link: VerilogFileLink): Promise<void> {
+    const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(link.fileName))
+    await vscode.window.showTextDocument(doc, {
+      preview: false,
+      selection: new vscode.Range(link.position, link.position),
+    })
   }
 
   protected toolArgs(doc: vscode.TextDocument): string[] {
