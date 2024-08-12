@@ -1,7 +1,22 @@
 # Changelog
 
-## [0.9.14] - 2024-06-02
+## [0.9.16] - 2024-08-12
+- New feature: inlay hints for wildcard ports (.*) and general ports
+- New linter: Xcelium
+  - It's recommended to only enable this at the project level
+  - Xcelium terminal link provider, since Xcelium's error msgs have a very odd line/col scheme
+- New syntax higlighting- check in syntax now used by upstream and https://marketplace.visualstudio.com/items?itemName=eirikpre.systemverilog
+  - fix some categorizations- builtins, preproc directives, macro calls
+  - fix some regexes- implicit bindings, multiple module insts in one declaration
+- Fixes:
+  - improved accuracy on triggering package completions
+  - fix infinite loop with macros that would sometimes prevent file symbol building
+
+## [0.9.15] - 2024-06-24
 - fix icarus parsing on windows
+- absolute path globs- enables adding files outside the repo like pyuvm
+
+## [0.9.14] - 2024-06-02
 - formatting off by default, formatter must be specified
 - file icons, with colors matching .cpp/.h colors
 - expand-macros command + script config
