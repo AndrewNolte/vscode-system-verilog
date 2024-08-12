@@ -269,11 +269,11 @@
 
   Platform Defaults:
 
-    linux:   `xcelium`
+    linux:   `xrun`
 
-    mac:     `xcelium`
+    mac:     `xrun`
 
-    windows: `xcelium.exe`
+    windows: `xrun.exe`
 
 
 - `verilog.lint.xcelium.projectEnabled`: boolean = false
