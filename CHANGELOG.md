@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.9.17] - 2024-08-26
+- Slang lint
+  - parse instance paths
+  - improve ranges to include up to first ~ underline rather than ^
+- Package completions: skip hover docs on large symbols. These would sometimes timeout and default to completions from the current file
+- Inlay hints: skip empty portlists for wildcards
+- GotoDefs: fix hover timeout issue
+- Formatting: Use stdout instead of tempfile for verible formatter, avoiding tempfile issues that would sometimes come up
+
 ## [0.9.16] - 2024-08-12
 - New feature: inlay hints for wildcard ports (.*) and general ports
 - New linter: Xcelium
