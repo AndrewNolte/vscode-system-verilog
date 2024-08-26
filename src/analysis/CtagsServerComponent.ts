@@ -331,7 +331,8 @@ export class CtagsServerComponent
     // handle files referenced in strings
     const line = document.lineAt(position.line).text
     let match
-    while ((match = /"([^"]*)"/g.exec(line)) !== null) {
+    const stringRegex = /"([^"]*)"/g
+    while ((match = stringRegex.exec(line)) !== null) {
       // check bounds
       if (
         !(match.index <= position.character && position.character < match.index + match[0].length)
