@@ -46,26 +46,42 @@ export default class SlangLinter extends BaseLinter {
       let filePath = rex[1]
       let lineNum = Number(rex[2]) - 1
       let colNum = Number(rex[3]) - 1
+      // find range
+      const rangeLine = lines[n + 2]
+      let begin = colNum
+      let end = rangeLine.length
+      if (colNum === rangeLine.length - 1) {
+        // 1 length range, get the closest word after (unknown macro, etc.)
+        const textLine = lines[n + 1]
+        end = 1 + colNum + textLine.slice(colNum + 1).search(/[^a-zA-Z0-9_]/g)
+        if (end <= colNum + 1) {
+          end = textLine.length
+        }
+      } else {
+        // n length range, adjust for ~~~~^~~~ case
+        begin = Math.min(colNum, rangeLine.indexOf('~'))
+        // should never happen, but just to be safe
+        if (begin === -1) {
+          begin = colNum
+        }
+      }
 
-      let pline = lines[n + 2]
-      let pindex = pline.indexOf('^')
-      let elen = pline.length - pindex
+      // find message, potentially getting instance
+      let msg = rex[5]
+      if (n + 3 < lines.length && lines[n + 3].startsWith('  in instance:')) {
+        msg += '\n' + lines[n + 3]
+        n++
+      }
       n += 2
-
-      let spos = new vscode.Position(lineNum, colNum)
-      let range = undefined
-      if (elen === 1 && args.doc.uri.fsPath.endsWith(filePath)) {
-        range = args.doc.getWordRangeAtPosition(spos.translate(0, 1))
-      }
-      if (range === undefined) {
-        range = new vscode.Range(spos, new vscode.Position(lineNum, colNum + elen))
-      }
 
       diags.push({
         file: filePath,
         severity: this.convertToSeverity(rex[4]),
-        range: range,
-        message: rex[5],
+        range: new vscode.Range(
+          new vscode.Position(lineNum, begin),
+          new vscode.Position(lineNum, end)
+        ),
+        message: msg,
         code: rex[7] ? rex[7] : 'error',
         source: 'slang',
       })
