@@ -317,28 +317,36 @@ export class Symbol {
     )
     item.detail = this.type
     item.filterText = this.name
-    if (this.isMacro()) {
-      let ln = this.doc.lineAt(this.line).text
-      let args = ln.substring(ln.indexOf('(') + 1, ln.indexOf(')'))
-
-      let snip = new vscode.SnippetString(this.name + '(')
-      let arglist = args.split(',')
-      for (let i = 0; i < arglist.length; i++) {
-        snip.appendPlaceholder(arglist[i].trim())
-        if (i !== arglist.length - 1) {
-          snip.appendText(', ')
-        }
-      }
-      snip.appendText(')')
-      let txt = ln.substring(this.getIdRange().start.character, ln.indexOf(')') + 1)
-      // let ins = new vscode.SnippetString()
-      item.insertText = snip
-      item.documentation = txt
-      item.label = '`' + item.label
-    } else {
-      item.insertText = this.name
+    item.insertText = this.name
+    if (!(this.type === 'typedef' || this.type === 'instance')) {
       item.documentation = this.getHoverText()
     }
+    return item
+  }
+
+  public getMacroCompletionItem(): vscode.CompletionItem | undefined {
+    if (!this.isMacro()) {
+      return undefined
+    }
+    let ln = this.doc.lineAt(this.line).text
+    let args = ln.substring(ln.indexOf('(') + 1, ln.indexOf(')'))
+
+    let snip = new vscode.SnippetString(this.name + '(')
+    let arglist = args.split(',')
+    for (let i = 0; i < arglist.length; i++) {
+      snip.appendPlaceholder(arglist[i].trim())
+      if (i !== arglist.length - 1) {
+        snip.appendText(', ')
+      }
+    }
+    snip.appendText(')')
+    let txt = ln.substring(this.getIdRange().start.character, ln.indexOf(')') + 1)
+    let item = new vscode.CompletionItem(this.name, vscode.CompletionItemKind.Snippet)
+    item.detail = this.type
+    item.filterText = this.name
+    item.insertText = snip
+    item.documentation = txt
+    item.label = '`' + item.label
     return item
   }
 
@@ -506,11 +514,11 @@ export class CtagsParser {
     return await this.getSymbols({ type: 'instance' })
   }
 
+  NON_PKG_TYPES = new Set(['member', 'register', 'port', 'define'])
+
   async getPackageSymbols(): Promise<Symbol[]> {
     let syms = await this.getSymbols({}, false)
-    return syms.filter(
-      (tag) => tag.type !== 'member' && tag.type !== 'register' && tag.type !== 'port'
-    )
+    return syms.filter((tag) => !this.NON_PKG_TYPES.has(tag.type))
   }
 
   async execCtags(filepath: string): Promise<string> {

@@ -137,15 +137,26 @@ export class CtagsServerComponent
 
     // Module inst Completion
     if (context.triggerCharacter === '#') {
-      return await this.provideModuleCompletion(document, position, _token, context)
+      const moduleCompletions = await this.provideModuleCompletion(
+        document,
+        position,
+        _token,
+        context
+      )
+      this.logger.info(`Returning ${moduleCompletions.length} module completions`)
+      return moduleCompletions
     }
 
     // Macro Completion
     if (context.triggerCharacter === '`') {
       let macroCompletions = []
-      for (let sym of ext.ctags.getSymbolMap().values()) {
-        macroCompletions.push(sym[0].getCompletionItem())
+      for (let symbols of ext.ctags.getSymbolMap().values()) {
+        const completion = symbols[0].getMacroCompletionItem()
+        if (completion) {
+          macroCompletions.push(completion)
+        }
       }
+      this.logger.info(`Returning ${macroCompletions.length} macro completions`)
       return macroCompletions
     }
 
@@ -164,13 +175,16 @@ export class CtagsServerComponent
       let pkgName = document.getText(pkgRange)
       let ctags = await ext.ctags.findModule(pkgName)
       if (ctags === undefined) {
+        this.logger.info('Package not found')
         return []
       }
       symbols = await ctags.getPackageSymbols()
+      this.logger.info(`Found ${symbols.length} completions in package`)
     } else if (context.triggerCharacter === '.') {
       let parentScope = getParentText(document, new vscode.Range(position, position))
 
       if (parentScope === '') {
+        this.logger.info(`Finding completions for ports/params`)
         // port completion
         symbols = await ext.ctags.getCtags(document).getSymbols({ type: 'instance' })
         // TODO: binary search instead
@@ -193,6 +207,7 @@ export class CtagsServerComponent
       } else {
         // hierarchial reference completion
         let insts = await ext.ctags.getCtags(document).getSymbols({ name: parentScope })
+        this.logger.info(`Fetching hierarchical completion`)
         if (insts.length > 0 && insts[0].typeRef !== null) {
           let mod = await ext.ctags.findModule(insts[0].typeRef)
           if (mod) {
@@ -202,6 +217,7 @@ export class CtagsServerComponent
       }
     } else {
       // this file
+      this.logger.info('Fetching completions from current file')
       symbols = await ext.ctags.getCtags(document).getSymbols()
 
       // wire width, ex: logic[some_param-1:0]
