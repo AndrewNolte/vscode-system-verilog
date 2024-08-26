@@ -104,9 +104,49 @@ class IStyleVerilogFormatterEditProvider extends FileBasedFormattingEditProvider
   }
 }
 
-class VeribleVerilogFormatEditProvider extends FileBasedFormattingEditProvider {
-  prepareArgument(tmpFilepath: string): string[] {
-    return ['--inplace', tmpFilepath]
+class VeribleVerilogFormatEditProvider
+  extends ToolConfig
+  implements vscode.DocumentFormattingEditProvider
+{
+  constructor(namespace: string) {
+    super(namespace)
+  }
+
+  provideDocumentFormattingEdits(
+    document: vscode.TextDocument,
+    _options: vscode.FormattingOptions,
+    _token: vscode.CancellationToken
+  ): vscode.ProviderResult<vscode.TextEdit[]> {
+    let binPath: string = this.path.getValue()
+    if (binPath === undefined) {
+      this.logger.warn('No path specified for formatter')
+      return []
+    }
+
+    let args = this.args.getValue().split(' ')
+    args.push(document.uri.fsPath)
+
+    this.logger.info('Executing command: ' + binPath + ' ' + args.join(' '))
+
+    try {
+      let formattedText: string = child_process.execFileSync(binPath, args, {
+        cwd: getWorkspaceFolder(),
+        encoding: 'utf-8',
+      })
+      return [
+        vscode.TextEdit.replace(
+          new vscode.Range(
+            document.positionAt(0),
+            document.lineAt(document.lineCount - 1).range.end
+          ),
+          formattedText
+        ),
+      ]
+    } catch (err) {
+      this.logger.error('Formatting failed: ' + (err as Error).toString())
+    }
+
+    return []
   }
 }
 
@@ -129,8 +169,7 @@ export class VerilogFormatProvider
     '.v'
   )
   veribleFormatter: VeribleVerilogFormatEditProvider = new VeribleVerilogFormatEditProvider(
-    'verible',
-    '.v'
+    'verible'
   )
 
   formatter: ConfigObject<VerilogFormatter | ''> = new ConfigObject({
@@ -182,8 +221,7 @@ export class SystemVerilogFormatProvider
   implements vscode.DocumentFormattingEditProvider
 {
   verible: VeribleVerilogFormatEditProvider = new VeribleVerilogFormatEditProvider(
-    'verible-verilog-format',
-    '.sv'
+    'verible-verilog-format'
   )
 
   formatter: ConfigObject<SvFormatter | ''> = new ConfigObject({
