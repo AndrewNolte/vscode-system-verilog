@@ -1,9 +1,9 @@
-import { ext } from '../extension'
-import * as vscode from 'vscode'
-import { Symbol } from './ctagsParser'
 import * as fs from 'fs'
 import * as path from 'path'
+import * as vscode from 'vscode'
+import { ext } from '../extension'
 import { getWorkspaceFolder } from '../utils'
+import { Symbol } from './Symbol'
 
 export async function selectModule(doc: vscode.TextDocument): Promise<Symbol | undefined> {
   let ctags = ext.ctags.getCtags(doc)

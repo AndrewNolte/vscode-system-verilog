@@ -1,7 +1,7 @@
 import * as vscode from 'vscode'
 import { TreeDataProvider, TreeItem } from 'vscode'
-import { Symbol } from './analysis/ctagsParser'
-import { selectModule, selectModuleGlobal } from './analysis/selection'
+import { selectModule, selectModuleGlobal } from './analysis/ModuleSelection'
+import { Symbol } from './analysis/Symbol'
 import { ext } from './extension'
 import { CommandNode, ViewComponent } from './lib/libconfig'
 

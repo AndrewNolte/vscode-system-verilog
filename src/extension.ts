@@ -1,23 +1,23 @@
 // SPDX-License-Identifier: MIT
 import * as vscode from 'vscode'
 
+import * as child_process from 'child_process'
+import { glob } from 'glob'
+import path from 'path'
+import { promisify } from 'util'
 import { SystemVerilogFormatProvider, VerilogFormatProvider } from './FormatProvider'
 import { IncludeConfig } from './IncludeConfig'
 import { IndexComponent } from './IndexComponent'
+import { InlayHintsComponent } from './InlayHintsComponent'
 import { LanguageServerComponent } from './LSComponent'
 import { ProjectComponent } from './ProjectComponent'
 import { CtagsComponent } from './analysis/CtagsComponent'
 import { CtagsServerComponent } from './analysis/CtagsServerComponent'
-import { selectModuleGlobal } from './analysis/selection'
+import { selectModuleGlobal } from './analysis/ModuleSelection'
 import { ActivityBarComponent, CommandNode, ConfigObject } from './lib/libconfig'
 import LintManager from './linter/LintManager'
 import { SurferComponent } from './surferWaveformViewer'
 import { getWorkspaceFolder, isAnyVerilog } from './utils'
-import * as child_process from 'child_process'
-import path from 'path'
-import { glob } from 'glob'
-import { promisify } from 'util'
-import { InlayHintsComponent } from './InlayHintsComponent'
 const asyncGlob = promisify(glob)
 
 export var ext: VerilogExtension

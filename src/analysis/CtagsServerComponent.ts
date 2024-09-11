@@ -4,7 +4,7 @@ import { ext } from '../extension'
 import { ExtensionComponent } from '../lib/libconfig'
 import { anyVerilogSelector, getParentText, getPrev2Char, getPrevChar } from '../utils'
 import builtins from './builtins.json'
-import { Symbol } from './ctagsParser'
+import { Symbol } from './Symbol'
 
 export class CtagsServerComponent
   extends ExtensionComponent

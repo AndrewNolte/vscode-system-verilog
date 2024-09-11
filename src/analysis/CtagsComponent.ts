@@ -2,13 +2,15 @@
 import * as vscode from 'vscode'
 import { ext } from '../extension'
 import { ConfigObject, ExtensionComponent, PathConfigObject } from '../lib/libconfig'
-import { CtagsParser, Symbol } from './ctagsParser'
 import { getParentText, getPrevChar } from '../utils'
+import { Symbol } from './Symbol'
+import { VerilogFile } from './VerilogFile'
+
 import fs = require('fs')
 
 export class CtagsComponent extends ExtensionComponent {
   // file -> parser
-  private filemap: Map<vscode.TextDocument, CtagsParser> = new Map()
+  private filemap: Map<vscode.TextDocument, VerilogFile> = new Map()
   /// symbol name -> symbols (from includes)
   private symbolMap: Map<string, Symbol[]> = new Map()
 
@@ -105,16 +107,16 @@ export class CtagsComponent extends ExtensionComponent {
     )
   }
 
-  getCtags(doc: vscode.TextDocument): CtagsParser {
-    let ctags: CtagsParser | undefined = this.filemap.get(doc)
+  getCtags(doc: vscode.TextDocument): VerilogFile {
+    let ctags: VerilogFile | undefined = this.filemap.get(doc)
     if (ctags === undefined) {
-      ctags = new CtagsParser(this.logger, doc)
+      ctags = new VerilogFile(this.logger, doc)
       this.filemap.set(doc, ctags)
     }
     return ctags
   }
 
-  async findModule(moduleName: string): Promise<CtagsParser | undefined> {
+  async findModule(moduleName: string): Promise<VerilogFile | undefined> {
     let file = await ext.index.findModule(moduleName)
     if (file === undefined) {
       return undefined
