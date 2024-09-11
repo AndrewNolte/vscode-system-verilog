@@ -2,7 +2,7 @@
 
 - `verilog.index.enableSymlinks`: boolean = true
 
-    Enable creating file symlinks in .sv_cache/files for the -y flag that most tools have
+    Enable creating file symlinks in .sv_cache/files for the -y flag that most tools have. Created in a per-workspace exteneral directory that vscode provides
 
 
 - `verilog.ctags.path`: path

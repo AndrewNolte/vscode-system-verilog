@@ -320,7 +320,7 @@
       "properties": {
         "verilog.index.enableSymlinks": {
           "default": true,
-          "description": "Enable creating file symlinks in .sv_cache/files for the -y flag that most tools have",
+          "description": "Enable creating file symlinks in .sv_cache/files for the -y flag that most tools have. Created in a per-workspace exteneral directory that vscode provides",
           "type": "boolean"
         },
         "verilog.ctags.path": {
@@ -758,7 +758,7 @@
       },
       {
         "command": "verilog.project.showSourceFile",
-        "title": "Show Module",
+        "title": "Verilog: Show Module",
         "inlineContext": "File"
       },
       {
@@ -767,7 +767,7 @@
       },
       {
         "command": "verilog.instantiateModule",
-        "title": "Instantiate Module"
+        "title": "Verilog: Instantiate Module"
       },
       {
         "command": "verilog.expandMacros",

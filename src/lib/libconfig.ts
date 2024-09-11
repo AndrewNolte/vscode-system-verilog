@@ -1,12 +1,12 @@
 import * as child_process from 'child_process'
 import { readFile, writeFile } from 'fs/promises'
+import * as path from 'path'
 import * as process from 'process'
 import { promisify } from 'util'
 import * as vscode from 'vscode'
 import { JSONSchemaType } from './jsonSchema'
 import { Logger, StubLogger, createLogger } from './logger'
 import { IConfigurationPropertySchema } from './vscodeConfigs'
-import * as path from 'path'
 const execFilePromise = promisify(child_process.execFile)
 
 class ExtensionNode {
@@ -40,6 +40,7 @@ export abstract class ExtensionComponent extends ExtensionNode {
    * Container for extensions functionality and config
    */
   logger: Logger
+  title: string | undefined
   private children: ExtensionNode[]
 
   constructor() {
@@ -49,10 +50,19 @@ export abstract class ExtensionComponent extends ExtensionNode {
   }
 
   public async activateExtension(
+    /**
+     * Activates the extension component
+     * @param nodeName The name of the node in the configuration tree
+     * @param title The display title for the extension, main logger
+     * @param context The VSCode extension context
+     * @param incompatibleExtensions Optional array of extension IDs that are incompatible with this extension
+     */
     nodeName: string,
+    title: string,
     context: vscode.ExtensionContext,
     incompatibleExtensions?: string[]
   ): Promise<void> {
+    this.title = title
     this.compile(nodeName)
 
     this.postOrderTraverse(async (node: ExtensionNode) => {
@@ -141,7 +151,7 @@ export abstract class ExtensionComponent extends ExtensionNode {
       this.logger = parentNode.logger?.getChild(this.nodeName!)
     } else {
       // root node
-      this.logger = createLogger(this.nodeName!)
+      this.logger = createLogger(this.title!)
     }
 
     const subTypeProperties = Object.getOwnPropertyNames(this).filter(
@@ -157,6 +167,13 @@ export abstract class ExtensionComponent extends ExtensionNode {
       obj.compile(childName, this)
       this.children.push(obj)
     }
+  }
+
+  getRoot(): ExtensionComponent {
+    if (!this._parentNode) {
+      return this
+    }
+    return this._parentNode.getRoot()
   }
 
   showErrorMessage(msg: string) {
@@ -334,6 +351,9 @@ export class CommandNode extends ExtensionNode {
     context.subscriptions.push(
       vscode.commands.registerCommand(this.configPath!, this.func, this.thisArg)
     )
+    if (this._parentNode !== undefined) {
+      this.obj.title = this._parentNode.getRoot().title + ': ' + this.obj.title
+    }
   }
 }
 
@@ -473,7 +493,7 @@ export class PathConfigObject extends ConfigObject<string> {
 
   getValue(): string {
     let toolpath = vscode.workspace.getConfiguration().get(this.configPath!, this.default!)
-    if (toolpath === ''){
+    if (toolpath === '') {
       return this.platformDefaults[getPlatform()]
     }
     return toolpath
@@ -491,7 +511,7 @@ export class PathConfigObject extends ConfigObject<string> {
       // if it's a platform default, check the path
       toolpath = this.platformDefaults[getPlatform()]
 
-      if (!path.isAbsolute(toolpath)){
+      if (!path.isAbsolute(toolpath)) {
         toolpath = await this.which(toolpath)
       }
     }
@@ -527,7 +547,9 @@ export class PathConfigObject extends ConfigObject<string> {
     let toolpath = await this.getValueAsync()
     if (toolpath === '') {
       vscode.window.showErrorMessage(
-        `"${this.getValue()}" not found. Configure abs path at ${this.configPath}, add to PATH, or disable in config.`
+        `"${this.getValue()}" not found. Configure abs path at ${
+          this.configPath
+        }, add to PATH, or disable in config.`
       )
       return false
     }

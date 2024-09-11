@@ -105,7 +105,7 @@ export class VerilogExtension extends ActivityBarComponent {
   ////////////////////////////////////////////////
   reindex: CommandNode = new CommandNode(
     {
-      title: 'Verilog: reindex',
+      title: 'Reindex',
     },
     async () => {
       this.indexFiles(true)
@@ -139,7 +139,7 @@ export class VerilogExtension extends ActivityBarComponent {
 
   expandMacros: CommandNode = new CommandNode(
     {
-      title: 'Verilog: Expand Macros',
+      title: 'Expand Macros',
       shortTitle: 'Expand macros',
       languages: ['verilog', 'systemverilog'],
       isTitleButton: true,
@@ -147,7 +147,7 @@ export class VerilogExtension extends ActivityBarComponent {
     },
     async () => {
       if (ext.expandMacroScript.getValue() === '') {
-        vscode.window.showErrorMessage('Verilog: `verilog.expandMacroScript` not provided')
+        vscode.window.showErrorMessage('`verilog.expandMacroScript` not provided')
         return
       }
       let doc = vscode.window.activeTextEditor?.document
@@ -322,7 +322,7 @@ export async function activate(context: vscode.ExtensionContext) {
     title: 'Verilog',
     icon: '$(chip)',
   })
-  await ext.activateExtension('verilog', context, [
+  await ext.activateExtension('verilog', 'Verilog', context, [
     'mshr-h.veriloghdl',
     'eirikpre.systemverilog',
     'IMCTradingBV.svlangserver',

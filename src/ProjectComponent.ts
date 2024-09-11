@@ -94,7 +94,7 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
 
   setTopLevel: CommandNode = new CommandNode(
     {
-      title: 'Verilog: Set Top Level',
+      title: 'Set Top Level',
       shortTitle: 'Set Top',
       languages: ['verilog', 'systemverilog'],
       isTitleButton: true,
@@ -118,7 +118,7 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
 
   clearTopLevel: CommandNode = new CommandNode(
     {
-      title: 'Verilog: Clear Top Level',
+      title: 'Clear Top Level',
       icon: '$(panel-close)',
       isTitleButton: true,
     },
@@ -130,7 +130,7 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
 
   selectTopLevel: CommandNode = new CommandNode(
     {
-      title: 'Verilog: Select Top Level',
+      title: 'Select Top Level',
       icon: '$(folder-opened)',
       isTitleButton: true,
     },
