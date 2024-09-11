@@ -220,7 +220,7 @@ export class IndexComponent extends ExtensionComponent {
   }
 
   async findModule(moduleName: string): Promise<VerilogDoc | undefined> {
-    let vscodeDoc = await ext.index.findFile(moduleName)
+    let vscodeDoc = await this.findFile(moduleName)
     if (vscodeDoc === undefined) {
       return undefined
     }
@@ -286,7 +286,7 @@ export class IndexComponent extends ExtensionComponent {
       return this.symbolMap.get(targetText) ?? []
     }
 
-    if (ext.index.moduleMap.has(targetText) || ext.index.moduleMap.has(parentScope)) {
+    if (this.moduleMap.has(targetText) || this.moduleMap.has(parentScope)) {
       // find parentScope.sv of parentScope::targetText
       let sym = (await this.findDefinitionByName(parentScope, targetText)).at(0)
       // Sometimes package::x is found multiple times, return just the top level package
