@@ -34,7 +34,7 @@ class VerilogPortHint extends vscode.InlayHint {
 }
 
 // TODO: add a user setting to enable/disable all ctags based operations
-export class VerilogFile {
+export class VerilogDoc {
   /// Symbol definitions (no rhs)
   symbols: Symbol[]
   importSymbols: Symbol[] | undefined
@@ -97,7 +97,7 @@ export class VerilogFile {
     // parse each import in parallel
     const symbols: Promise<Symbol[]>[] = importedFiles.map(async (uri) => {
       let doc = await vscode.workspace.openTextDocument(uri)
-      const ctags = ext.ctags.getCtags(doc)
+      const ctags = ext.ctags.getVerilogDoc(doc)
       return ctags.getSymbols()
     })
 

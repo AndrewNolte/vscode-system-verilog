@@ -4,13 +4,11 @@ import { ext } from '../extension'
 import { ConfigObject, ExtensionComponent, PathConfigObject } from '../lib/libconfig'
 import { getParentText, getPrevChar } from '../utils'
 import { Symbol } from './Symbol'
-import { VerilogFile } from './VerilogFile'
-
-import fs = require('fs')
+import { VerilogDoc } from './VerilogDoc'
 
 export class CtagsComponent extends ExtensionComponent {
   // file -> parser
-  private filemap: Map<vscode.TextDocument, VerilogFile> = new Map()
+  private filemap: Map<vscode.TextDocument, VerilogDoc> = new Map()
   /// symbol name -> symbols (from includes)
   private symbolMap: Map<string, Symbol[]> = new Map()
 
@@ -46,7 +44,7 @@ export class CtagsComponent extends ExtensionComponent {
     })
 
     vscode.workspace.onDidSaveTextDocument((doc: vscode.TextDocument) => {
-      this.getCtags(doc).clearSymbols()
+      this.getVerilogDoc(doc).clearSymbols()
     })
 
     this.path.onConfigUpdated(async () => {
@@ -87,7 +85,7 @@ export class CtagsComponent extends ExtensionComponent {
             return
           }
 
-          let syms = await this.getCtags(doc).getSymbols()
+          let syms = await this.getVerilogDoc(doc).getSymbols()
           syms.forEach((element: Symbol) => {
             // only want to index top level symbols, i.e. macros
             if (element.parentScope !== '') {
@@ -107,21 +105,21 @@ export class CtagsComponent extends ExtensionComponent {
     )
   }
 
-  getCtags(doc: vscode.TextDocument): VerilogFile {
-    let ctags: VerilogFile | undefined = this.filemap.get(doc)
+  getVerilogDoc(doc: vscode.TextDocument): VerilogDoc {
+    let ctags: VerilogDoc | undefined = this.filemap.get(doc)
     if (ctags === undefined) {
-      ctags = new VerilogFile(this.logger, doc)
+      ctags = new VerilogDoc(this.logger, doc)
       this.filemap.set(doc, ctags)
     }
     return ctags
   }
 
-  async findModule(moduleName: string): Promise<VerilogFile | undefined> {
+  async findModule(moduleName: string): Promise<VerilogDoc | undefined> {
     let file = await ext.index.findModule(moduleName)
     if (file === undefined) {
       return undefined
     }
-    let parser = this.getCtags(file)
+    let parser = this.getVerilogDoc(file)
     return parser
   }
 
@@ -140,7 +138,7 @@ export class CtagsComponent extends ExtensionComponent {
     if (file === undefined) {
       return []
     }
-    let parser = this.getCtags(file)
+    let parser = this.getVerilogDoc(file)
     return await parser.getSymbols({ name: targetText })
   }
 
@@ -150,7 +148,7 @@ export class CtagsComponent extends ExtensionComponent {
     if (!textRange || textRange.isEmpty) {
       return []
     }
-    let parser = this.getCtags(document)
+    let parser = this.getVerilogDoc(document)
     let targetText = document.getText(textRange)
     let symPromise = parser.getSymbols({ name: targetText })
 

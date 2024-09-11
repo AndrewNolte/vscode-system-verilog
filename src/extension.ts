@@ -128,7 +128,7 @@ export class VerilogExtension extends ActivityBarComponent {
       if (module === undefined) {
         return
       }
-      let ctags = ext.ctags.getCtags(module.doc)
+      let ctags = ext.ctags.getVerilogDoc(module.doc)
       let snippet = ctags.getModuleSnippet(module, true)
       if (snippet === undefined) {
         return

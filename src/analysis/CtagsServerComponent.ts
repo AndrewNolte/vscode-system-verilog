@@ -103,7 +103,7 @@ export class CtagsServerComponent
       return []
     }
 
-    let ctags = ext.ctags.getCtags(moduleDoc)
+    let ctags = ext.ctags.getVerilogDoc(moduleDoc)
     let modules = await ctags.getModules()
     if (modules.length === 0) {
       return []
@@ -186,7 +186,7 @@ export class CtagsServerComponent
       if (parentScope === '') {
         this.logger.info(`Finding completions for ports/params`)
         // port completion
-        symbols = await ext.ctags.getCtags(document).getSymbols({ type: 'instance' })
+        symbols = await ext.ctags.getVerilogDoc(document).getSymbols({ type: 'instance' })
         // TODO: binary search instead
         symbols = symbols.filter(
           (inst) => inst.getFullRange().contains(position) && inst.typeRef !== null
@@ -206,7 +206,7 @@ export class CtagsServerComponent
         }
       } else {
         // hierarchial reference completion
-        let insts = await ext.ctags.getCtags(document).getSymbols({ name: parentScope })
+        let insts = await ext.ctags.getVerilogDoc(document).getSymbols({ name: parentScope })
         this.logger.info(`Fetching hierarchical completion`)
         if (insts.length > 0 && insts[0].typeRef !== null) {
           let mod = await ext.ctags.findModule(insts[0].typeRef)
@@ -218,7 +218,7 @@ export class CtagsServerComponent
     } else {
       // this file
       this.logger.info('Fetching completions from current file')
-      symbols = await ext.ctags.getCtags(document).getSymbols()
+      symbols = await ext.ctags.getVerilogDoc(document).getSymbols()
 
       // wire width, ex: logic[some_param-1:0]
       // TODO: detect if we're in a functional block or not to restrict to params
@@ -276,7 +276,7 @@ export class CtagsServerComponent
     }
 
     let sym = syms[0]
-    let ctags = ext.ctags.getCtags(sym.doc)
+    let ctags = ext.ctags.getVerilogDoc(sym.doc)
 
     let hovers = await ctags.getNestedHoverText(sym)
     let mds = hovers.reverse().map((hover) => {
@@ -306,7 +306,7 @@ export class CtagsServerComponent
     }
     let hints = []
     // get module insts in range with a typeRef
-    const ctags = ext.ctags.getCtags(document)
+    const ctags = ext.ctags.getVerilogDoc(document)
     let insts = await ctags.getSymbols({ type: 'instance' })
     insts = insts.filter((inst) => inst.getFullRange().intersection(range) !== undefined)
     insts = insts.filter((inst) => inst.typeRef !== null)
@@ -384,7 +384,7 @@ export class CtagsServerComponent
     _token: vscode.CancellationToken
   ): Promise<vscode.DocumentSymbol[]> {
     this.logger.info(`provideDocumentSymbols(${document.uri}) => ...`)
-    const tree = await ext.ctags.getCtags(document).getSymbolTree()
+    const tree = await ext.ctags.getVerilogDoc(document).getSymbolTree()
     try {
       const docSymbols = tree.map((sym) => sym.getDocumentSymbol())
       this.logger.info(`provideDocumentSymbols(${document.uri}) => ${docSymbols.length} symbols`)
