@@ -323,6 +323,11 @@
           "description": "Enable creating file symlinks in .sv_cache/files for the -y flag that most tools have. Created in a per-workspace exteneral directory that vscode provides",
           "type": "boolean"
         },
+        "verilog.index.indexAllIncludes": {
+          "default": false,
+          "description": "Whether to index all .svh files",
+          "type": "boolean"
+        },
         "verilog.ctags.path": {
           "description": "Path to ctags universal executable",
           "default": "",
@@ -330,7 +335,7 @@
         },
         "verilog.ctags.indexAllIncludes": {
           "default": false,
-          "description": "Whether to index all .svh files",
+          "description": "(Deprecated) Use `verilog.index.IndexAllIncludes` instead",
           "type": "boolean"
         },
         "verilog.includes": {
@@ -763,7 +768,7 @@
       },
       {
         "command": "verilog.reindex",
-        "title": "Verilog: reindex"
+        "title": "Verilog: Reindex"
       },
       {
         "command": "verilog.instantiateModule",

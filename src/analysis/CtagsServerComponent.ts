@@ -98,22 +98,15 @@ export class CtagsServerComponent
     let moduleRange = document.getWordRangeAtPosition(position.translate(0, -2))
     let moduleName = document.getText(moduleRange)
 
-    let moduleDoc = await ext.index.findModule(moduleName)
-    if (moduleDoc === undefined) {
+    let module = await ext.index.findModuleSymbol(moduleName)
+    if (module === undefined) {
       return []
     }
-
-    let ctags = ext.ctags.getVerilogDoc(moduleDoc)
-    let modules = await ctags.getModules()
-    if (modules.length === 0) {
-      return []
-    }
-    let module = modules[0]
     let newItem: vscode.CompletionItem = new vscode.CompletionItem(
       module.getHoverText(),
       vscode.CompletionItemKind.Module
     )
-    newItem.insertText = ctags.getModuleSnippet(module, false)
+    newItem.insertText = module.getModuleSnippet(false)
     items.push(newItem)
 
     return items
@@ -150,7 +143,7 @@ export class CtagsServerComponent
     // Macro Completion
     if (context.triggerCharacter === '`') {
       let macroCompletions = []
-      for (let symbols of ext.ctags.getSymbolMap().values()) {
+      for (let symbols of ext.index.getSymbolMap().values()) {
         const completion = symbols[0].getMacroCompletionItem()
         if (completion) {
           macroCompletions.push(completion)
@@ -173,7 +166,7 @@ export class CtagsServerComponent
       // package file
       let pkgRange = document.getWordRangeAtPosition(position.translate(0, -2))
       let pkgName = document.getText(pkgRange)
-      let ctags = await ext.ctags.findModule(pkgName)
+      let ctags = await ext.index.findModule(pkgName)
       if (ctags === undefined) {
         this.logger.info('Package not found')
         return []
@@ -186,14 +179,14 @@ export class CtagsServerComponent
       if (parentScope === '') {
         this.logger.info(`Finding completions for ports/params`)
         // port completion
-        symbols = await ext.ctags.getVerilogDoc(document).getSymbols({ type: 'instance' })
+        symbols = await ext.index.getVerilogDoc(document).getSymbols({ type: 'instance' })
         // TODO: binary search instead
         symbols = symbols.filter(
           (inst) => inst.getFullRange().contains(position) && inst.typeRef !== null
         )
         let inst = symbols[0]
         if (inst.typeRef !== null) {
-          let mod = await ext.ctags.findModule(inst.typeRef)
+          let mod = await ext.index.findModule(inst.typeRef)
 
           if (mod) {
             let isPort = position.isAfter(inst.getIdRange().end)
@@ -206,10 +199,10 @@ export class CtagsServerComponent
         }
       } else {
         // hierarchial reference completion
-        let insts = await ext.ctags.getVerilogDoc(document).getSymbols({ name: parentScope })
+        let insts = await ext.index.getVerilogDoc(document).getSymbols({ name: parentScope })
         this.logger.info(`Fetching hierarchical completion`)
         if (insts.length > 0 && insts[0].typeRef !== null) {
-          let mod = await ext.ctags.findModule(insts[0].typeRef)
+          let mod = await ext.index.findModule(insts[0].typeRef)
           if (mod) {
             symbols = (await mod.getSymbols()).filter((sym) => sym.isData())
           }
@@ -218,7 +211,7 @@ export class CtagsServerComponent
     } else {
       // this file
       this.logger.info('Fetching completions from current file')
-      symbols = await ext.ctags.getVerilogDoc(document).getSymbols()
+      symbols = await ext.index.getVerilogDoc(document).getSymbols()
 
       // wire width, ex: logic[some_param-1:0]
       // TODO: detect if we're in a functional block or not to restrict to params
@@ -269,14 +262,14 @@ export class CtagsServerComponent
       return this.builtinHovers.get(document.getText(range))
     }
 
-    let syms: Symbol[] = await ext.ctags.findSymbol(document, position)
+    let syms: Symbol[] = await ext.index.findSymbol(document, position)
     if (syms.length === 0) {
       this.logger.warn('Hover object not found')
       return undefined
     }
 
     let sym = syms[0]
-    let ctags = ext.ctags.getVerilogDoc(sym.doc)
+    let ctags = ext.index.getVerilogDoc(sym.doc)
 
     let hovers = await ctags.getNestedHoverText(sym)
     let mds = hovers.reverse().map((hover) => {
@@ -306,7 +299,7 @@ export class CtagsServerComponent
     }
     let hints = []
     // get module insts in range with a typeRef
-    const ctags = ext.ctags.getVerilogDoc(document)
+    const ctags = ext.index.getVerilogDoc(document)
     let insts = await ctags.getSymbols({ type: 'instance' })
     insts = insts.filter((inst) => inst.getFullRange().intersection(range) !== undefined)
     insts = insts.filter((inst) => inst.typeRef !== null)
@@ -315,7 +308,7 @@ export class CtagsServerComponent
         inst,
         wildcardPorts,
         ports === 'on' ||
-          (ports === 'hover' && !!ext.ctags.hoverHistory.get(document.uri)?.has(inst.name))
+          (ports === 'hover' && !!ext.index.hoverHistory.get(document.uri)?.has(inst.name))
       )
     })
     this.logger.info(`provideInlayHints() => Found ${insts.length} module instances`)
@@ -339,7 +332,7 @@ export class CtagsServerComponent
   ): Promise<vscode.DefinitionLink[] | undefined> {
     this.logger.info('Definitions Requested: ' + document.uri)
     // find all matching symbols
-    let syms: Symbol[] = await ext.ctags.findSymbol(document, position)
+    let syms: Symbol[] = await ext.index.findSymbol(document, position)
     this.logger.info(syms.length + ' definitions returned from ctags')
     if (syms.length > 0) {
       return syms.map((sym) => sym.getDefinitionLink())
@@ -384,7 +377,7 @@ export class CtagsServerComponent
     _token: vscode.CancellationToken
   ): Promise<vscode.DocumentSymbol[]> {
     this.logger.info(`provideDocumentSymbols(${document.uri}) => ...`)
-    const tree = await ext.ctags.getVerilogDoc(document).getSymbolTree()
+    const tree = await ext.index.getVerilogDoc(document).getSymbolTree()
     try {
       const docSymbols = tree.map((sym) => sym.getDocumentSymbol())
       this.logger.info(`provideDocumentSymbols(${document.uri}) => ${docSymbols.length} symbols`)

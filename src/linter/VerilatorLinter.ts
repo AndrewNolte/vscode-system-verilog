@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 import * as vscode from 'vscode'
-import BaseLinter from './BaseLinter'
-import { FileDiagnostic, isSystemVerilog } from '../utils'
 import { ext } from '../extension'
+import { FileDiagnostic, isSystemVerilog } from '../utils'
+import BaseLinter from './BaseLinter'
 
 export default class VerilatorLinter extends BaseLinter {
   constructor(name: string) {
@@ -38,7 +38,7 @@ export default class VerilatorLinter extends BaseLinter {
       if (match === null || match?.length < 2) {
         continue
       }
-      let pkg = await ext.index.findModule(match[1])
+      let pkg = await ext.index.findFile(match[1])
       if (!pkg) {
         this.logger.info("couldn't find package " + pkg)
         continue

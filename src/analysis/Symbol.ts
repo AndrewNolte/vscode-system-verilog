@@ -1,4 +1,5 @@
 import * as vscode from 'vscode'
+import { VerilogDoc } from './VerilogDoc'
 
 export class Symbol {
   name: string
@@ -14,9 +15,11 @@ export class Symbol {
   isValid: boolean
   typeRef: string | null
   doc: vscode.TextDocument
+  verilogDoc: VerilogDoc
   children: Symbol[]
   constructor(
     doc: vscode.TextDocument,
+    verilogDoc: VerilogDoc,
     name: string,
     type: string,
     startLine: number,
@@ -26,6 +29,7 @@ export class Symbol {
     isValid?: boolean
   ) {
     this.doc = doc
+    this.verilogDoc = verilogDoc
     this.name = name
     this.type = type
     this.line = startLine
@@ -399,4 +403,64 @@ export class Symbol {
         return vscode.CompletionItemKind.Variable
     }
   }
+
+  getModuleSnippet(includeName: boolean = false): vscode.SnippetString {
+    let ports: Symbol[] = this.verilogDoc.symbols.filter(
+      (tag) => tag.type === 'port' && tag.parentScope === this.name
+    )
+    let params: Symbol[] = this.verilogDoc.symbols.filter(
+      (tag) => tag.type === 'parameter' && tag.parentScope === this.name
+    )
+
+    let s = new vscode.SnippetString()
+    if (includeName) {
+      s = s.appendText(this.name).appendText(' #')
+    }
+    s = s.appendText('(')
+    if (params.length > 0) {
+      s.appendText('\n')
+      s = appendPorts(s, params, true)
+    }
+    s.appendText(') ')
+    s = s.appendPlaceholder(`${this.name.toLowerCase()}`).appendText(' (\n')
+    s = appendPorts(s, ports, false).appendText(');')
+    return s
+  }
+}
+
+function appendPorts(
+  s: vscode.SnippetString,
+  ports: Symbol[],
+  isParam: boolean
+): vscode.SnippetString {
+  let maxLen = 0
+  for (let i = 0; i < ports.length; i++) {
+    if (ports[i].name.length > maxLen) {
+      maxLen = ports[i].name.length
+    }
+  }
+  // .NAME(NAME)
+  for (let i = 0; i < ports.length; i++) {
+    let element = ports[i].name
+    let padding = maxLen - element.length
+    element = element + ' '.repeat(padding)
+    // let match = line.match(/=(.*?)([;,]|\/\/|\))/)
+
+    let endstr = i === ports.length - 1 ? '\n' : ',\n'
+    s.appendText(`\t.${element}(`)
+    if (isParam) {
+      let line = ports[i].doc.lineAt(ports[i].line).text
+      let match = line.match(/=(.*?)([;,]|\/\/.*|\))?$/)
+      // console.log(match)
+      if (match && match[1].indexOf('(') === -1) {
+        s.appendText(match[1].trim())
+      } else {
+        s.appendPlaceholder(ports[i].name)
+      }
+    } else {
+      s.appendPlaceholder(ports[i].name)
+    }
+    s.appendText(`)${endstr}`)
+  }
+  return s
 }

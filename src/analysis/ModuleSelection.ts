@@ -6,7 +6,7 @@ import { getWorkspaceFolder } from '../utils'
 import { Symbol } from './Symbol'
 
 export async function selectModule(doc: vscode.TextDocument): Promise<Symbol | undefined> {
-  let ctags = ext.ctags.getVerilogDoc(doc)
+  let ctags = ext.index.getVerilogDoc(doc)
   let modules: Symbol[] = await ctags.getModules()
   // No modules found
   if (modules.length <= 0) {

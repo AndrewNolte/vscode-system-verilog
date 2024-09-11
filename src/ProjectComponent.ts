@@ -28,7 +28,7 @@ class ScopeItem {
         if (child.type === 'block') {
           return new InternalScopeItem(child)
         }
-        let def = await ext.ctags.findModuleSymbol(child.typeRef ?? '')
+        let def = await ext.index.findModuleSymbol(child.typeRef ?? '')
         return new ModuleItem(child, def)
       })
     let ret = await Promise.all(childSyms)

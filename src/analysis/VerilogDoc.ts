@@ -97,7 +97,7 @@ export class VerilogDoc {
     // parse each import in parallel
     const symbols: Promise<Symbol[]>[] = importedFiles.map(async (uri) => {
       let doc = await vscode.workspace.openTextDocument(uri)
-      const ctags = ext.ctags.getVerilogDoc(doc)
+      const ctags = ext.index.getVerilogDoc(doc)
       return ctags.getSymbols()
     })
 
@@ -168,7 +168,7 @@ export class VerilogDoc {
       lineNoStr = parts[2]
       lineNo = Number(lineNoStr.slice(0, -2)) - 1
       // pretty print symbol
-      return new Symbol(this.doc, name, type, lineNo, parentScope, parentType, typeref, false)
+      return new Symbol(this.doc, this, name, type, lineNo, parentScope, parentType, typeref, false)
     } catch (e) {
       this.logger.error('Line Parser: ' + e)
       this.logger.error('Line: ' + line)
@@ -320,7 +320,7 @@ export class VerilogDoc {
     }
 
     // get ports from this inst's module definition
-    const module = await ext.ctags.findModule(inst.typeRef)
+    const module = await ext.index.findModule(inst.typeRef)
     if (module === undefined) {
       return undefined
     }
@@ -405,66 +405,6 @@ export class VerilogDoc {
 
     return hints
   }
-
-  getModuleSnippet(module: Symbol, includeName: boolean = false): vscode.SnippetString {
-    let ports: Symbol[] = this.symbols.filter(
-      (tag) => tag.type === 'port' && tag.parentScope === module.name
-    )
-    let params: Symbol[] = this.symbols.filter(
-      (tag) => tag.type === 'parameter' && tag.parentScope === module.name
-    )
-
-    let s = new vscode.SnippetString()
-    if (includeName) {
-      s = s.appendText(module.name).appendText(' #')
-    }
-    s = s.appendText('(')
-    if (params.length > 0) {
-      s.appendText('\n')
-      s = appendPorts(s, params, true)
-    }
-    s.appendText(') ')
-    s = s.appendPlaceholder(`${module.name.toLowerCase()}`).appendText(' (\n')
-    s = appendPorts(s, ports, false).appendText(');')
-    return s
-  }
-}
-
-function appendPorts(
-  s: vscode.SnippetString,
-  ports: Symbol[],
-  isParam: boolean
-): vscode.SnippetString {
-  let maxLen = 0
-  for (let i = 0; i < ports.length; i++) {
-    if (ports[i].name.length > maxLen) {
-      maxLen = ports[i].name.length
-    }
-  }
-  // .NAME(NAME)
-  for (let i = 0; i < ports.length; i++) {
-    let element = ports[i].name
-    let padding = maxLen - element.length
-    element = element + ' '.repeat(padding)
-    // let match = line.match(/=(.*?)([;,]|\/\/|\))/)
-
-    let endstr = i === ports.length - 1 ? '\n' : ',\n'
-    s.appendText(`\t.${element}(`)
-    if (isParam) {
-      let line = ports[i].doc.lineAt(ports[i].line).text
-      let match = line.match(/=(.*?)([;,]|\/\/.*|\))?$/)
-      // console.log(match)
-      if (match && match[1].indexOf('(') === -1) {
-        s.appendText(match[1].trim())
-      } else {
-        s.appendPlaceholder(ports[i].name)
-      }
-    } else {
-      s.appendPlaceholder(ports[i].name)
-    }
-    s.appendText(`)${endstr}`)
-  }
-  return s
 }
 
 function positionsFromRange(doc: vscode.TextDocument, range: vscode.Range): vscode.Position[] {

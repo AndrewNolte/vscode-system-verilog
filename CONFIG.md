@@ -5,6 +5,11 @@
     Enable creating file symlinks in .sv_cache/files for the -y flag that most tools have. Created in a per-workspace exteneral directory that vscode provides
 
 
+- `verilog.index.indexAllIncludes`: boolean = false
+
+    Whether to index all .svh files
+
+
 - `verilog.ctags.path`: path
 
   Platform Defaults:
@@ -18,7 +23,7 @@
 
 - `verilog.ctags.indexAllIncludes`: boolean = false
 
-    Whether to index all .svh files
+    (Deprecated) Use `verilog.index.IndexAllIncludes` instead
 
 
 - `verilog.includes`: array = []

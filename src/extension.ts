@@ -128,8 +128,12 @@ export class VerilogExtension extends ActivityBarComponent {
       if (module === undefined) {
         return
       }
-      let ctags = ext.ctags.getVerilogDoc(module.doc)
-      let snippet = ctags.getModuleSnippet(module, true)
+      const sym = await ext.index.findModuleSymbol(module.name)
+      if (sym === undefined) {
+        return
+      }
+
+      let snippet = sym.getModuleSnippet(true)
       if (snippet === undefined) {
         return
       }
@@ -253,7 +257,7 @@ export class VerilogExtension extends ActivityBarComponent {
       return
     }
 
-    this.ctags
+    this.index
       .indexIncludes(reset)
       .then(() => {
         this.logger.info('ctags index includes finished')

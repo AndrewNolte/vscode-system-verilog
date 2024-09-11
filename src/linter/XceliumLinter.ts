@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 import * as vscode from 'vscode'
+import { ext } from '../extension'
 import { FileDiagnostic, isSystemVerilog } from '../utils'
 import BaseLinter from './BaseLinter'
-import { ext } from '../extension'
 
 class VerilogFileLink extends vscode.TerminalLink {
   fileName: string
@@ -109,7 +109,7 @@ export default class XceliumLinter
         }
         pkgName = match[1]
       }
-      const pkgFile = await ext.index.findModule(pkgName)
+      const pkgFile = await ext.index.findFile(pkgName)
       if (pkgFile === undefined) {
         this.logger.info("couldn't find package " + pkgName)
         continue
