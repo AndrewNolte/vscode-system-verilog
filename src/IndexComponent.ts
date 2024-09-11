@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 import * as vscode from 'vscode'
+import { ext } from './extension'
 import { ConfigObject, ExtensionComponent } from './lib/libconfig'
-import { ext, getCacheDir } from './extension'
 import fs = require('fs')
 import path = require('path')
 
@@ -11,13 +11,16 @@ export class IndexComponent extends ExtensionComponent {
   enableSymlinks: ConfigObject<boolean> = new ConfigObject({
     default: true,
     description:
-      'Enable creating file symlinks in .sv_cache/files for the -y flag that most tools have',
+      'Enable creating file symlinks in .sv_cache/files for the -y flag that most tools have. Created in a per-workspace exteneral directory that vscode provides',
   })
 
-  dir: vscode.Uri | undefined
+  cacheDir: vscode.Uri | undefined
 
   async activate(context: vscode.ExtensionContext): Promise<void> {
     this.logger.info('index activating')
+    if (context.storageUri !== undefined) {
+      this.cacheDir = vscode.Uri.joinPath(context.storageUri, '.sv_cache', 'files')
+    }
 
     context.subscriptions.push(
       vscode.workspace.onDidSaveTextDocument((doc: vscode.TextDocument) => {
@@ -38,17 +41,16 @@ export class IndexComponent extends ExtensionComponent {
   }
 
   async getDir(reset: boolean = false): Promise<vscode.Uri | undefined> {
-    this.dir = getCacheDir()
-    if (this.dir === undefined) {
+    if (this.cacheDir === undefined) {
       return undefined
     }
-    if (!fs.existsSync(this.dir.fsPath)) {
-      fs.mkdirSync(this.dir.fsPath, { recursive: true })
+    if (!fs.existsSync(this.cacheDir.fsPath)) {
+      fs.mkdirSync(this.cacheDir.fsPath, { recursive: true })
     } else if (reset) {
-      await vscode.workspace.fs.delete(this.dir, { recursive: true })
-      fs.mkdirSync(this.dir.fsPath, { recursive: true })
+      await vscode.workspace.fs.delete(this.cacheDir, { recursive: true })
+      fs.mkdirSync(this.cacheDir.fsPath, { recursive: true })
     }
-    return this.dir
+    return this.cacheDir
   }
   indexMem(uri: vscode.Uri) {
     // modulemap
@@ -73,8 +75,8 @@ export class IndexComponent extends ExtensionComponent {
 
   indexFile(uri: vscode.Uri) {
     this.indexMem(uri)
-    if (this.enableSymlinks.getValue() && this.dir !== undefined) {
-      this.indexSym(this.dir, uri)
+    if (this.enableSymlinks.getValue() && this.cacheDir !== undefined) {
+      this.indexSym(this.cacheDir, uri)
     }
   }
 

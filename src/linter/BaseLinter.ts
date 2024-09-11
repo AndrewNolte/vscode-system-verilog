@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 import * as child_process from 'child_process'
+import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
+import * as util from 'util'
 import * as vscode from 'vscode'
-import { ext, getCacheDir } from '../extension'
+import { ext } from '../extension'
 import { ConfigObject } from '../lib/libconfig'
 import { ToolConfig } from '../lib/runner'
 import { FileDiagnostic, getAbsPath, getWorkspaceFolder, getWorkspaceUri } from '../utils'
-import * as util from 'util'
-import * as fs from 'fs'
 
 const realpath = util.promisify(fs.realpath)
 
@@ -73,7 +73,7 @@ export default abstract class BaseLinter extends ToolConfig {
 
     this.args.getValue()
     this.runAtFileLocation.getValue()
-    this.indexDir = getCacheDir()
+    this.indexDir = ext.index.cacheDir
     await this.path.getValueAsync()
   }
 

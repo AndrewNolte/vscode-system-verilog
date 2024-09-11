@@ -155,7 +155,7 @@ export class VerilogExtension extends ActivityBarComponent {
         vscode.window.showErrorMessage('Open a verilog document to expand macros')
         return
       }
-      let expDir = getExpandedDir()
+      let expDir = this.expandDir
       if (expDir === undefined) {
         return
       }
@@ -181,12 +181,17 @@ export class VerilogExtension extends ActivityBarComponent {
       )
     }
   )
+  expandDir: vscode.Uri | undefined = undefined
 
   async activate(context: vscode.ExtensionContext) {
     // Lets do this quickly
     vscode.window.visibleTextEditors.forEach((editor) => {
       this.lint.lint(editor.document)
     })
+
+    if (context.storageUri !== undefined) {
+      this.expandDir = vscode.Uri.joinPath(context.storageUri, '.sv_cache', 'expanded')
+    }
 
     /////////////////////////////////////////////
     // Configure Format on save
@@ -323,20 +328,4 @@ export async function activate(context: vscode.ExtensionContext) {
     'IMCTradingBV.svlangserver',
     'surfer-project.surfer',
   ])
-}
-
-export function getCacheDir(): vscode.Uri | undefined {
-  let ws = vscode.workspace.workspaceFolders?.[0]?.uri
-  if (ws === undefined) {
-    return undefined
-  }
-  return vscode.Uri.joinPath(ws, '.sv_cache', 'files')
-}
-
-export function getExpandedDir(): vscode.Uri | undefined {
-  let ws = vscode.workspace.workspaceFolders?.[0]?.uri
-  if (ws === undefined) {
-    return undefined
-  }
-  return vscode.Uri.joinPath(ws, '.sv_cache', 'expanded')
 }
