@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 import * as vscode from 'vscode'
 import { ext } from '../extension'
+import { InlayPorts } from '../InlayHintsComponent'
 import { ExtensionComponent } from '../lib/libconfig'
 import { anyVerilogSelector, getParentText, getPrev2Char, getPrevChar } from '../utils'
 import builtins from './builtins.json'
@@ -18,7 +19,6 @@ export class CtagsServerComponent
   builtinsPath: string | undefined
   builtinCompletions: Map<string, vscode.CompletionItem> = new Map()
   builtinHovers: Map<string, vscode.Hover> = new Map()
-  hoverHistory: Map<vscode.Uri, Set<string>> = new Map()
 
   async activate(context: vscode.ExtensionContext) {
     // push provider subs to .v and .sv files
@@ -294,22 +294,17 @@ export class CtagsServerComponent
   ): Promise<vscode.InlayHint[]> {
     const wildcardPorts = ext.inlayHints.wildcardPorts.getValue() === 'on'
     const ports = ext.inlayHints.ports.getValue()
-    if (!wildcardPorts && ports === 'off') {
+    if (!wildcardPorts && ports === InlayPorts.OFF) {
       return []
     }
     let hints = []
     // get module insts in range with a typeRef
-    const ctags = ext.index.getVerilogDoc(document)
-    let insts = await ctags.getSymbols({ type: 'instance' })
+    const verilogDoc = ext.index.getVerilogDoc(document)
+    let insts = await verilogDoc.getSymbols({ type: 'instance' })
     insts = insts.filter((inst) => inst.getFullRange().intersection(range) !== undefined)
     insts = insts.filter((inst) => inst.typeRef !== null)
     const hintPromises = insts.map(async (inst) => {
-      return await ctags.getPortHints(
-        inst,
-        wildcardPorts,
-        ports === 'on' ||
-          (ports === 'hover' && !!ext.index.hoverHistory.get(document.uri)?.has(inst.name))
-      )
+      return await verilogDoc.getPortHints(inst, wildcardPorts, ports)
     })
     this.logger.info(`provideInlayHints() => Found ${insts.length} module instances`)
     for (let hintPromise of hintPromises) {

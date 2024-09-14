@@ -1,6 +1,7 @@
 import * as child_process from 'child_process'
 import * as vscode from 'vscode'
 import { ext } from '../extension'
+import { InlayPorts } from '../InlayHintsComponent'
 import { Logger } from '../lib/logger'
 import { Symbol } from './Symbol'
 // select one
@@ -36,11 +37,12 @@ class VerilogPortHint extends vscode.InlayHint {
 // TODO: add a user setting to enable/disable all ctags based operations
 export class VerilogDoc {
   /// Symbol definitions (no rhs)
+  doc: vscode.TextDocument
+  isDirty: boolean
   symbols: Symbol[]
   importSymbols: Symbol[] | undefined
   topSymbols: Symbol[]
-  doc: vscode.TextDocument
-  isDirty: boolean
+  hoverSet: Set<string> = new Set()
   private logger: Logger
 
   constructor(logger: Logger, document: vscode.TextDocument) {
@@ -312,7 +314,7 @@ export class VerilogDoc {
   async getPortHints(
     inst: Symbol,
     wildcardPorts: boolean,
-    normalPorts: boolean
+    normalPorts: InlayPorts
   ): Promise<VerilogPortHint[] | undefined> {
     // can only operate on insts
     if (inst.type !== 'instance' || inst.typeRef === null) {
@@ -358,7 +360,10 @@ export class VerilogDoc {
     }
 
     // do explicit/implicit ports
-    if (normalPorts) {
+    if (
+      normalPorts === InlayPorts.ON ||
+      (normalPorts === InlayPorts.HOVER && this.hoverSet.has(inst.name))
+    ) {
       const portHintMap = new Map<string, VerilogPortHint>()
       let match
       const wordRe = /\s\.(\w+)\b/g

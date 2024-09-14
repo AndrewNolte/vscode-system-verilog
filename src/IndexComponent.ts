@@ -24,11 +24,8 @@ export class IndexComponent extends ExtensionComponent {
 
   cacheDir: vscode.Uri | undefined
 
-  // file -> parser
+  // file -> verilogDoc
   private filemap: Map<vscode.TextDocument, VerilogDoc> = new Map()
-
-  /// uri -> set of instance names. Used to update inlay hints on hover
-  hoverHistory: Map<vscode.Uri, Set<string>> = new Map()
 
   /// symbol name -> symbols (from includes)
   private symbolMap: Map<string, Symbol[]> = new Map()
@@ -251,9 +248,9 @@ export class IndexComponent extends ExtensionComponent {
     if (!textRange || textRange.isEmpty) {
       return []
     }
-    let parser = this.getVerilogDoc(document)
+    let verilogDoc = this.getVerilogDoc(document)
     let targetText = document.getText(textRange)
-    let symPromise = parser.getSymbols({ name: targetText })
+    let symPromise = verilogDoc.getSymbols({ name: targetText })
 
     let parentScope = getParentText(document, textRange)
     // let modulePromise = this.findDefinitionByName(parentScope, targetText);
@@ -261,21 +258,16 @@ export class IndexComponent extends ExtensionComponent {
     if (getPrevChar(document, textRange.start) === '.') {
       if (parentScope === targetText) {
         // param or port on instance
-        let insts = await parser.getInstances()
+        let insts = await verilogDoc.getInstances()
         insts = insts.filter((inst) => inst.getFullRange().contains(position))
         if (insts.length > 0 && insts[0].typeRef !== null) {
-          let s = this.hoverHistory.get(document.uri)
-          if (s === undefined) {
-            this.hoverHistory.set(document.uri, new Set([insts[0].name]))
-          } else {
-            s.add(insts[0].name)
-          }
+          verilogDoc.hoverSet.add(insts[0].name)
           ext.ctagsServer.onDidChangeInlayHintsEmitter.fire()
           return await this.findDefinitionByName(insts[0].typeRef, targetText)
         }
       } else if (parentScope !== undefined) {
         // hierarchcal reference to instance.wire
-        let insts = await parser.getSymbols({ name: parentScope })
+        let insts = await verilogDoc.getSymbols({ name: parentScope })
         if (insts.length > 0 && insts[0].typeRef !== null) {
           return await this.findDefinitionByName(insts[0].typeRef, targetText)
         }
