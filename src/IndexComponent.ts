@@ -22,23 +22,27 @@ export class IndexComponent extends ExtensionComponent {
     description: 'Whether to index all .svh files',
   })
 
+  // <workspace-specific-dir>/.sv_cache/files
   cacheDir: vscode.Uri | undefined
 
   // file -> verilogDoc
   private filemap: Map<vscode.TextDocument, VerilogDoc> = new Map()
 
-  /// symbol name -> symbols (from includes)
-  private symbolMap: Map<string, Symbol[]> = new Map()
+  /// symbol name -> global symbols loaded from includes/*.svh
+  readonly symbolMap: Map<string, Symbol[]> = new Map()
 
   async activate(context: vscode.ExtensionContext): Promise<void> {
-    this.logger.info('index activating')
+    this.logger.info('Index Activating')
+
     if (context.storageUri !== undefined) {
       this.cacheDir = vscode.Uri.joinPath(context.storageUri, '.sv_cache', 'files')
     }
 
+    // file save, rename, delete mgmt
     context.subscriptions.push(
       vscode.workspace.onDidSaveTextDocument((doc: vscode.TextDocument) => {
         this.indexFile(doc.uri)
+        this.getVerilogDoc(doc).clearSymbols()
       })
     )
     context.subscriptions.push(
@@ -48,25 +52,23 @@ export class IndexComponent extends ExtensionComponent {
         })
       })
     )
-
-    this.onConfigUpdated(() => {
-      this.indexFiles()
-    })
-
     vscode.workspace.onDidCloseTextDocument((doc: vscode.TextDocument) => {
       this.filemap.delete(doc)
     })
 
+    // index files if we change the index config
+    this.onConfigUpdated(() => {
+      this.indexFiles()
+    })
+
+    // index includes if they change
     ext.includes.onConfigUpdated(() => {
       if (!(ext.ctags.indexAllIncludes.getValue() || this.indexAllIncludes.getValue())) {
         this.indexIncludes(true)
       }
     })
 
-    vscode.workspace.onDidSaveTextDocument((doc: vscode.TextDocument) => {
-      this.getVerilogDoc(doc).clearSymbols()
-    })
-
+    // shell find ctags on path change
     ext.ctags.path.onConfigUpdated(async () => {
       await ext.ctags.path.checkPathNotify()
     })
@@ -110,19 +112,6 @@ export class IndexComponent extends ExtensionComponent {
     if (this.enableSymlinks.getValue() && this.cacheDir !== undefined) {
       this.indexSym(this.cacheDir, uri)
     }
-  }
-
-  async findFile(moduleName: string): Promise<vscode.TextDocument | undefined> {
-    let file = this.moduleMap.get(moduleName)
-    if (file === undefined) {
-      return undefined
-    }
-    return await vscode.workspace.openTextDocument(file)
-  }
-
-  findModuleUri(path: string): vscode.Uri | undefined {
-    let name = path.split('/').pop()?.split('.').shift() ?? ''
-    return this.moduleMap.get(name)
   }
 
   async indexFiles(reset: boolean = false): Promise<void> {
@@ -216,6 +205,19 @@ export class IndexComponent extends ExtensionComponent {
     return ctags
   }
 
+  async findFile(moduleName: string): Promise<vscode.TextDocument | undefined> {
+    let file = this.moduleMap.get(moduleName)
+    if (file === undefined) {
+      return undefined
+    }
+    return await vscode.workspace.openTextDocument(file)
+  }
+
+  findModuleUri(path: string): vscode.Uri | undefined {
+    let name = path.split('/').pop()?.split('.').shift() ?? ''
+    return this.moduleMap.get(name)
+  }
+
   async findModule(moduleName: string): Promise<VerilogDoc | undefined> {
     let vscodeDoc = await this.findFile(moduleName)
     if (vscodeDoc === undefined) {
@@ -287,9 +289,5 @@ export class IndexComponent extends ExtensionComponent {
       }
     }
     return await symPromise
-  }
-
-  public getSymbolMap(): Map<string, Symbol[]> {
-    return this.symbolMap
   }
 }

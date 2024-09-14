@@ -160,3 +160,22 @@ export function isAnyVerilog(langid: string): boolean {
 
 //   return ranges
 // }
+
+// function positionsFromRange(doc: vscode.TextDocument, range: vscode.Range): vscode.Position[] {
+//   let ret: vscode.Position[] = []
+//   for (let i = range.start.line; i <= range.end.line; i++) {
+//     const line = doc.lineAt(i)
+//     const words = line.text.match(/\b(\w+)\b/g)
+//     let match
+
+//     if (words) {
+//       // Use a regex to find words and their indices within the line
+//       const regex = /\b(\w+)\b/g
+//       while ((match = regex.exec(line.text)) !== null) {
+//         // Calculate the start and end positions of each word
+//         ret.push(new vscode.Position(i, match.index))
+//       }
+//     }
+//   }
+//   return ret
+// }

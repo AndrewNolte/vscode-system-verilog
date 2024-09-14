@@ -143,7 +143,7 @@ export class CtagsServerComponent
     // Macro Completion
     if (context.triggerCharacter === '`') {
       let macroCompletions = []
-      for (let symbols of ext.index.getSymbolMap().values()) {
+      for (let symbols of ext.index.symbolMap.values()) {
         const completion = symbols[0].getMacroCompletionItem()
         if (completion) {
           macroCompletions.push(completion)
