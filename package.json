@@ -803,6 +803,12 @@
     "views": {
       "verilog": [
         {
+          "id": "verilog.instSelect",
+          "name": "Instance",
+          "type": "webview",
+          "icon": "$(chip)"
+        },
+        {
           "id": "verilog.project",
           "name": "Project"
         }

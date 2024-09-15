@@ -388,6 +388,11 @@ export interface ViewSpec {
   // id: string // filled in automatically
   name: string
   welcome?: WelcomeSpec
+  type?: 'tree' | 'webview'
+  initialSize?: number
+  icon?: iconType
+  visibility?: 'collapsed' | 'hidden' | 'visible'
+  contextualTitle?: string
 }
 
 export class ViewComponent extends ExtensionComponent {

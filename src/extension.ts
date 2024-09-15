@@ -9,6 +9,7 @@ import { SystemVerilogFormatProvider, VerilogFormatProvider } from './FormatProv
 import { IncludeConfig } from './IncludeConfig'
 import { IndexComponent } from './IndexComponent'
 import { InlayHintsComponent } from './InlayHintsComponent'
+import { InstanceView } from './InstanceView'
 import { LanguageServerComponent } from './LSComponent'
 import { ProjectComponent } from './ProjectComponent'
 import { CtagsComponent } from './analysis/CtagsComponent'
@@ -91,6 +92,7 @@ export class VerilogExtension extends ActivityBarComponent {
   svFormat: SystemVerilogFormatProvider = new SystemVerilogFormatProvider()
   verilogFormat: VerilogFormatProvider = new VerilogFormatProvider()
 
+  instSelect: InstanceView = new InstanceView()
   project: ProjectComponent = new ProjectComponent()
 
   languageServer: LanguageServerComponent = new LanguageServerComponent()
