@@ -730,8 +730,8 @@
           "description": "Show port type hints in module instantiation",
           "enum": [
             "on",
-            "off",
-            "hover"
+            "hover",
+            "off"
           ],
           "type": "string"
         }

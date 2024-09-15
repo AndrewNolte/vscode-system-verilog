@@ -440,6 +440,6 @@
 
     Options:
     - on
-    - off
     - hover
+    - off
 
