@@ -140,6 +140,46 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
     }
   )
 
+  setInstance: CommandNode = new CommandNode(
+    {
+      title: 'Set Instance',
+      icon: '$(folder-opened)',
+      isTitleButton: true,
+    },
+    async (instance: string) => {
+      if (this.top === undefined) {
+        this.setTopLevel.func()
+      }
+
+      if (this.top === undefined) {
+        return
+      }
+
+      // strip brackets, go through hierarchy
+
+      const regex = /\[\d+\]/g
+      // remove all brackets with numbers
+      let cleaned = instance.replace(regex, '')
+      // split on .
+      let parts = cleaned.split('.')
+      console.log(parts)
+      let current: ScopeItem = (await this.getChildren(undefined))[0]
+      for (let part of parts) {
+        let children = await this.getChildren(current)
+        let child = children.find((child) => child.instance.name === part)
+        if (child === undefined) {
+          vscode.window.showErrorMessage(
+            `Could not find instance ${part} in ${current?.instance.name}`
+          )
+          return
+        }
+        current = child
+      }
+      this.treeView?.reveal(current, { select: true, focus: true })
+      vscode.window.showTextDocument(current.instance.doc)
+    }
+  )
+
   showSourceFile: CommandNode = new CommandNode(
     {
       title: 'Show Module',

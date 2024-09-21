@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sidebar Input</title>
+    <style>
+      body {
+        padding: 10px;
+      }
+      input,
+      select {
+        width: 100%;
+        margin-bottom: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <input type="text" id="instanceSelect" placeholder="Select an instance" />
+    <button id="selectButton">Send</button>
+
+    <script>
+      const vscode = acquireVsCodeApi()
+      const instanceSelect = document.getElementById('instanceSelect')
+      const sendButton = document.getElementById('selectButton')
+
+      sendButton.addEventListener('click', () => {
+        const selected = instanceSelect.value
+        vscode.postMessage({
+          command: 'setInstance',
+          instance: selected,
+        })
+      })
+    </script>
+  </body>
+</html>

@@ -15,7 +15,7 @@ import { ProjectComponent } from './ProjectComponent'
 import { CtagsComponent } from './analysis/CtagsComponent'
 import { CtagsServerComponent } from './analysis/CtagsServerComponent'
 import { selectModuleGlobal } from './analysis/ModuleSelection'
-import { ActivityBarComponent, CommandNode, ConfigObject } from './lib/libconfig'
+import { ActivityBarComponent, CommandNode, ConfigObject, ViewContainerSpec } from './lib/libconfig'
 import LintManager from './linter/LintManager'
 import { SurferComponent } from './surferWaveformViewer'
 import { getWorkspaceFolder, isAnyVerilog } from './utils'
@@ -188,6 +188,12 @@ export class VerilogExtension extends ActivityBarComponent {
     }
   )
   expandDir: vscode.Uri | undefined = undefined
+  context: vscode.ExtensionContext
+
+  constructor(context: vscode.ExtensionContext, obj: ViewContainerSpec) {
+    super(obj)
+    this.context = context
+  }
 
   async activate(context: vscode.ExtensionContext) {
     // Lets do this quickly
@@ -323,7 +329,7 @@ export function deactivate(): Promise<void> {
 }
 
 export async function activate(context: vscode.ExtensionContext) {
-  ext = new VerilogExtension({
+  ext = new VerilogExtension(context, {
     id: 'verilog',
     title: 'Verilog',
     icon: '$(chip)',
