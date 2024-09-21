@@ -746,7 +746,7 @@
           "verilog",
           "systemverilog"
         ],
-        "isTitleButton": true,
+        "isTitleButton": false,
         "icon": "$(chip)"
       },
       {
@@ -760,6 +760,16 @@
         "title": "Verilog: Select Top Level",
         "icon": "$(folder-opened)",
         "isTitleButton": true
+      },
+      {
+        "command": "verilog.project.setInstance",
+        "title": "Verilog: Set Instance",
+        "icon": "$(symbol-class)",
+        "isTitleButton": false,
+        "languages": [
+          "verilog",
+          "systemverilog"
+        ]
       },
       {
         "command": "verilog.project.showSourceFile",
@@ -823,11 +833,6 @@
     "menus": {
       "view/title": [
         {
-          "command": "verilog.project.setTopLevel",
-          "when": "view == verilog.project",
-          "group": "navigation"
-        },
-        {
           "command": "verilog.project.clearTopLevel",
           "when": "view == verilog.project",
           "group": "navigation"
@@ -848,6 +853,11 @@
       "editor/title": [
         {
           "command": "verilog.project.setTopLevel",
+          "when": "resourceLangId == verilog || resourceLangId == systemverilog",
+          "group": "navigation"
+        },
+        {
+          "command": "verilog.project.setInstance",
           "when": "resourceLangId == verilog || resourceLangId == systemverilog",
           "group": "navigation"
         },

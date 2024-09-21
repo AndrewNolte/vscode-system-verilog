@@ -404,6 +404,51 @@ export class Symbol {
     }
   }
 
+  public getIcon(): string {
+    switch (this.type) {
+      case 'module':
+        return 'chip'
+      case 'instance':
+        return 'symbol-class'
+      case 'interface':
+        return 'symbol-interface'
+      case 'constant':
+        return 'symbol-constant'
+      case 'class':
+        return 'symbol-class'
+      case 'function':
+        return 'symbol-function'
+      case 'task':
+        return 'symbol-function'
+      case 'covergroup':
+        return 'symbol-class'
+      case 'enum':
+        return 'symbol-enum'
+      case 'typedef':
+        return 'symbol-struct'
+      case 'property':
+        return 'symbol-property'
+      case 'struct':
+        return 'symbol-struct'
+      case 'net':
+        return 'symbol-variable'
+      case 'port':
+        return 'symbol-interface'
+      case 'register':
+        return 'symbol-variable'
+      case 'event':
+        return 'symbol-variable'
+      case 'parameter':
+        return 'symbol-type-parameter'
+      case 'modport':
+        return 'symbol-interface'
+      case 'prototype':
+        return 'symbol-function'
+      default:
+        return ''
+    }
+  }
+
   getModuleSnippet(includeName: boolean = false): vscode.SnippetString {
     let ports: Symbol[] = this.verilogDoc.symbols.filter(
       (tag) => tag.type === 'port' && tag.parentScope === this.name
