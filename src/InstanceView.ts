@@ -12,12 +12,8 @@ export class InstanceView extends ViewComponent implements vscode.WebviewViewPro
   constructor() {
     super({
       name: 'Instance',
-      //   welcome: {
-      //     contents: '[Select top level](command:verilog.project.selectTopLevel)',
-      //   },
       type: 'webview',
       icon: '$(chip)',
-      //   initialSize: 50,
     })
     this.htmlStr = ''
   }
@@ -57,7 +53,6 @@ export class InstanceView extends ViewComponent implements vscode.WebviewViewPro
   }
 
   private _getHtmlForWebview(_webview: vscode.Webview): string {
-    console.log('html req')
     return this.htmlStr
   }
 }

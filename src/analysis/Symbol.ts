@@ -444,6 +444,8 @@ export class Symbol {
         return 'symbol-interface'
       case 'prototype':
         return 'symbol-function'
+      case 'assert':
+        return 'symbol-function'
       default:
         return ''
     }

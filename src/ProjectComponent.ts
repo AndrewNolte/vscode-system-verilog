@@ -16,39 +16,18 @@ class ScopeItem {
     this.definition = definition
   }
   async getChildren(): Promise<ScopeItem[]> {
-    if (this.definition === undefined) {
-      // vscode.window.showErrorMessage("Can't find definition")
-      return []
-    }
-    if (this.definition.children.length === 0) {
-      // vscode.window.showErrorMessage('children len 0')
-      return []
-    }
-    const childSyms = this.definition.children
-
-    // .filter((child) => child.type === 'instance' || child.type === 'block')
-    const childItems = childSyms.map(async (child) => {
-      if (child.type === 'block') {
-        return new InternalScopeItem(this, child)
-      } else if (child.type === 'instance') {
-        let def = await ext.index.findModuleSymbol(child.typeRef ?? '')
-        return new ModuleItem(this, child, def)
-      }
-      let def = undefined
-      if (child.typeRef !== undefined) {
-        def = childSyms.find((sym) => sym.name === child.typeRef)
-      }
-      return new LogicItem(this, child)
-    })
-    let ret = await Promise.all(childItems)
-    return ret
+    return []
   }
 
   hasChildren(): boolean {
     if (this.definition === undefined) {
       return false
     }
-    return this.definition.hasInstanceChildren()
+    return this.definition.children.filter((child) => !EXCLUDED_SYMS.has(child.type)).length > 0
+  }
+
+  getIcon(): string {
+    return this.instance.getIcon()
   }
 
   async getTreeItem(): Promise<TreeItem> {
@@ -56,35 +35,61 @@ class ScopeItem {
     if (this.hasChildren()) {
       item.collapsibleState = vscode.TreeItemCollapsibleState.Collapsed
     }
+    item.label = item.label + ' : ' + (this.instance.typeRef ?? this.instance.type)
+    item.iconPath = new vscode.ThemeIcon(this.getIcon())
     return item
   }
 }
 
+const EXCLUDED_SYMS = new Set<string>(['enum', 'typedef', 'assert', 'function'])
+
+const STRUCTURE_SYMS = new Set<string>(['instance', 'block'])
+const LOGIC_SYMS = new Set<string>(['port', 'register'])
+const PARAM_SYMS = new Set<string>(['parameter', 'constant'])
+
 class ModuleItem extends ScopeItem {
   async getTreeItem(): Promise<vscode.TreeItem> {
     let item = await super.getTreeItem()
-    item.label = item.label + ': ' + this.instance.typeRef
-    item.contextValue = 'File'
-    item.iconPath = new vscode.ThemeIcon('chip')
+    if (this.definition !== undefined) {
+      item.contextValue = 'File'
+    }
     return item
+  }
+
+  async getChildren(): Promise<ScopeItem[]> {
+    if (this.definition === undefined) {
+      return []
+    }
+    if (this.definition.children.length === 0) {
+      return []
+    }
+    const childSyms = this.definition.children
+    const childItems = childSyms
+      .filter((child) => !EXCLUDED_SYMS.has(child.type))
+      .map(async (child) => {
+        if (child.type === 'block') {
+          return new InternalScopeItem(this, child)
+        } else if (child.type === 'instance') {
+          let def = await ext.index.findModuleSymbol(child.typeRef ?? '')
+          return new ModuleItem(this, child, def)
+        }
+        let def = undefined
+        if (child.typeRef !== undefined) {
+          def = childSyms.find((sym) => sym.name === child.typeRef)
+        }
+        return new LogicItem(this, child)
+      })
+    return await Promise.all(childItems)
+  }
+
+  getIcon(): string {
+    return 'chip'
   }
 }
 
 class LogicItem extends ScopeItem {
   constructor(parent: ScopeItem | undefined, instance: Symbol) {
     super(parent, instance, instance)
-  }
-
-  async getTreeItem(): Promise<vscode.TreeItem> {
-    let item = await super.getTreeItem()
-    item.iconPath = new vscode.ThemeIcon(this.instance.getIcon())
-    item.label = item.label
-    if (this.instance.typeRef !== null) {
-      item.label = item.label + ': ' + this.instance.typeRef
-    } else {
-      item.label = item.label + ': ' + this.instance.type
-    }
-    return item
   }
 }
 
@@ -93,21 +98,19 @@ class RootItem extends ModuleItem {
     super(undefined, instance, instance)
   }
 
-  async getTreeItem(): Promise<vscode.TreeItem> {
-    let item = new TreeItem(this.instance.name, vscode.TreeItemCollapsibleState.Expanded)
-    item.iconPath = new vscode.ThemeIcon('chip')
-    return item
+  async getTreeItem(): Promise<TreeItem> {
+    const treeItem = await super.getTreeItem()
+    treeItem.collapsibleState = vscode.TreeItemCollapsibleState.Expanded
+    return treeItem
   }
 }
 
-class InternalScopeItem extends ScopeItem {
+class InternalScopeItem extends ModuleItem {
   constructor(parent: ScopeItem | undefined, scope: Symbol) {
     super(parent, scope, scope)
   }
-  async getTreeItem(): Promise<vscode.TreeItem> {
-    let item = await super.getTreeItem()
-    item.iconPath = new vscode.ThemeIcon('bracket')
-    return item
+  getIcon(): string {
+    return 'bracket'
   }
 }
 
@@ -224,7 +227,9 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
     },
     async (item: ScopeItem) => {
       if (item.definition) {
-        vscode.window.showTextDocument(item.definition.doc)
+        vscode.window.showTextDocument(item.definition.doc, {
+          selection: item.definition.getIdRange(),
+        })
       }
     }
   )
