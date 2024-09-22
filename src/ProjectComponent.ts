@@ -136,11 +136,10 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
         return
       }
       this.top = await selectModule(doc)
-      this._onDidChangeTreeData.fire()
       // show view
       if (this.top !== undefined && this.treeView !== undefined) {
-        // this.treeView.reveal(new RootItem(), { select: true, focus: true })
         this.treeView.reveal(new RootItem(this.top), { select: true, focus: true })
+        this._onDidChangeTreeData.fire()
       }
     }
   )
@@ -189,18 +188,14 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
       }
 
       if (instance instanceof vscode.Uri) {
-        // TODO: list instances
+        // TODO: list instances for the user to select, editor button
         return
       }
 
       // strip brackets, go through hierarchy
-
       const regex = /\[\d+\]/g
-      // remove all brackets with numbers
       let cleaned = instance.replace(regex, '')
-      // split on .
       let parts = cleaned.split('.')
-      console.log(parts)
       let current: ScopeItem = (await this.getChildren(undefined))[0]
       for (let part of parts) {
         let children = await this.getChildren(current)
@@ -277,7 +272,6 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
     element: ScopeItem,
     _token: vscode.CancellationToken
   ): Promise<TreeItem> {
-    // throw new Error('Method not implemented.')
     item.tooltip = element.instance.getHoverText()
     item.command = {
       title: 'Go to definition',
