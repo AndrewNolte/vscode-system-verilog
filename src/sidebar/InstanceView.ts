@@ -1,6 +1,6 @@
 import * as vscode from 'vscode'
-import { ext } from './extension'
-import { ViewComponent } from './lib/libconfig'
+import { ext } from '../extension'
+import { ViewComponent } from '../lib/libconfig'
 
 type SidebarState = {
   instance: string

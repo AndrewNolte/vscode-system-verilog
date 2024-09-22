@@ -1,9 +1,9 @@
 import * as vscode from 'vscode'
 import { TreeDataProvider, TreeItem } from 'vscode'
-import { selectModule, selectModuleGlobal } from './analysis/ModuleSelection'
-import { Symbol } from './analysis/Symbol'
-import { ext } from './extension'
-import { CommandNode, ViewComponent } from './lib/libconfig'
+import { selectModule, selectModuleGlobal } from '../analysis/ModuleSelection'
+import { Symbol } from '../analysis/Symbol'
+import { ext } from '../extension'
+import { CommandNode, ViewComponent } from '../lib/libconfig'
 
 class ScopeItem {
   // the symbol to get children from
