@@ -316,35 +316,22 @@ export class CtagsServerComponent
     return hints
   }
 
-  ////////////////////////////////////////////////
-  // Definition Provider
-  ////////////////////////////////////////////////
-
-  async provideDefinition(
+  async findIncludes(
     document: vscode.TextDocument,
-    position: vscode.Position,
-    _token: vscode.CancellationToken
-  ): Promise<vscode.DefinitionLink[] | undefined> {
-    this.logger.info('Definitions Requested: ' + document.uri)
-    // find all matching symbols
-    let syms: Symbol[] = await ext.index.findSymbol(document, position)
-    this.logger.info(syms.length + ' definitions returned from ctags')
-    if (syms.length > 0) {
-      return syms.map((sym) => sym.getDefinitionLink())
-    }
-    // handle files referenced in strings
-    const line = document.lineAt(position.line).text
+    position: vscode.Position
+  ): Promise<vscode.DefinitionLink[]> {
     let match
-    const stringRegex = /"([^"]*)"/g
+    const line = document.lineAt(position.line).text
+    const stringRegex = /("([^"]*)")/g
     while ((match = stringRegex.exec(line)) !== null) {
       // check bounds
       if (
-        !(match.index <= position.character && position.character < match.index + match[0].length)
+        !(match.index <= position.character && position.character < match.index + match[1].length)
       ) {
         continue
       }
 
-      let resolvedPath = await ext.includes.resolve(document, match[1])
+      let resolvedPath = await ext.includes.resolve(document, match[2])
       if (!resolvedPath) {
         continue
       }
@@ -362,6 +349,32 @@ export class CtagsServerComponent
       ]
     }
     return []
+  }
+
+  ////////////////////////////////////////////////
+  // Definition Provider
+  ////////////////////////////////////////////////
+
+  async provideDefinition(
+    document: vscode.TextDocument,
+    position: vscode.Position,
+    _token: vscode.CancellationToken
+  ): Promise<vscode.DefinitionLink[] | undefined> {
+    this.logger.info('Definitions Requested: ' + document.uri)
+    const symPromise = ext.index.findSymbol(document, position)
+    const includePromise = this.findIncludes(document, position)
+    // find all matching symbols
+    let syms: Symbol[] = await symPromise
+    this.logger.info(syms.length + ' definitions returned from ctags')
+    let ret: vscode.LocationLink[] = []
+    if (syms.length > 0) {
+      ret = syms.map((sym) => sym.getDefinitionLink())
+    }
+    const includes = await includePromise
+    if (includes.length > 0) {
+      return includes
+    }
+    return ret
   }
   ////////////////////////////////////////////////
   // Document Symbol Provider
