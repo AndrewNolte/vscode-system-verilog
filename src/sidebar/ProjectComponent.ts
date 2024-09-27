@@ -3,9 +3,15 @@ import { TreeDataProvider, TreeItem } from 'vscode'
 import { selectModule, selectModuleGlobal } from '../analysis/ModuleSelection'
 import { Symbol } from '../analysis/Symbol'
 import { ext } from '../extension'
-import { CommandNode, ViewComponent } from '../lib/libconfig'
+import { CommandNode, TreeItemButton, ViewComponent } from '../lib/libconfig'
 
 class ScopeItem {
+  getPath(): string {
+    if (this.parent === undefined) {
+      return this.instance.name
+    }
+    return this.parent.getPath() + '.' + this.instance.name
+  }
   // the symbol to get children from
   definition: Symbol | undefined
   instance: Symbol
@@ -196,17 +202,20 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
       const regex = /\[\d+\]/g
       let cleaned = instance.replace(regex, '')
       let parts = cleaned.split('.')
-      let current: ScopeItem = (await this.getChildren(undefined))[0]
+      let current: ScopeItem | undefined = undefined
       for (let part of parts) {
         let children = await this.getChildren(current)
         let child = children.find((child) => child.instance.name === part)
         if (child === undefined) {
           vscode.window.showErrorMessage(
-            `Could not find instance ${part} in ${current?.instance.name}`
+            `Could not find instance ${part} in ${current?.instance.name ?? 'top level'}`
           )
           return
         }
         current = child
+      }
+      if (current === undefined) {
+        return
       }
       this.treeView?.reveal(current, { select: true, focus: true })
       vscode.window.showTextDocument(current.instance.doc, {
@@ -214,6 +223,10 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
       })
     }
   )
+
+  //////////////////////////////////////////////////////////////////
+  // Inline Item Buttons
+  //////////////////////////////////////////////////////////////////
 
   showSourceFile: CommandNode = new CommandNode(
     {
@@ -226,6 +239,20 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
           selection: item.definition.getIdRange(),
         })
       }
+    }
+  )
+
+  copyHierarchyPath: TreeItemButton = new TreeItemButton(
+    {
+      title: 'Copy Path',
+      inlineContext: [],
+      icon: {
+        light: './resources/sv_light.svg',
+        dark: './resources/sv_dark.svg',
+      },
+    },
+    async (item: ScopeItem) => {
+      vscode.env.clipboard.writeText(item.getPath())
     }
   )
 

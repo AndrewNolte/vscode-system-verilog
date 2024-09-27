@@ -777,6 +777,15 @@
         "inlineContext": "File"
       },
       {
+        "command": "verilog.project.copyHierarchyPath",
+        "title": "Verilog: Copy Path",
+        "inlineContext": [],
+        "icon": {
+          "light": "./resources/sv_light.svg",
+          "dark": "./resources/sv_dark.svg"
+        }
+      },
+      {
         "command": "verilog.reindex",
         "title": "Verilog: Reindex"
       },
@@ -844,6 +853,10 @@
         }
       ],
       "view/item/context": [
+        {
+          "command": "verilog.project.copyHierarchyPath",
+          "group": "inline"
+        },
         {
           "command": "verilog.project.showSourceFile",
           "when": "viewItem == File",

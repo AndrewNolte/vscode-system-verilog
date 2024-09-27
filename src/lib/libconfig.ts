@@ -242,21 +242,11 @@ export abstract class ExtensionComponent extends ExtensionNode {
           }
 
           for (let button of view.getCommands()) {
-            // TODO: alt? more complex 'when' clause? other 'group' options?
-            let obj = {
-              command: button.configPath,
-              when: '',
-              group: '',
+            if (button instanceof TitleButton) {
+              viewsTitleButtons.push(button.getWhen())
             }
-            if (button.obj.isTitleButton) {
-              obj.when = `view == ${view.configPath}`
-              obj.group = 'navigation'
-              viewsTitleButtons.push(obj)
-            }
-            if (button.obj.inlineContext) {
-              obj.when = `viewItem == ${button.obj.inlineContext}`
-              obj.group = 'inline'
-              viewsInlineButtons.push(obj)
+            if (button instanceof TreeItemButton) {
+              viewsInlineButtons.push(button.getWhen())
             }
           }
         }
@@ -275,13 +265,8 @@ export abstract class ExtensionComponent extends ExtensionNode {
       // editor buttons
       let editorButtons: any = []
       this.preOrderTraverse((node: ExtensionNode) => {
-        if (node instanceof CommandNode && node.obj.languages !== undefined) {
-          let obj = {
-            command: node.configPath,
-            when: node.obj.languages.map((lang) => `resourceLangId == ${lang}`).join(' || '),
-            group: 'navigation',
-          }
-          editorButtons.push(obj)
+        if (node instanceof EditorButton) {
+          editorButtons.push(node.getWhen())
         }
       })
       json.contributes.menus['editor/title'] = editorButtons
@@ -316,9 +301,10 @@ export abstract class ExtensionComponent extends ExtensionNode {
 }
 
 ////////////////////////////////////////////////////
-// Commands
+// Commands and Buttons
 ////////////////////////////////////////////////////
-type iconType = string | { dark: string; light: string }
+type iconSvgs = { dark: string; light: string }
+type iconType = string | iconSvgs
 
 interface CommandConfigSpec {
   // command: string // filled in
@@ -329,18 +315,27 @@ interface CommandConfigSpec {
   category?: string
   enablement?: string
 }
-interface CommandSpec extends CommandConfigSpec {
-  // command: string // filled in automatically
+interface ContextCommandSpec extends CommandConfigSpec {
   when?: string
-  isTitleButton?: boolean
-  inlineContext?: string
-  languages?: string[]
 }
-export class CommandNode extends ExtensionNode {
-  obj: CommandSpec
+
+interface EditorButtonSpec extends ContextCommandSpec {
+  languages: string[]
+}
+
+interface ViewButtonSpec extends ContextCommandSpec {}
+interface TreeItemButtonSpec extends ContextCommandSpec {
+  // These can only take light/dark svgs for an icon
+  icon: iconSvgs
+  inlineContext?: string | string[]
+}
+export class CommandNode<
+  Spec extends ContextCommandSpec = CommandConfigSpec
+> extends ExtensionNode {
+  obj: Spec
   func: (...args: any[]) => any
   thisArg?: any
-  constructor(obj: CommandSpec, func: (...args: any[]) => any, thisArg?: any) {
+  constructor(obj: Spec, func: (...args: any[]) => any, thisArg?: any) {
     super()
     this.obj = obj
     this.func = func
@@ -353,6 +348,58 @@ export class CommandNode extends ExtensionNode {
     )
     if (this._parentNode !== undefined) {
       this.obj.title = this._parentNode.getRoot().title + ': ' + this.obj.title
+    }
+  }
+}
+
+interface ButtonSpec {
+  command: string
+  group: string
+  when?: string
+}
+
+class ButtonNode<Spec extends ContextCommandSpec> extends CommandNode<Spec> {
+  async activate(context: vscode.ExtensionContext): Promise<void> {
+    // same thing, but don't add the extension title; it's implied
+    context.subscriptions.push(
+      vscode.commands.registerCommand(this.configPath!, this.func, this.thisArg)
+    )
+  }
+}
+
+export class TitleButton extends ButtonNode<ViewButtonSpec> {
+  getWhen() {
+    return {
+      command: this.configPath!,
+      group: 'navigation',
+      when: `view == ${this.configPath}`,
+    }
+  }
+}
+
+export class TreeItemButton extends ButtonNode<TreeItemButtonSpec> {
+  getWhen(): ButtonSpec {
+    let obj: ButtonSpec = {
+      command: this.configPath!,
+      group: 'inline',
+    }
+    if (this.obj.inlineContext instanceof Array) {
+      if (this.obj.inlineContext.length > 0) {
+        obj.when = this.obj.inlineContext.map((id) => `viewItem == ${id}`).join(' || ')
+      }
+    } else {
+      obj.when = `viewItem == ${this.obj.inlineContext}`
+    }
+    return obj
+  }
+}
+
+export class EditorButton extends ButtonNode<EditorButtonSpec> {
+  getWhen(): ButtonSpec {
+    return {
+      command: this.configPath!,
+      when: this.obj.languages.map((lang) => `resourceLangId == ${lang}`).join(' || '),
+      group: 'navigation',
     }
   }
 }
