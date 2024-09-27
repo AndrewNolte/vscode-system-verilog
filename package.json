@@ -740,32 +740,28 @@
     "commands": [
       {
         "command": "verilog.project.setTopLevel",
-        "title": "Verilog: Set Top Level",
+        "title": "Set Top Level",
         "shortTitle": "Set Top",
         "languages": [
           "verilog",
           "systemverilog"
         ],
-        "isTitleButton": false,
         "icon": "$(chip)"
       },
       {
         "command": "verilog.project.clearTopLevel",
-        "title": "Verilog: Clear Top Level",
-        "icon": "$(panel-close)",
-        "isTitleButton": true
+        "title": "Clear Top Level",
+        "icon": "$(panel-close)"
       },
       {
         "command": "verilog.project.selectTopLevel",
-        "title": "Verilog: Select Top Level",
-        "icon": "$(folder-opened)",
-        "isTitleButton": true
+        "title": "Select Top Level",
+        "icon": "$(folder-opened)"
       },
       {
         "command": "verilog.project.setInstance",
-        "title": "Verilog: Set Instance",
+        "title": "Set Instance",
         "icon": "$(symbol-class)",
-        "isTitleButton": false,
         "languages": [
           "verilog",
           "systemverilog"
@@ -773,12 +769,14 @@
       },
       {
         "command": "verilog.project.showSourceFile",
-        "title": "Verilog: Show Module",
-        "inlineContext": "File"
+        "title": "Show Module",
+        "inlineContext": [
+          "File"
+        ]
       },
       {
         "command": "verilog.project.copyHierarchyPath",
-        "title": "Verilog: Copy Path",
+        "title": "Copy Path",
         "inlineContext": [],
         "icon": {
           "light": "./resources/sv_light.svg",
@@ -795,13 +793,12 @@
       },
       {
         "command": "verilog.expandMacros",
-        "title": "Verilog: Expand Macros",
+        "title": "Expand Macros",
         "shortTitle": "Expand macros",
         "languages": [
           "verilog",
           "systemverilog"
         ],
-        "isTitleButton": true,
         "icon": "$(open-preview)"
       },
       {
@@ -843,24 +840,25 @@
       "view/title": [
         {
           "command": "verilog.project.clearTopLevel",
-          "when": "view == verilog.project",
-          "group": "navigation"
+          "group": "navigation",
+          "when": "view == verilog.project"
         },
         {
           "command": "verilog.project.selectTopLevel",
-          "when": "view == verilog.project",
-          "group": "navigation"
+          "group": "navigation",
+          "when": "view == verilog.project"
         }
       ],
       "view/item/context": [
         {
-          "command": "verilog.project.copyHierarchyPath",
-          "group": "inline"
+          "command": "verilog.project.showSourceFile",
+          "group": "inline",
+          "when": "view == verilog.project && viewItem == File"
         },
         {
-          "command": "verilog.project.showSourceFile",
-          "when": "viewItem == File",
-          "group": "inline"
+          "command": "verilog.project.copyHierarchyPath",
+          "group": "inline",
+          "when": "view == verilog.project"
         }
       ],
       "editor/title": [

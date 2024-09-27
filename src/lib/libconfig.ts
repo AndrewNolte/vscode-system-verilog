@@ -242,7 +242,7 @@ export abstract class ExtensionComponent extends ExtensionNode {
           }
 
           for (let button of view.getCommands()) {
-            if (button instanceof TitleButton) {
+            if (button instanceof ViewButton) {
               viewsTitleButtons.push(button.getWhen())
             }
             if (button instanceof TreeItemButton) {
@@ -326,8 +326,8 @@ interface EditorButtonSpec extends ContextCommandSpec {
 interface ViewButtonSpec extends ContextCommandSpec {}
 interface TreeItemButtonSpec extends ContextCommandSpec {
   // These can only take light/dark svgs for an icon
-  icon: iconSvgs
-  inlineContext?: string | string[]
+  icon?: iconSvgs
+  inlineContext?: string[]
 }
 export class CommandNode<
   Spec extends ContextCommandSpec = CommandConfigSpec
@@ -367,12 +367,12 @@ class ButtonNode<Spec extends ContextCommandSpec> extends CommandNode<Spec> {
   }
 }
 
-export class TitleButton extends ButtonNode<ViewButtonSpec> {
+export class ViewButton extends ButtonNode<ViewButtonSpec> {
   getWhen() {
     return {
       command: this.configPath!,
       group: 'navigation',
-      when: `view == ${this.configPath}`,
+      when: `view == ${this._parentNode!.configPath}`,
     }
   }
 }
@@ -382,13 +382,13 @@ export class TreeItemButton extends ButtonNode<TreeItemButtonSpec> {
     let obj: ButtonSpec = {
       command: this.configPath!,
       group: 'inline',
+      when: `view == ${this._parentNode!.configPath}`,
     }
-    if (this.obj.inlineContext instanceof Array) {
+    if (this.obj.inlineContext) {
+      // empty implies no restrictions
       if (this.obj.inlineContext.length > 0) {
-        obj.when = this.obj.inlineContext.map((id) => `viewItem == ${id}`).join(' || ')
+        obj.when += ' && ' + this.obj.inlineContext.map((id) => `viewItem == ${id}`).join(' || ')
       }
-    } else {
-      obj.when = `viewItem == ${this.obj.inlineContext}`
     }
     return obj
   }

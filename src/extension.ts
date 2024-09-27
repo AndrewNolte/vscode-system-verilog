@@ -12,7 +12,13 @@ import { SystemVerilogFormatProvider, VerilogFormatProvider } from './FormatProv
 import { IncludeConfig } from './IncludeConfig'
 import { IndexComponent } from './IndexComponent'
 import { InlayHintsComponent } from './InlayHintsComponent'
-import { ActivityBarComponent, CommandNode, ConfigObject, ViewContainerSpec } from './lib/libconfig'
+import {
+  ActivityBarComponent,
+  CommandNode,
+  ConfigObject,
+  EditorButton,
+  ViewContainerSpec,
+} from './lib/libconfig'
 import LintManager from './linter/LintManager'
 import { LanguageServerComponent } from './LSComponent'
 import { InstanceView } from './sidebar/InstanceView'
@@ -143,12 +149,11 @@ export class VerilogExtension extends ActivityBarComponent {
     }
   )
 
-  expandMacros: CommandNode = new CommandNode(
+  expandMacros: EditorButton = new EditorButton(
     {
       title: 'Expand Macros',
       shortTitle: 'Expand macros',
       languages: ['verilog', 'systemverilog'],
-      isTitleButton: true,
       icon: '$(open-preview)',
     },
     async () => {

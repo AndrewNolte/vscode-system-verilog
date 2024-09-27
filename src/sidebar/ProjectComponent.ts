@@ -3,7 +3,7 @@ import { TreeDataProvider, TreeItem } from 'vscode'
 import { selectModule, selectModuleGlobal } from '../analysis/ModuleSelection'
 import { Symbol } from '../analysis/Symbol'
 import { ext } from '../extension'
-import { CommandNode, TreeItemButton, ViewComponent } from '../lib/libconfig'
+import { EditorButton, TreeItemButton, ViewButton, ViewComponent } from '../lib/libconfig'
 
 class ScopeItem {
   getPath(): string {
@@ -127,12 +127,11 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
   readonly onDidChangeTreeData: vscode.Event<void> = this._onDidChangeTreeData.event
   treeView: vscode.TreeView<ScopeItem> | undefined
 
-  setTopLevel: CommandNode = new CommandNode(
+  setTopLevel: EditorButton = new EditorButton(
     {
       title: 'Set Top Level',
       shortTitle: 'Set Top',
       languages: ['verilog', 'systemverilog'],
-      isTitleButton: false,
       icon: '$(chip)',
     },
     async () => {
@@ -150,11 +149,10 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
     }
   )
 
-  clearTopLevel: CommandNode = new CommandNode(
+  clearTopLevel: ViewButton = new ViewButton(
     {
       title: 'Clear Top Level',
       icon: '$(panel-close)',
-      isTitleButton: true,
     },
     async () => {
       this.top = undefined
@@ -162,11 +160,10 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
     }
   )
 
-  selectTopLevel: CommandNode = new CommandNode(
+  selectTopLevel: ViewButton = new ViewButton(
     {
       title: 'Select Top Level',
       icon: '$(folder-opened)',
-      isTitleButton: true,
     },
     async () => {
       const newtop = await selectModuleGlobal()
@@ -177,11 +174,10 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
     }
   )
 
-  setInstance: CommandNode = new CommandNode(
+  setInstance: EditorButton = new EditorButton(
     {
       title: 'Set Instance',
       icon: '$(symbol-class)',
-      isTitleButton: false,
       languages: ['verilog', 'systemverilog'],
     },
     async (instance: string | vscode.Uri) => {
@@ -228,10 +224,10 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
   // Inline Item Buttons
   //////////////////////////////////////////////////////////////////
 
-  showSourceFile: CommandNode = new CommandNode(
+  showSourceFile: TreeItemButton = new TreeItemButton(
     {
       title: 'Show Module',
-      inlineContext: 'File',
+      inlineContext: ['File'],
     },
     async (item: ScopeItem) => {
       if (item.definition) {
