@@ -7,19 +7,23 @@ import { EditorButton, TreeItemButton, ViewButton, ViewComponent } from '../lib/
 
 class ScopeItem {
   getPath(): string {
-    if (this.parent === undefined) {
-      return this.instance.name
+    if (this.path !== undefined) {
+      return this.path
     }
-    return this.parent.getPath() + '.' + this.instance.name
+    return this.parent!.getPath() + '.' + this.instance.name
   }
   // the symbol to get children from
   definition: Symbol | undefined
   instance: Symbol
   parent: ScopeItem | undefined
+  path: string | undefined
   constructor(parent: ScopeItem | undefined, instance: Symbol, definition: Symbol | undefined) {
     this.parent = parent
     this.instance = instance
     this.definition = definition
+    if (parent === undefined) {
+      this.path = this.instance.name
+    }
   }
   async getChildren(): Promise<ScopeItem[]> {
     return []
