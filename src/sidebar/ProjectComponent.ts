@@ -78,7 +78,7 @@ class ModuleItem extends ScopeItem {
   async getTreeItem(): Promise<vscode.TreeItem> {
     let item = await super.getTreeItem()
     if (this.definition !== undefined) {
-      item.contextValue = 'File'
+      item.contextValue = 'Module'
     }
     return item
   }
@@ -264,7 +264,7 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
   showSourceFile: TreeItemButton = new TreeItemButton(
     {
       title: 'Show Module',
-      inlineContext: ['File'],
+      inlineContext: ['Module'],
       icon: {
         light: './resources/light/go-to-file.svg',
         dark: './resources/dark/go-to-file.svg',

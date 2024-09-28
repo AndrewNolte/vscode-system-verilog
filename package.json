@@ -771,7 +771,7 @@
         "command": "verilog.project.showSourceFile",
         "title": "Show Module",
         "inlineContext": [
-          "File"
+          "Module"
         ],
         "icon": {
           "light": "./resources/light/go-to-file.svg",
@@ -851,7 +851,7 @@
         {
           "command": "verilog.project.showSourceFile",
           "group": "inline",
-          "when": "view == verilog.project && viewItem == File"
+          "when": "view == verilog.project && viewItem == Module"
         },
         {
           "command": "verilog.project.copyHierarchyPath",
