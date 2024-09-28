@@ -21,6 +21,7 @@ import {
 } from './lib/libconfig'
 import LintManager from './linter/LintManager'
 import { LanguageServerComponent } from './LSComponent'
+import { InstanceView } from './sidebar/InstanceView'
 import { ProjectComponent } from './sidebar/ProjectComponent'
 import { SurferComponent } from './surferWaveformViewer'
 import { getWorkspaceFolder, isAnyVerilog } from './utils'
@@ -98,8 +99,8 @@ export class VerilogExtension extends ActivityBarComponent {
   verilogFormat: VerilogFormatProvider = new VerilogFormatProvider()
 
   // TODO: figure out frontend for instance view
-  // instSelect: InstanceView = new InstanceView()
   project: ProjectComponent = new ProjectComponent()
+  instSelect: InstanceView = new InstanceView()
 
   languageServer: LanguageServerComponent = new LanguageServerComponent()
 

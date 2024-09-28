@@ -70,7 +70,7 @@ class ScopeItem {
 
 const EXCLUDED_SYMS = new Set<string>(['enum', 'typedef', 'assert', 'function'])
 
-class ModuleItem extends ScopeItem {
+export class ModuleItem extends ScopeItem {
   async getTreeItem(): Promise<vscode.TreeItem> {
     let item = await super.getTreeItem()
     if (this.definition !== undefined) {
@@ -200,13 +200,19 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
       icon: '$(symbol-class)',
       languages: ['verilog', 'systemverilog'],
     },
-    async (instance: string | vscode.Uri) => {
+    async (instance: string | vscode.Uri | undefined) => {
       if (this.top === undefined) {
         await this.selectTopLevel.func()
       }
 
       if (this.top === undefined) {
         return
+      }
+      if (instance === undefined) {
+        instance = vscode.window.activeTextEditor?.document.uri
+        if (instance === undefined) {
+          return
+        }
       }
 
       if (instance instanceof vscode.Uri) {
@@ -247,12 +253,19 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
       }
       this.treeView?.reveal(current, { select: true, focus: true, expand: true })
       const exposeSym = current.definition ?? current.instance
-      if (exposeSym.doc === vscode.window.activeTextEditor?.document) {
-        return
+      if (exposeSym.doc !== vscode.window.activeTextEditor?.document) {
+        vscode.window.showTextDocument(current.definition!.doc, {
+          selection: exposeSym.getFullRange(),
+        })
       }
-      vscode.window.showTextDocument(current.definition!.doc, {
-        selection: exposeSym.getFullRange(),
-      })
+      // select the most recent module
+      while (!(current instanceof ModuleItem)) {
+        current = current.parent
+        if (current === undefined) {
+          return
+        }
+      }
+      ext.instSelect.revealPath(current, cleaned)
     }
   )
 

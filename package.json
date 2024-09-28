@@ -835,6 +835,10 @@
         {
           "id": "verilog.project",
           "name": "Project"
+        },
+        {
+          "id": "verilog.instSelect",
+          "name": "Instances"
         }
       ]
     },
@@ -842,6 +846,10 @@
       {
         "view": "verilog.project",
         "contents": "[Select top level](command:verilog.project.selectTopLevel)"
+      },
+      {
+        "view": "verilog.instSelect",
+        "contents": "[Select instance](command:verilog.project.setInstance)"
       }
     ],
     "menus": {
