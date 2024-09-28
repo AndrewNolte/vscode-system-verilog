@@ -229,7 +229,7 @@ export default abstract class BaseLinter extends ToolConfig {
   }
 
   protected getTarget(currentUri: vscode.Uri): vscode.Uri {
-    return ext.project.top ? ext.project.top.doc.uri : currentUri
+    return ext.project.top ? ext.project.top.definition!.doc.uri : currentUri
   }
 
   protected formatIncludes(includes: string[]): string[] {

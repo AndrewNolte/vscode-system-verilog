@@ -137,6 +137,19 @@ export function isAnyVerilog(langid: string): boolean {
   return AnyVerilogLanguages.includes(langid)
 }
 
+export class DefaultMap<K, V> extends Map<K, V> {
+  constructor(private defaultFactory: () => V) {
+    super()
+  }
+
+  get(key: K): V {
+    if (!this.has(key)) {
+      this.set(key, this.defaultFactory())
+    }
+    return super.get(key)!
+  }
+}
+
 // end position in line
 // getWordRanges(
 //   doc: vscode.TextDocument,

@@ -772,15 +772,19 @@
         "title": "Show Module",
         "inlineContext": [
           "File"
-        ]
+        ],
+        "icon": {
+          "light": "./resources/light/go-to-file.svg",
+          "dark": "./resources/dark/go-to-file.svg"
+        }
       },
       {
         "command": "verilog.project.copyHierarchyPath",
         "title": "Copy Path",
         "inlineContext": [],
         "icon": {
-          "light": "./resources/sv_light.svg",
-          "dark": "./resources/sv_dark.svg"
+          "light": "./resources/light/files.svg",
+          "dark": "./resources/dark/files.svg"
         }
       },
       {
@@ -818,12 +822,6 @@
     },
     "views": {
       "verilog": [
-        {
-          "id": "verilog.instSelect",
-          "name": "Instance",
-          "type": "webview",
-          "icon": "$(chip)"
-        },
         {
           "id": "verilog.project",
           "name": "Project"

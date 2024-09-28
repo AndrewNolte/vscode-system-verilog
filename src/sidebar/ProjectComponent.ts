@@ -4,6 +4,7 @@ import { selectModule, selectModuleGlobal } from '../analysis/ModuleSelection'
 import { Symbol } from '../analysis/Symbol'
 import { ext } from '../extension'
 import { EditorButton, TreeItemButton, ViewButton, ViewComponent } from '../lib/libconfig'
+import { DefaultMap } from '../utils'
 
 class ScopeItem {
   getPath(): string {
@@ -45,9 +46,25 @@ class ScopeItem {
     if (this.hasChildren()) {
       item.collapsibleState = vscode.TreeItemCollapsibleState.Collapsed
     }
-    item.label = item.label + ' : ' + (this.instance.typeRef ?? this.instance.type)
+    if (this.instance.typeRef !== null) {
+      item.label = item.label + ' : ' + this.instance.typeRef
+    }
     item.iconPath = new vscode.ThemeIcon(this.getIcon())
     return item
+  }
+
+  async preOrderTraversal<T extends ScopeItem>(fn: (item: T) => void) {
+    if (this.isInstanceOf<T>()) {
+      fn(this as T)
+    }
+    for (let child of await this.getChildren()) {
+      await child.preOrderTraversal<T>(fn)
+    }
+  }
+
+  private isInstanceOf<T extends ScopeItem>(): this is T {
+    // You might need to adjust this condition based on your specific requirements
+    return true
   }
 }
 
@@ -125,11 +142,12 @@ class InternalScopeItem extends ModuleItem {
 }
 
 export class ProjectComponent extends ViewComponent implements TreeDataProvider<ScopeItem> {
-  top: Symbol | undefined = undefined
+  top: RootItem | undefined = undefined
 
   private _onDidChangeTreeData: vscode.EventEmitter<void> = new vscode.EventEmitter<void>()
   readonly onDidChangeTreeData: vscode.Event<void> = this._onDidChangeTreeData.event
   treeView: vscode.TreeView<ScopeItem> | undefined
+  instancesByModule: DefaultMap<Symbol, ModuleItem[]> = new DefaultMap(() => [])
 
   setTopLevel: EditorButton = new EditorButton(
     {
@@ -138,18 +156,19 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
       languages: ['verilog', 'systemverilog'],
       icon: '$(chip)',
     },
-    async () => {
-      let doc = vscode.window.activeTextEditor?.document
-      if (doc === undefined) {
+    async (uri: vscode.Uri | undefined) => {
+      if (uri === undefined) {
         vscode.window.showErrorMessage('Open a verilog document to select top')
         return
       }
-      this.top = await selectModule(doc)
-      // show view
-      if (this.top !== undefined && this.treeView !== undefined) {
-        this.treeView.reveal(new RootItem(this.top), { select: true, focus: true })
-        this._onDidChangeTreeData.fire()
+      // should also be active text editor
+      const doc = await vscode.workspace.openTextDocument(uri)
+      const module = await selectModule(doc)
+      if (module === undefined) {
+        return
       }
+
+      this.setTopModule(module)
     }
   )
 
@@ -171,10 +190,10 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
     },
     async () => {
       const newtop = await selectModuleGlobal()
-      if (newtop !== undefined) {
-        this.top = newtop
-        this._onDidChangeTreeData.fire()
+      if (newtop === undefined) {
+        return
       }
+      this.setTopModule(newtop)
     }
   )
 
@@ -186,7 +205,7 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
     },
     async (instance: string | vscode.Uri) => {
       if (this.top === undefined) {
-        this.selectTopLevel.func()
+        await this.selectTopLevel.func()
       }
 
       if (this.top === undefined) {
@@ -195,8 +214,21 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
 
       if (instance instanceof vscode.Uri) {
         // TODO: list instances for the user to select, editor button
-        return
+        const doc = await vscode.workspace.openTextDocument(instance)
+        const module = await selectModule(doc)
+        if (module === undefined) {
+          return
+        }
+        // vscode show quickpick
+        const path = await vscode.window.showQuickPick(
+          this.instancesByModule.get(module).map((item) => item.getPath())
+        )
+        if (path === undefined) {
+          return
+        }
+        instance = path
       }
+      console.log(`setting instance to ${instance}`)
 
       // strip brackets, go through hierarchy
       const regex = /\[\d+\]/g
@@ -217,9 +249,10 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
       if (current === undefined) {
         return
       }
-      this.treeView?.reveal(current, { select: true, focus: true })
-      vscode.window.showTextDocument(current.instance.doc, {
-        selection: current.instance.getFullRange(),
+      this.treeView?.reveal(current, { select: true, focus: true, expand: true })
+      const exposeSym = current.definition ?? current.instance
+      vscode.window.showTextDocument(current.definition!.doc, {
+        selection: exposeSym.getFullRange(),
       })
     }
   )
@@ -232,6 +265,10 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
     {
       title: 'Show Module',
       inlineContext: ['File'],
+      icon: {
+        light: './resources/light/go-to-file.svg',
+        dark: './resources/dark/go-to-file.svg',
+      },
     },
     async (item: ScopeItem) => {
       if (item.definition) {
@@ -247,14 +284,15 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
       title: 'Copy Path',
       inlineContext: [],
       icon: {
-        light: './resources/sv_light.svg',
-        dark: './resources/sv_dark.svg',
+        light: './resources/light/files.svg',
+        dark: './resources/dark/files.svg',
       },
     },
     async (item: ScopeItem) => {
       vscode.env.clipboard.writeText(item.getPath())
     }
   )
+  root: RootItem | undefined = undefined
 
   constructor() {
     super({
@@ -276,6 +314,38 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
     context.subscriptions.push(this.treeView)
   }
 
+  async setTopModule(top: Symbol) {
+    this.top = new RootItem(top)
+    if (this.top !== undefined && this.treeView !== undefined) {
+      this.treeView.reveal(this.top, { select: true, focus: true })
+      this._onDidChangeTreeData.fire()
+    }
+
+    await vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Window,
+        title: 'Indexing Hierarchy',
+        cancellable: false,
+      },
+
+      async (progress) => {
+        console.log('starting indexing')
+        progress.report({ increment: 0, message: 'Starting...' })
+
+        // Simplify indexing
+        await this.top?.preOrderTraversal<ModuleItem>((item: ModuleItem) => {
+          if (item.definition !== undefined) {
+            this.instancesByModule.get(item.definition).push(item)
+          }
+          progress.report({ increment: 1, message: `Indexing ${item.instance.name}...` })
+        })
+
+        progress.report({ increment: 100, message: 'Done' })
+        console.log('indexing done')
+      }
+    )
+  }
+
   async getTreeItem(element: ScopeItem): Promise<TreeItem> {
     return element.getTreeItem()
   }
@@ -285,7 +355,7 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
       if (this.top === undefined) {
         return []
       }
-      return [new RootItem(this.top)]
+      return [this.top]
     }
     return await element.getChildren()
   }
