@@ -225,7 +225,6 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
         }
         instance = path
       }
-      console.log(`setting instance to ${instance}`)
 
       // strip brackets, go through hierarchy
       const regex = /\[\d+\]/g
@@ -371,7 +370,6 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
       },
 
       async (progress) => {
-        console.log('starting indexing')
         progress.report({ increment: 0, message: 'Starting...' })
 
         // Simplify indexing
@@ -379,11 +377,10 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
           if (item.definition !== undefined) {
             this.instancesByModule.get(item.definition).push(item)
           }
-          progress.report({ increment: 1, message: `Indexing ${item.instance.name}...` })
+          progress.report({ increment: 1 })
         })
 
         progress.report({ increment: 100, message: 'Done' })
-        console.log('indexing done')
       }
     )
   }
