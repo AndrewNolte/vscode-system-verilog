@@ -788,6 +788,16 @@
         }
       },
       {
+        "command": "verilog.project.toggleParams",
+        "title": "Toggle Params",
+        "icon": "$(symbol-type-parameter)"
+      },
+      {
+        "command": "verilog.project.toggleData",
+        "title": "Toggle Data",
+        "icon": "$(symbol-variable)"
+      },
+      {
         "command": "verilog.reindex",
         "title": "Verilog: Reindex"
       },
@@ -843,6 +853,16 @@
         },
         {
           "command": "verilog.project.selectTopLevel",
+          "group": "navigation",
+          "when": "view == verilog.project"
+        },
+        {
+          "command": "verilog.project.toggleParams",
+          "group": "navigation",
+          "when": "view == verilog.project"
+        },
+        {
+          "command": "verilog.project.toggleData",
           "group": "navigation",
           "when": "view == verilog.project"
         }

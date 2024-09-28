@@ -70,10 +70,6 @@ class ScopeItem {
 
 const EXCLUDED_SYMS = new Set<string>(['enum', 'typedef', 'assert', 'function'])
 
-const STRUCTURE_SYMS = new Set<string>(['instance', 'block'])
-const LOGIC_SYMS = new Set<string>(['port', 'register'])
-const PARAM_SYMS = new Set<string>(['parameter', 'constant'])
-
 class ModuleItem extends ScopeItem {
   async getTreeItem(): Promise<vscode.TreeItem> {
     let item = await super.getTreeItem()
@@ -140,6 +136,7 @@ class InternalScopeItem extends ModuleItem {
     return 'bracket'
   }
 }
+const STRUCTURE_SYMS = new Set<string>(['instance', 'block'])
 
 export class ProjectComponent extends ViewComponent implements TreeDataProvider<ScopeItem> {
   top: RootItem | undefined = undefined
@@ -292,6 +289,48 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
       vscode.env.clipboard.writeText(item.getPath())
     }
   )
+  symFilter: Set<string> = new Set<string>(STRUCTURE_SYMS)
+  // params / localparams (constants)
+  includeParams: boolean = false
+  // ports / nets (variables)
+  includePorts: boolean = false
+
+  toggleParams: ViewButton = new ViewButton(
+    {
+      title: 'Toggle Params',
+      icon: '$(symbol-type-parameter)',
+    },
+    async () => {
+      this.includeParams = !this.includeParams
+      if (this.includeParams) {
+        this.symFilter.add('parameter')
+        this.symFilter.add('constant')
+      } else {
+        this.symFilter.delete('parameter')
+        this.symFilter.delete('constant')
+      }
+      this._onDidChangeTreeData.fire()
+    }
+  )
+
+  toggleData: ViewButton = new ViewButton(
+    {
+      title: 'Toggle Data',
+      icon: '$(symbol-variable)',
+    },
+    async () => {
+      this.includePorts = !this.includePorts
+      if (this.includePorts) {
+        this.symFilter.add('port')
+        this.symFilter.add('net')
+      } else {
+        this.symFilter.delete('port')
+        this.symFilter.delete('net')
+      }
+      this._onDidChangeTreeData.fire()
+    }
+  )
+
   root: RootItem | undefined = undefined
 
   constructor() {
@@ -357,7 +396,8 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
       }
       return [this.top]
     }
-    return await element.getChildren()
+    const children = await element.getChildren()
+    return children.filter((child) => this.symFilter.has(child.instance.type))
   }
 
   getParent(element: ScopeItem): ScopeItem | undefined {
