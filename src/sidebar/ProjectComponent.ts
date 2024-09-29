@@ -240,7 +240,28 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
           return
         }
       }
-      // TODO: try to get top module from path
+      // instance is a string path, maybe containing brackets from elaboration, so strip those
+      const regex = /\[\d+\]/g
+      let cleaned = instPath.replace(regex, '')
+      let parts = cleaned.split('.')
+
+      // try to get top module from path if root not set
+      if (rootItem === undefined) {
+        const topStr = parts[0]
+        if (ext.index.moduleMap.has(topStr)) {
+          const topUri = ext.index.moduleMap.get(topStr)
+          if (topUri !== undefined) {
+            const topDoc = await vscode.workspace.openTextDocument(topUri)
+            const topModule = await selectModule(topDoc)
+            if (topModule !== undefined) {
+              this.setTopModule(topModule)
+            }
+          }
+        }
+      }
+      // root Item is already top, no need to do anything with the value
+
+      // have user select top if that didn't work
       if (this.top === undefined) {
         await this.selectTopLevel.func()
         if (this.top === undefined) {
@@ -248,16 +269,7 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
         }
       }
 
-      if (typeof instPath !== 'string') {
-        vscode.window.showErrorMessage('setInstanceByPath: Path is not a string')
-        return
-      }
-
-      // instance is a string path, maybe containing brackets from elaboration
-      // strip brackets, go through hierarchy
-      const regex = /\[\d+\]/g
-      let cleaned = instPath.replace(regex, '')
-      let parts = cleaned.split('.')
+      // go through hierarchy
       let current: ScopeItem | undefined = undefined
       for (let part of parts) {
         let children = await this.getChildren(current)
