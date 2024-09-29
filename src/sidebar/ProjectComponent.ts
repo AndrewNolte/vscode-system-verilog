@@ -59,11 +59,6 @@ class ScopeItem {
       await child.preOrderTraversal(fn)
     }
   }
-
-  private isInstanceOf<T extends ScopeItem>(): this is T {
-    // You might need to adjust this condition based on your specific requirements
-    return true
-  }
 }
 
 const EXCLUDED_SYMS = new Set<string>(['enum', 'typedef', 'assert', 'function'])
