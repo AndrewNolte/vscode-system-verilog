@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MIT
+import { TextEncoder } from 'util'
 import * as vscode from 'vscode'
 
 import * as child_process from 'child_process'
@@ -24,7 +25,7 @@ import { LanguageServerComponent } from './LSComponent'
 import { InstanceView } from './sidebar/InstanceView'
 import { ProjectComponent } from './sidebar/ProjectComponent'
 import { SurferComponent } from './surferWaveformViewer'
-import { getWorkspaceFolder, isAnyVerilog } from './utils'
+import { getWorkspaceFolder, isAnyVerilog, pathFilename, zip } from './utils'
 const asyncGlob = promisify(glob)
 
 export var ext: VerilogExtension
@@ -125,6 +126,92 @@ export class VerilogExtension extends ActivityBarComponent {
           vscode.window.showErrorMessage('Reindexing failed')
           this.logger.error(err)
         })
+    }
+  )
+
+  fixModules: CommandNode = new CommandNode(
+    {
+      title: 'Fix file names to match module names',
+    },
+    async () => {
+      /// Fix module file names to match the module name
+      /// If a file has multiple modules, split into mutliple files
+      /// keep excess text before and after the module definitions
+
+      for (let uri of await this.findModules()) {
+        const doc = await vscode.workspace.openTextDocument(uri)
+        const verilogDoc = this.index.getVerilogDoc(doc)
+        if (verilogDoc === undefined) {
+          continue
+        }
+        const modules = (await verilogDoc.getSymbolTree()).filter(
+          (sym) => sym.isModuleType() && sym.type !== 'class'
+        )
+        if (modules.length === 0) {
+          continue
+        }
+
+        // exclude common top level modules names and file names
+        const COMMON_TOP_LEVEL_MODULES = ['top', 'tb', 'tb_top']
+        const fileName = pathFilename(uri)
+        if (COMMON_TOP_LEVEL_MODULES.includes(fileName)) {
+          continue
+        }
+        if (modules.some((m) => COMMON_TOP_LEVEL_MODULES.includes(m.name))) {
+          continue
+        }
+
+        if (modules.length === 1) {
+          if (fileName === modules[0].name) {
+            continue
+          }
+          const canonUri = vscode.Uri.joinPath(
+            uri.with({ path: path.dirname(uri.fsPath) }),
+            modules[0].name + path.extname(uri.fsPath)
+          )
+          // Move the module to a new file named after the module
+          vscode.window.showInformationMessage(`Moving ${modules[0].name} to ${canonUri.fsPath}`)
+          try {
+            await vscode.workspace.fs.rename(uri, canonUri, { overwrite: false })
+          } catch (e) {
+            vscode.window.showWarningMessage(
+              'Failed to rename ' + uri.fsPath + ' to ' + canonUri.fsPath + ': ' + e
+            )
+          }
+          continue
+        }
+
+        // multiple modules, split into multiple files
+        this.logger.info(`Found ${modules.length} modules in ${uri.fsPath}`)
+        vscode.window.showInformationMessage(`Splitting ${uri.fsPath} into ${modules.length} files`)
+        // create new URIs for each module
+        const newUris = modules.map((module) =>
+          vscode.Uri.joinPath(
+            uri.with({ path: path.dirname(uri.fsPath) }),
+            module.name + path.extname(uri.fsPath)
+          )
+        )
+
+        // zip modules and newUris together
+        for (const [module, newUri] of zip(modules, newUris)) {
+          const ignoreModules = modules
+            .filter((m) => m.name !== module.name)
+            .map((m) => m.getFullRange())
+            .reverse()
+          // read doc, don't write line in bad symbols
+          let text = doc.getText()
+          for (let range of ignoreModules) {
+            text = text.slice(0, doc.offsetAt(range.start)) + text.slice(doc.offsetAt(range.end))
+          }
+          const encoder = new TextEncoder()
+          await vscode.workspace.fs.writeFile(newUri, encoder.encode(text))
+        }
+        // delete the original file if not in newUris
+        if (!newUris.find((u) => u.fsPath === uri.fsPath)) {
+          await vscode.workspace.fs.delete(uri)
+        }
+      }
+      vscode.window.showInformationMessage('File name fix complete')
     }
   )
 

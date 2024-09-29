@@ -760,7 +760,7 @@
       },
       {
         "command": "verilog.project.setInstanceByFile",
-        "title": "Set Instance By File",
+        "title": "Select Instance of Module",
         "icon": "$(symbol-class)",
         "languages": [
           "verilog",
@@ -809,6 +809,10 @@
       {
         "command": "verilog.reindex",
         "title": "Verilog: Reindex"
+      },
+      {
+        "command": "verilog.fixModules",
+        "title": "Verilog: Fix file names to match module names"
       },
       {
         "command": "verilog.instantiateModule",

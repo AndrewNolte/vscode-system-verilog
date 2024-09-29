@@ -175,7 +175,7 @@ export class Symbol {
   }
 
   isModuleType(): boolean {
-    return this.type === 'module' || this.type === 'interface'
+    return this.type === 'module' || this.type === 'interface' || this.type === 'package'
   }
 
   getHoverText(): string {

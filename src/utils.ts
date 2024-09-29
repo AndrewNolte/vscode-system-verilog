@@ -150,6 +150,14 @@ export class DefaultMap<K, V> extends Map<K, V> {
   }
 }
 
+export function zip<T, U>(a: T[], b: U[]): [T, U][] {
+  return a.map((k, i) => [k, b[i]])
+}
+
+export function pathFilename(uri: vscode.Uri): string {
+  return path.basename(uri.fsPath, path.extname(uri.fsPath))
+}
+
 // end position in line
 // getWordRanges(
 //   doc: vscode.TextDocument,

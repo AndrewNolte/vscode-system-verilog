@@ -283,7 +283,6 @@ export class VerilogDoc {
     if (
       sym.isModuleType() ||
       sym.type === 'typedef' ||
-      sym.type === 'package' ||
       sym.type === 'instance' ||
       sym.type === 'function' ||
       sym.type === 'class'
