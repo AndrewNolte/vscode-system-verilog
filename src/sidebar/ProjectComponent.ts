@@ -88,6 +88,8 @@ export class InstanceItem extends ScopeItem {
     const childSyms = this.definition.children
     const childItems = childSyms
       .filter((child) => !EXCLUDED_SYMS.has(child.type))
+      // always blocks are not different from generate blocks here, so want to avoid them
+      .filter((child) => !(child.type === 'block' && child.children.length === 0))
       .map(async (child) => {
         if (child.type === 'block') {
           return new InternalScopeItem(this, child)
