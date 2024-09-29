@@ -53,12 +53,10 @@ class ScopeItem {
     return item
   }
 
-  async preOrderTraversal<T extends ScopeItem>(fn: (item: T) => void) {
-    if (this.isInstanceOf<T>()) {
-      fn(this as T)
-    }
+  async preOrderTraversal(fn: (item: ScopeItem) => void) {
+    fn(this)
     for (let child of await this.getChildren()) {
-      await child.preOrderTraversal<T>(fn)
+      await child.preOrderTraversal(fn)
     }
   }
 
@@ -265,7 +263,7 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
           return
         }
       }
-      ext.instSelect.revealPath(current, cleaned)
+      ext.instSelect.revealPath(current.definition!, cleaned)
     }
   )
 
@@ -385,15 +383,17 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
       async (progress) => {
         progress.report({ increment: 0, message: 'Starting...' })
 
-        // Simplify indexing
-        await this.top?.preOrderTraversal<ModuleItem>((item: ModuleItem) => {
+        await this.top?.preOrderTraversal((item: ScopeItem) => {
           if (item.definition !== undefined) {
-            this.instancesByModule.get(item.definition).push(item)
+            if (item.definition !== undefined && item.definition.type === 'module') {
+              this.instancesByModule.get(item.definition).push(item)
+            }
           }
           progress.report({ increment: 1 })
         })
 
         progress.report({ increment: 100, message: 'Done' })
+        ext.instSelect.onIndexComplete()
       }
     )
   }

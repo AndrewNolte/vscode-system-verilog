@@ -1,26 +1,64 @@
 import * as vscode from 'vscode'
+import { Symbol } from '../analysis/Symbol'
 import { ext } from '../extension'
 import { ViewComponent } from '../lib/libconfig'
-import { ModuleItem } from './ProjectComponent'
+import { DefaultMap } from '../utils'
 
 class InstanceItem {
   path: string
-  constructor(path: string) {
+  parent: ModuleItem
+  constructor(parent: ModuleItem, path: string) {
     this.path = path
+    this.parent = parent
+  }
+  getParent(): ModuleItem {
+    return this.parent
+  }
+
+  getTreeItem(): vscode.TreeItem {
+    const item = new vscode.TreeItem(this.path, vscode.TreeItemCollapsibleState.None)
+    item.iconPath = new vscode.ThemeIcon('chip')
+    return item
   }
 }
 
-export class InstanceView extends ViewComponent implements vscode.TreeDataProvider<InstanceItem> {
-  revealPath(module: ModuleItem, path: string) {
-    this.module = module
-    this.treeView?.reveal(new InstanceItem(path), { select: true, focus: true, expand: true })
+class ModuleItem {
+  definition: Symbol
+  constructor(definition: Symbol) {
+    this.definition = definition
+  }
+  getTreeItem(): vscode.TreeItem {
+    const item = new vscode.TreeItem(
+      this.definition.name,
+      vscode.TreeItemCollapsibleState.Collapsed
+    )
+    item.iconPath = new vscode.ThemeIcon('file')
+    return item
+  }
+}
+
+type InstanceTreeItem = InstanceItem | ModuleItem
+export class InstanceView
+  extends ViewComponent
+  implements vscode.TreeDataProvider<InstanceTreeItem>
+{
+  onIndexComplete() {
+    this._onDidChangeTreeData.fire()
+  }
+  revealPath(module: Symbol, path: string) {
+    const inst = this.modulesToInstances.get(module).get(path)
+    if (inst) {
+      this.treeView?.reveal(inst, { select: true, focus: true, expand: true })
+    }
     this._onDidChangeTreeData.fire()
   }
   private _onDidChangeTreeData: vscode.EventEmitter<void> = new vscode.EventEmitter<void>()
   readonly onDidChangeTreeData: vscode.Event<void> = this._onDidChangeTreeData.event
-  treeView: vscode.TreeView<InstanceItem> | undefined
+  treeView: vscode.TreeView<InstanceTreeItem> | undefined
 
-  module: ModuleItem | undefined
+  modulesToInstances: DefaultMap<Symbol, Map<string, InstanceItem>> = new DefaultMap(
+    () => new Map<string, InstanceItem>()
+  )
 
   constructor() {
     super({
@@ -42,33 +80,39 @@ export class InstanceView extends ViewComponent implements vscode.TreeDataProvid
     context.subscriptions.push(this.treeView)
   }
 
-  getTreeItem(element: InstanceItem): vscode.TreeItem {
-    const item = new vscode.TreeItem(element.path, vscode.TreeItemCollapsibleState.None)
-    item.iconPath = new vscode.ThemeIcon('symbol-instance')
-    return item
+  getTreeItem(element: InstanceTreeItem): vscode.TreeItem {
+    return element.getTreeItem()
   }
 
-  getChildren(element?: InstanceItem | undefined): vscode.ProviderResult<InstanceItem[]> {
-    if (element !== undefined) {
-      // TODO: show different parameterizations as children
+  getChildren(element?: undefined | InstanceTreeItem): vscode.ProviderResult<InstanceTreeItem[]> {
+    // modules (symbols) > instances (module items)
+    if (element === undefined) {
+      return Array.from(ext.project.instancesByModule.keys()).map((item) => {
+        return new ModuleItem(item)
+      })
+    }
+    if (element instanceof ModuleItem) {
+      const instances = ext.project.instancesByModule.get(element.definition)
+      if (instances) {
+        instances.forEach((item) => {
+          this.modulesToInstances
+            .get(element.definition)
+            ?.set(item.getPath(), new InstanceItem(element, item.getPath()))
+        })
+      }
+      return Array.from(this.modulesToInstances.get(element.definition)?.values() ?? [])
+    }
+    if (element instanceof InstanceItem) {
       return []
     }
-    if (this.module === undefined) {
-      return []
-    }
-    if (this.module.definition === undefined) {
-      return []
-    }
-    console.log('returning instances')
-    console.log(ext.project.instancesByModule.get(this.module.definition))
-    return ext.project.instancesByModule.get(this.module.definition).map((item) => {
-      return new InstanceItem(item.getPath())
-    })
+    return []
   }
 
-  getParent(_element: InstanceItem): vscode.ProviderResult<InstanceItem> {
-    // flat structure
-    return undefined
+  getParent(element: InstanceTreeItem): vscode.ProviderResult<InstanceTreeItem> {
+    if (element instanceof ModuleItem) {
+      return undefined
+    }
+    return element.parent
   }
 
   async resolveTreeItem(
@@ -80,7 +124,7 @@ export class InstanceView extends ViewComponent implements vscode.TreeDataProvid
     item.command = {
       title: 'Go to definition',
       command: 'vscode.open',
-      arguments: [element.path],
+      arguments: [element.parent.definition.doc.uri],
     }
     return item
   }
