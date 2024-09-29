@@ -3,21 +3,34 @@ import { Symbol } from '../analysis/Symbol'
 import { ext } from '../extension'
 import { ViewComponent } from '../lib/libconfig'
 import { DefaultMap } from '../utils'
+import { InstanceItem } from './ProjectComponent'
 
-class InstanceItem {
-  path: string
+class InstanceViewItem {
   parent: ModuleItem
-  constructor(parent: ModuleItem, path: string) {
-    this.path = path
+  inst: InstanceItem
+  constructor(parent: ModuleItem, inst: InstanceItem) {
     this.parent = parent
+    this.inst = inst
   }
   getParent(): ModuleItem {
     return this.parent
   }
 
   getTreeItem(): vscode.TreeItem {
-    const item = new vscode.TreeItem(this.path, vscode.TreeItemCollapsibleState.None)
+    const item = new vscode.TreeItem(this.inst.getPath(), vscode.TreeItemCollapsibleState.None)
     item.iconPath = new vscode.ThemeIcon('chip')
+    return item
+  }
+
+  resolveTreeItem(item: vscode.TreeItem, _token: vscode.CancellationToken): vscode.TreeItem {
+    item.tooltip = this.inst.getPath()
+    if (this.inst.definition) {
+      item.command = {
+        title: 'Open Instance',
+        command: 'verilog.project.setInstance',
+        arguments: [this.inst],
+      }
+    }
     return item
   }
 }
@@ -35,9 +48,19 @@ class ModuleItem {
     item.iconPath = new vscode.ThemeIcon('file')
     return item
   }
+
+  resolveTreeItem(item: vscode.TreeItem, _token: vscode.CancellationToken): vscode.TreeItem {
+    item.tooltip = this.definition.name
+    item.command = {
+      title: 'Open Module',
+      command: 'vscode.open',
+      arguments: [this.definition.doc.uri],
+    }
+    return item
+  }
 }
 
-type InstanceTreeItem = InstanceItem | ModuleItem
+type InstanceTreeItem = InstanceViewItem | ModuleItem
 export class InstanceView
   extends ViewComponent
   implements vscode.TreeDataProvider<InstanceTreeItem>
@@ -56,8 +79,8 @@ export class InstanceView
   readonly onDidChangeTreeData: vscode.Event<void> = this._onDidChangeTreeData.event
   treeView: vscode.TreeView<InstanceTreeItem> | undefined
 
-  modulesToInstances: DefaultMap<Symbol, Map<string, InstanceItem>> = new DefaultMap(
-    () => new Map<string, InstanceItem>()
+  modulesToInstances: DefaultMap<Symbol, Map<string, InstanceViewItem>> = new DefaultMap(
+    () => new Map<string, InstanceViewItem>()
   )
 
   constructor() {
@@ -97,12 +120,12 @@ export class InstanceView
         instances.forEach((item) => {
           this.modulesToInstances
             .get(element.definition)
-            ?.set(item.getPath(), new InstanceItem(element, item.getPath()))
+            ?.set(item.getPath(), new InstanceViewItem(element, item))
         })
       }
       return Array.from(this.modulesToInstances.get(element.definition)?.values() ?? [])
     }
-    if (element instanceof InstanceItem) {
+    if (element instanceof InstanceViewItem) {
       return []
     }
     return []
@@ -117,15 +140,9 @@ export class InstanceView
 
   async resolveTreeItem(
     item: vscode.TreeItem,
-    element: InstanceItem,
+    element: InstanceTreeItem,
     _token: vscode.CancellationToken
   ): Promise<vscode.TreeItem> {
-    item.tooltip = element.path
-    item.command = {
-      title: 'Go to definition',
-      command: 'vscode.open',
-      arguments: [element.parent.definition.doc.uri],
-    }
-    return item
+    return element.resolveTreeItem(item, _token)
   }
 }

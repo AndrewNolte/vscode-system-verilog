@@ -68,7 +68,7 @@ class ScopeItem {
 
 const EXCLUDED_SYMS = new Set<string>(['enum', 'typedef', 'assert', 'function'])
 
-export class ModuleItem extends ScopeItem {
+export class InstanceItem extends ScopeItem {
   async getTreeItem(): Promise<vscode.TreeItem> {
     let item = await super.getTreeItem()
     if (this.definition !== undefined) {
@@ -92,7 +92,7 @@ export class ModuleItem extends ScopeItem {
           return new InternalScopeItem(this, child)
         } else if (child.type === 'instance') {
           let def = await ext.index.findModuleSymbol(child.typeRef ?? '')
-          return new ModuleItem(this, child, def)
+          return new InstanceItem(this, child, def)
         }
         let def = undefined
         if (child.typeRef !== undefined) {
@@ -114,7 +114,7 @@ class LogicItem extends ScopeItem {
   }
 }
 
-class RootItem extends ModuleItem {
+class RootItem extends InstanceItem {
   constructor(instance: Symbol) {
     super(undefined, instance, instance)
   }
@@ -126,7 +126,7 @@ class RootItem extends ModuleItem {
   }
 }
 
-class InternalScopeItem extends ModuleItem {
+class InternalScopeItem extends InstanceItem {
   constructor(parent: ScopeItem | undefined, scope: Symbol) {
     super(parent, scope, scope)
   }
@@ -142,7 +142,7 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
   private _onDidChangeTreeData: vscode.EventEmitter<void> = new vscode.EventEmitter<void>()
   readonly onDidChangeTreeData: vscode.Event<void> = this._onDidChangeTreeData.event
   treeView: vscode.TreeView<ScopeItem> | undefined
-  instancesByModule: DefaultMap<Symbol, ModuleItem[]> = new DefaultMap(() => [])
+  instancesByModule: DefaultMap<Symbol, InstanceItem[]> = new DefaultMap(() => [])
 
   setTopLevel: EditorButton = new EditorButton(
     {
@@ -198,7 +198,7 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
       icon: '$(symbol-class)',
       languages: ['verilog', 'systemverilog'],
     },
-    async (instance: string | vscode.Uri | undefined) => {
+    async (instance: string | vscode.Uri | undefined | ScopeItem) => {
       if (this.top === undefined) {
         await this.selectTopLevel.func()
       }
@@ -214,7 +214,7 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
       }
 
       if (instance instanceof vscode.Uri) {
-        // TODO: list instances for the user to select, editor button
+        // let the user select the instance based on module
         const doc = await vscode.workspace.openTextDocument(instance)
         const module = await selectModule(doc)
         if (module === undefined) {
@@ -227,43 +227,52 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
         if (path === undefined) {
           return
         }
-        instance = path
-      }
-
-      // strip brackets, go through hierarchy
-      const regex = /\[\d+\]/g
-      let cleaned = instance.replace(regex, '')
-      let parts = cleaned.split('.')
-      let current: ScopeItem | undefined = undefined
-      for (let part of parts) {
-        let children = await this.getChildren(current)
-        let child = children.find((child) => child.instance.name === part)
-        if (child === undefined) {
-          vscode.window.showErrorMessage(
-            `Could not find instance ${part} in ${current?.instance.name ?? 'top level'}`
-          )
+        // get instance that was selected
+        instance = this.instancesByModule.get(module).find((item) => item.getPath() === path)
+        if (instance === undefined) {
           return
         }
-        current = child
       }
-      if (current === undefined) {
-        return
+
+      if (typeof instance === 'string') {
+        // instance is a string path, maybe containing brackets from elaboration
+        // strip brackets, go through hierarchy
+        const regex = /\[\d+\]/g
+        let cleaned = instance.replace(regex, '')
+        let parts = cleaned.split('.')
+        let current: ScopeItem | undefined = undefined
+        for (let part of parts) {
+          let children = await this.getChildren(current)
+          let child = children.find((child) => child.instance.name === part)
+          if (child === undefined) {
+            vscode.window.showErrorMessage(
+              `Could not find instance ${part} in ${current?.instance.name ?? 'top level'}`
+            )
+            return
+          }
+          current = child
+        }
+        if (current === undefined) {
+          return
+        }
+        instance = current
       }
-      this.treeView?.reveal(current, { select: true, focus: true, expand: true })
-      const exposeSym = current.definition ?? current.instance
+      // instance is now a ScopeItem
+      this.treeView?.reveal(instance, { select: true, focus: true, expand: true })
+      const exposeSym = instance.instance
       if (exposeSym.doc !== vscode.window.activeTextEditor?.document) {
-        vscode.window.showTextDocument(current.definition!.doc, {
+        vscode.window.showTextDocument(exposeSym.doc, {
           selection: exposeSym.getFullRange(),
         })
       }
       // select the most recent module
-      while (!(current instanceof ModuleItem)) {
-        current = current.parent
-        if (current === undefined) {
+      while (!(instance instanceof InstanceItem)) {
+        instance = instance.parent
+        if (instance === undefined) {
           return
         }
       }
-      ext.instSelect.revealPath(current.definition!, cleaned)
+      ext.instSelect.revealPath(instance.definition!, instance.getPath())
     }
   )
 
@@ -348,7 +357,7 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
 
   constructor() {
     super({
-      name: 'Project',
+      name: 'Hierarchy',
       welcome: {
         contents: '[Select top level](command:verilog.project.selectTopLevel)',
       },
@@ -386,7 +395,7 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
         await this.top?.preOrderTraversal((item: ScopeItem) => {
           if (item.definition !== undefined) {
             if (item.definition !== undefined && item.definition.type === 'module') {
-              this.instancesByModule.get(item.definition).push(item)
+              this.instancesByModule.get(item.definition).push(item as InstanceItem)
             }
           }
           progress.report({ increment: 1 })
@@ -422,6 +431,7 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
     element: ScopeItem,
     _token: vscode.CancellationToken
   ): Promise<TreeItem> {
+    /// Triggered on hover
     item.tooltip = element.instance.getHoverText()
     item.command = {
       title: 'Go to definition',

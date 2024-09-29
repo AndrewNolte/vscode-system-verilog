@@ -834,7 +834,7 @@
       "verilog": [
         {
           "id": "verilog.project",
-          "name": "Project"
+          "name": "Hierarchy"
         },
         {
           "id": "verilog.instSelect",
