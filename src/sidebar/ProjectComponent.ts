@@ -309,7 +309,7 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
   symFilter: Set<string> = new Set<string>(STRUCTURE_SYMS)
   // params / localparams (constants)
   includeParams: boolean = false
-  // ports / nets (variables)
+  // ports / nets / registers (variables)
   includePorts: boolean = false
 
   toggleParams: ViewButton = new ViewButton(
@@ -340,9 +340,11 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
       if (this.includePorts) {
         this.symFilter.add('port')
         this.symFilter.add('net')
+        this.symFilter.add('register')
       } else {
         this.symFilter.delete('port')
         this.symFilter.delete('net')
+        this.symFilter.delete('register')
       }
       this._onDidChangeTreeData.fire()
     }
