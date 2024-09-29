@@ -759,13 +759,22 @@
         "icon": "$(folder-opened)"
       },
       {
-        "command": "verilog.project.setInstance",
-        "title": "Set Instance",
+        "command": "verilog.project.setInstanceByFile",
+        "title": "Set Instance By File",
         "icon": "$(symbol-class)",
         "languages": [
           "verilog",
           "systemverilog"
         ]
+      },
+      {
+        "command": "verilog.project.setInstanceByPath",
+        "title": "Set Instance By Path",
+        "icon": "$(inspect)"
+      },
+      {
+        "command": "verilog.project.setInstance",
+        "title": "Verilog: Set Instance"
       },
       {
         "command": "verilog.project.showSourceFile",
@@ -865,6 +874,11 @@
           "when": "view == verilog.project"
         },
         {
+          "command": "verilog.project.setInstanceByPath",
+          "group": "navigation",
+          "when": "view == verilog.project"
+        },
+        {
           "command": "verilog.project.toggleParams",
           "group": "navigation",
           "when": "view == verilog.project"
@@ -894,7 +908,7 @@
           "group": "navigation"
         },
         {
-          "command": "verilog.project.setInstance",
+          "command": "verilog.project.setInstanceByFile",
           "when": "resourceLangId == verilog || resourceLangId == systemverilog",
           "group": "navigation"
         },

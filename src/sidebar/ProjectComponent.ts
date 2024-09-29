@@ -3,7 +3,13 @@ import { TreeDataProvider, TreeItem } from 'vscode'
 import { selectModule, selectModuleGlobal } from '../analysis/ModuleSelection'
 import { Symbol } from '../analysis/Symbol'
 import { ext } from '../extension'
-import { EditorButton, TreeItemButton, ViewButton, ViewComponent } from '../lib/libconfig'
+import {
+  CommandNode,
+  EditorButton,
+  TreeItemButton,
+  ViewButton,
+  ViewComponent,
+} from '../lib/libconfig'
 import { DefaultMap } from '../utils'
 
 class ScopeItem {
@@ -187,72 +193,98 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
     }
   )
 
-  setInstance: EditorButton = new EditorButton(
+  setInstanceByFile: EditorButton = new EditorButton(
     {
-      title: 'Set Instance',
+      title: 'Select Instance of Module',
       icon: '$(symbol-class)',
       languages: ['verilog', 'systemverilog'],
     },
-    async (instance: string | vscode.Uri | undefined | ScopeItem) => {
-      if (this.top === undefined) {
-        await this.selectTopLevel.func()
-      }
-
-      if (this.top === undefined) {
+    async (openModule: vscode.Uri | undefined) => {
+      if (openModule === undefined) {
+        vscode.window.showErrorMessage('Open a verilog file to select instance')
+        return
+      } // let the user select the instance based on module
+      const doc = await vscode.workspace.openTextDocument(openModule)
+      const module = await selectModule(doc)
+      if (module === undefined) {
         return
       }
+      // vscode show quickpick
+      const path = await vscode.window.showQuickPick(
+        this.instancesByModule.get(module).map((item) => item.getPath())
+      )
+      if (path === undefined) {
+        return
+      }
+      // get instance that was selected
+      const instance = this.instancesByModule.get(module).find((item) => item.getPath() === path)
       if (instance === undefined) {
-        instance = vscode.window.activeTextEditor?.document.uri
-        if (instance === undefined) {
+        return
+      }
+      this.setInstance.func(instance)
+    }
+  )
+
+  setInstanceByPath: ViewButton = new ViewButton(
+    {
+      title: 'Set Instance By Path',
+      icon: '$(inspect)',
+    },
+    async (rootItem: RootItem | undefined, instPath: string | undefined) => {
+      console.log('setInstanceByPath', rootItem, instPath)
+      if (instPath === undefined) {
+        instPath = await vscode.window.showInputBox({
+          prompt: 'Enter instance path',
+        })
+        if (instPath === undefined) {
+          return
+        }
+      }
+      // TODO: try to get top module from path
+      if (this.top === undefined) {
+        await this.selectTopLevel.func()
+        if (this.top === undefined) {
           return
         }
       }
 
-      if (instance instanceof vscode.Uri) {
-        // let the user select the instance based on module
-        const doc = await vscode.workspace.openTextDocument(instance)
-        const module = await selectModule(doc)
-        if (module === undefined) {
-          return
-        }
-        // vscode show quickpick
-        const path = await vscode.window.showQuickPick(
-          this.instancesByModule.get(module).map((item) => item.getPath())
-        )
-        if (path === undefined) {
-          return
-        }
-        // get instance that was selected
-        instance = this.instancesByModule.get(module).find((item) => item.getPath() === path)
-        if (instance === undefined) {
-          return
-        }
+      if (typeof instPath !== 'string') {
+        vscode.window.showErrorMessage('setInstanceByPath: Path is not a string')
+        return
       }
 
-      if (typeof instance === 'string') {
-        // instance is a string path, maybe containing brackets from elaboration
-        // strip brackets, go through hierarchy
-        const regex = /\[\d+\]/g
-        let cleaned = instance.replace(regex, '')
-        let parts = cleaned.split('.')
-        let current: ScopeItem | undefined = undefined
-        for (let part of parts) {
-          let children = await this.getChildren(current)
-          let child = children.find((child) => child.instance.name === part)
-          if (child === undefined) {
-            vscode.window.showErrorMessage(
-              `Could not find instance ${part} in ${current?.instance.name ?? 'top level'}`
-            )
-            return
-          }
-          current = child
-        }
-        if (current === undefined) {
+      // instance is a string path, maybe containing brackets from elaboration
+      // strip brackets, go through hierarchy
+      const regex = /\[\d+\]/g
+      let cleaned = instPath.replace(regex, '')
+      let parts = cleaned.split('.')
+      let current: ScopeItem | undefined = undefined
+      for (let part of parts) {
+        let children = await this.getChildren(current)
+        let child = children.find((child) => child.instance.name === part)
+        if (child === undefined) {
+          vscode.window.showErrorMessage(
+            `Could not find instance ${part} in ${current?.instance.name ?? 'top level'}`
+          )
           return
         }
-        instance = current
+        current = child
       }
-      // instance is now a ScopeItem
+      if (current === undefined) {
+        return
+      }
+      this.setInstance.func(current)
+    }
+  )
+  setInstance: CommandNode = new CommandNode(
+    {
+      title: 'Set Instance',
+    },
+    async (instance: ScopeItem | undefined) => {
+      if (instance === undefined) {
+        vscode.window.showErrorMessage('setInstance: Instance is undefined')
+        return
+      }
       this.treeView?.reveal(instance, { select: true, focus: true, expand: true })
       const exposeSym = instance.instance
       if (exposeSym.doc !== vscode.window.activeTextEditor?.document) {
