@@ -451,7 +451,14 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
   }
 
   async getTreeItem(element: ScopeItem): Promise<TreeItem> {
-    return element.getTreeItem()
+    const [treeItem, children] = await Promise.all([
+      element.getTreeItem(),
+      this.getChildren(element),
+    ])
+    if (children.length === 0) {
+      treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None
+    }
+    return treeItem
   }
 
   async getChildren(element?: ScopeItem | undefined): Promise<ScopeItem[]> {
