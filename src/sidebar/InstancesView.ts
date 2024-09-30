@@ -102,19 +102,27 @@ export class InstancesView
     this.modules.clear()
     await vscode.window.withProgress(
       {
-        location: vscode.ProgressLocation.Window,
+        location: {
+          viewId: this.configPath!,
+        },
         title: 'Indexing Hierarchy',
         cancellable: false,
       },
 
       async (progress) => {
         progress.report({ increment: 0, message: 'Starting...' })
-
+        let pct = 0.0
+        let lastReport = 0
         await top.preOrderTraversal((item: HierItem) => {
           if (item instanceof InstanceItem && item.definition) {
             this.modules.get(item.definition).addInstance(item)
           }
-          progress.report({ increment: 1 })
+          pct += (95.0 - pct) * 0.0001
+          const fl = Math.floor(pct)
+          if (fl > lastReport) {
+            progress.report({ increment: fl - lastReport })
+            lastReport = fl
+          }
         })
 
         progress.report({ increment: 100, message: 'Done' })
