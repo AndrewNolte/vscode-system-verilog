@@ -108,7 +108,7 @@ export class VerilogDoc {
 
   async getModules(): Promise<Symbol[]> {
     let syms = await this.getSymbols()
-    return syms.filter((tag) => tag.type === 'module' || tag.type === 'interface')
+    return syms.filter((tag) => tag.type === 'module')
   }
 
   async getInstances(): Promise<Symbol[]> {
