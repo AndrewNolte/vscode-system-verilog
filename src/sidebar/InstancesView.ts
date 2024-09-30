@@ -3,7 +3,7 @@ import { Symbol } from '../analysis/Symbol'
 import { ext } from '../extension'
 import { ViewComponent } from '../lib/libconfig'
 import { DefaultMap } from '../utils'
-import { InstanceItem } from './ProjectComponent'
+import { InstanceItem } from './HierarchyView'
 
 class InstanceViewItem {
   parent: ModuleItem
