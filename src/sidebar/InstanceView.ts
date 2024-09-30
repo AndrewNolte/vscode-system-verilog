@@ -33,6 +33,10 @@ class InstanceViewItem {
     }
     return item
   }
+
+  getChildren(): InstanceTreeItem[] {
+    return []
+  }
 }
 
 class ModuleItem {
@@ -46,6 +50,10 @@ class ModuleItem {
       vscode.TreeItemCollapsibleState.Collapsed
     )
     item.iconPath = new vscode.ThemeIcon('file')
+    const instances = ext.project.instancesByModule.get(this.definition) || []
+    if (instances.length === 1) {
+      item.collapsibleState = vscode.TreeItemCollapsibleState.Expanded
+    }
     return item
   }
 
@@ -57,6 +65,15 @@ class ModuleItem {
       arguments: [this.definition.doc.uri, { selection: this.definition.getIdRange() }],
     }
     return item
+  }
+
+  getChildren(): InstanceTreeItem[] {
+    const instances = ext.project.instancesByModule.get(this.definition) || []
+    return instances.map((item) => {
+      const instanceViewItem = new InstanceViewItem(this, item)
+      ext.instSelect.modulesToInstances.get(this.definition)?.set(item.getPath(), instanceViewItem)
+      return instanceViewItem
+    })
   }
 }
 
@@ -108,27 +125,12 @@ export class InstanceView
   }
 
   getChildren(element?: undefined | InstanceTreeItem): vscode.ProviderResult<InstanceTreeItem[]> {
-    // modules (symbols) > instances (module items)
     if (element === undefined) {
       return Array.from(ext.project.instancesByModule.keys()).map((item) => {
         return new ModuleItem(item)
       })
     }
-    if (element instanceof ModuleItem) {
-      const instances = ext.project.instancesByModule.get(element.definition)
-      if (instances) {
-        instances.forEach((item) => {
-          this.modulesToInstances
-            .get(element.definition)
-            ?.set(item.getPath(), new InstanceViewItem(element, item))
-        })
-      }
-      return Array.from(this.modulesToInstances.get(element.definition)?.values() ?? [])
-    }
-    if (element instanceof InstanceViewItem) {
-      return []
-    }
-    return []
+    return element.getChildren()
   }
 
   getParent(element: InstanceTreeItem): vscode.ProviderResult<InstanceTreeItem> {
