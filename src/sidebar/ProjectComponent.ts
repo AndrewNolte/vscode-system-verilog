@@ -12,7 +12,7 @@ import {
 } from '../lib/libconfig'
 import { DefaultMap } from '../utils'
 
-class ScopeItem {
+abstract class HierItem {
   getPath(): string {
     if (this.path !== undefined) {
       return this.path
@@ -20,31 +20,18 @@ class ScopeItem {
     return this.parent!.getPath() + '.' + this.instance.name
   }
   // the symbol to get children from
-  definition: Symbol | undefined
   instance: Symbol
-  parent: ScopeItem | undefined
+  parent: HierItem | undefined
   path: string | undefined
-  constructor(parent: ScopeItem | undefined, instance: Symbol, definition: Symbol | undefined) {
+  constructor(parent: HierItem | undefined, instance: Symbol) {
     this.parent = parent
     this.instance = instance
-    this.definition = definition
     if (parent === undefined) {
       this.path = this.instance.name
     }
   }
-  async getChildren(): Promise<ScopeItem[]> {
+  async getChildren(): Promise<HierItem[]> {
     return []
-  }
-
-  hasChildren(): boolean {
-    if (this.definition === undefined) {
-      return false
-    }
-    return this.definition.children.filter((child) => !EXCLUDED_SYMS.has(child.type)).length > 0
-  }
-
-  getIcon(): string {
-    return this.instance.getIcon()
   }
 
   async getTreeItem(): Promise<TreeItem> {
@@ -55,37 +42,30 @@ class ScopeItem {
     if (this.instance.typeRef !== null) {
       item.label = item.label + ' : ' + this.instance.typeRef
     }
-    item.iconPath = new vscode.ThemeIcon(this.getIcon())
+    item.iconPath = new vscode.ThemeIcon(this.instance.getIcon())
     return item
   }
 
-  async preOrderTraversal(fn: (item: ScopeItem) => void) {
+  async preOrderTraversal(fn: (item: HierItem) => void) {
     fn(this)
     for (let child of await this.getChildren()) {
       await child.preOrderTraversal(fn)
     }
   }
+
+  hasChildren(): boolean {
+    return false
+  }
 }
 
 const EXCLUDED_SYMS = new Set<string>(['enum', 'typedef', 'assert', 'function'])
 
-export class InstanceItem extends ScopeItem {
-  async getTreeItem(): Promise<vscode.TreeItem> {
-    let item = await super.getTreeItem()
-    if (this.definition !== undefined) {
-      item.contextValue = 'Module'
-    }
-    return item
-  }
-
-  async getChildren(): Promise<ScopeItem[]> {
-    if (this.definition === undefined) {
+abstract class ScopeItem extends HierItem {
+  async getChildrenFromSymbol(sym: Symbol): Promise<HierItem[]> {
+    if (sym.children.length === 0) {
       return []
     }
-    if (this.definition.children.length === 0) {
-      return []
-    }
-    const childSyms = this.definition.children
+    const childSyms = sym.children
     const childItems = childSyms
       .filter((child) => !EXCLUDED_SYMS.has(child.type))
       // always blocks are not different from generate blocks here, so want to avoid them
@@ -105,15 +85,40 @@ export class InstanceItem extends ScopeItem {
       })
     return await Promise.all(childItems)
   }
+}
 
-  getIcon(): string {
-    return 'chip'
+export class InstanceItem extends ScopeItem {
+  // Used by instances tree view as well
+  definition: Symbol | undefined
+  constructor(parent: HierItem | undefined, instance: Symbol, definition: Symbol | undefined) {
+    super(parent, instance)
+    this.definition = definition
+  }
+  async getTreeItem(): Promise<vscode.TreeItem> {
+    let item = await super.getTreeItem()
+    item.contextValue = 'Module'
+    item.iconPath = new vscode.ThemeIcon('chip')
+    return item
+  }
+
+  async getChildren(): Promise<HierItem[]> {
+    if (this.definition === undefined) {
+      return []
+    }
+    return await this.getChildrenFromSymbol(this.definition)
+  }
+
+  hasChildren(): boolean {
+    if (this.definition === undefined) {
+      return false
+    }
+    return this.definition.children.filter((child) => !EXCLUDED_SYMS.has(child.type)).length > 0
   }
 }
 
-class LogicItem extends ScopeItem {
-  constructor(parent: ScopeItem | undefined, instance: Symbol) {
-    super(parent, instance, instance)
+class LogicItem extends HierItem {
+  constructor(parent: HierItem | undefined, instance: Symbol) {
+    super(parent, instance)
   }
 }
 
@@ -129,22 +134,22 @@ class RootItem extends InstanceItem {
   }
 }
 
-class InternalScopeItem extends InstanceItem {
-  constructor(parent: ScopeItem | undefined, scope: Symbol) {
-    super(parent, scope, scope)
+class InternalScopeItem extends ScopeItem {
+  constructor(parent: HierItem | undefined, scope: Symbol) {
+    super(parent, scope)
   }
-  getIcon(): string {
-    return 'bracket'
+  getChildren(): Promise<HierItem[]> {
+    return this.getChildrenFromSymbol(this.instance)
   }
 }
 const STRUCTURE_SYMS = new Set<string>(['instance', 'block'])
 
-export class ProjectComponent extends ViewComponent implements TreeDataProvider<ScopeItem> {
+export class ProjectComponent extends ViewComponent implements TreeDataProvider<HierItem> {
   top: RootItem | undefined = undefined
 
   private _onDidChangeTreeData: vscode.EventEmitter<void> = new vscode.EventEmitter<void>()
   readonly onDidChangeTreeData: vscode.Event<void> = this._onDidChangeTreeData.event
-  treeView: vscode.TreeView<ScopeItem> | undefined
+  treeView: vscode.TreeView<HierItem> | undefined
   instancesByModule: DefaultMap<Symbol, InstanceItem[]> = new DefaultMap(() => [])
 
   setTopLevel: EditorButton = new EditorButton(
@@ -271,7 +276,7 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
       }
 
       // go through hierarchy
-      let current: ScopeItem | undefined = undefined
+      let current: HierItem | undefined = undefined
       for (let part of parts) {
         let children = await this.getChildren(current)
         let child = children.find((child) => child.instance.name === part)
@@ -293,7 +298,7 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
     {
       title: 'Set Instance',
     },
-    async (instance: ScopeItem | undefined, fromTreeCmd: boolean = false) => {
+    async (instance: HierItem | undefined, fromTreeCmd: boolean = false) => {
       if (instance === undefined) {
         vscode.window.showErrorMessage('setInstance: Instance is undefined')
         return
@@ -308,13 +313,7 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
         })
       }
       // select the most recent module
-      while (
-        !(
-          instance instanceof InstanceItem &&
-          instance.definition !== undefined &&
-          !(instance instanceof InternalScopeItem)
-        )
-      ) {
+      while (!(instance instanceof InstanceItem)) {
         instance = instance.parent
         if (instance === undefined) {
           return
@@ -337,8 +336,8 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
         dark: './resources/dark/go-to-file.svg',
       },
     },
-    async (item: ScopeItem) => {
-      if (item.definition) {
+    async (item: HierItem) => {
+      if (item instanceof InstanceItem && item.definition) {
         vscode.window.showTextDocument(item.definition.doc, {
           selection: item.definition.getIdRange(),
         })
@@ -355,7 +354,7 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
         dark: './resources/dark/files.svg',
       },
     },
-    async (item: ScopeItem) => {
+    async (item: HierItem) => {
       vscode.env.clipboard.writeText(item.getPath())
     }
   )
@@ -442,11 +441,9 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
       async (progress) => {
         progress.report({ increment: 0, message: 'Starting...' })
 
-        await this.top?.preOrderTraversal((item: ScopeItem) => {
-          if (item.definition !== undefined) {
-            if (item.definition !== undefined && item.definition.type === 'module') {
-              this.instancesByModule.get(item.definition).push(item as InstanceItem)
-            }
+        await this.top?.preOrderTraversal((item: HierItem) => {
+          if (item instanceof InstanceItem && item.definition) {
+            this.instancesByModule.get(item.definition).push(item)
           }
           progress.report({ increment: 1 })
         })
@@ -457,7 +454,7 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
     )
   }
 
-  async getTreeItem(element: ScopeItem): Promise<TreeItem> {
+  async getTreeItem(element: HierItem): Promise<TreeItem> {
     const [treeItem, children] = await Promise.all([
       element.getTreeItem(),
       this.getChildren(element),
@@ -468,7 +465,7 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
     return treeItem
   }
 
-  async getChildren(element?: ScopeItem | undefined): Promise<ScopeItem[]> {
+  async getChildren(element?: HierItem | undefined): Promise<HierItem[]> {
     if (element === undefined) {
       if (this.top === undefined) {
         return []
@@ -479,13 +476,13 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
     return children.filter((child) => this.symFilter.has(child.instance.type))
   }
 
-  getParent(element: ScopeItem): ScopeItem | undefined {
+  getParent(element: HierItem): HierItem | undefined {
     return element.parent
   }
 
   async resolveTreeItem(
     item: TreeItem,
-    element: ScopeItem,
+    element: HierItem,
     _token: vscode.CancellationToken
   ): Promise<TreeItem> {
     /// Triggered on hover

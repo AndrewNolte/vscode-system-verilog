@@ -410,6 +410,8 @@ export class Symbol {
         return 'chip'
       case 'instance':
         return 'symbol-class'
+      case 'block':
+        return 'bracket'
       case 'interface':
         return 'symbol-interface'
       case 'constant':
