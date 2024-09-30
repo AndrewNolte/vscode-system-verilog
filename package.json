@@ -749,6 +749,15 @@
         "icon": "$(chip)"
       },
       {
+        "command": "verilog.project.setInstanceByFile",
+        "title": "Select Instance of Module",
+        "icon": "$(symbol-class)",
+        "languages": [
+          "verilog",
+          "systemverilog"
+        ]
+      },
+      {
         "command": "verilog.project.clearTopLevel",
         "title": "Clear Top Level",
         "icon": "$(panel-close)"
@@ -759,15 +768,6 @@
         "icon": "$(folder-opened)"
       },
       {
-        "command": "verilog.project.setInstanceByFile",
-        "title": "Select Instance of Module",
-        "icon": "$(symbol-class)",
-        "languages": [
-          "verilog",
-          "systemverilog"
-        ]
-      },
-      {
         "command": "verilog.project.setInstanceByPath",
         "title": "Set Instance By Path",
         "icon": "$(inspect)"
@@ -775,6 +775,16 @@
       {
         "command": "verilog.project.setInstance",
         "title": "Verilog: Set Instance"
+      },
+      {
+        "command": "verilog.project.toggleParams",
+        "title": "Toggle Params",
+        "icon": "$(symbol-type-parameter)"
+      },
+      {
+        "command": "verilog.project.toggleData",
+        "title": "Toggle Data",
+        "icon": "$(symbol-variable)"
       },
       {
         "command": "verilog.project.showSourceFile",
@@ -795,16 +805,6 @@
           "light": "./resources/light/files.svg",
           "dark": "./resources/dark/files.svg"
         }
-      },
-      {
-        "command": "verilog.project.toggleParams",
-        "title": "Toggle Params",
-        "icon": "$(symbol-type-parameter)"
-      },
-      {
-        "command": "verilog.project.toggleData",
-        "title": "Toggle Data",
-        "icon": "$(symbol-variable)"
       },
       {
         "command": "verilog.reindex",
@@ -850,7 +850,7 @@
           "name": "Hierarchy"
         },
         {
-          "id": "verilog.instSelect",
+          "id": "verilog.project.instancesView",
           "name": "Instances"
         }
       ]
@@ -861,7 +861,7 @@
         "contents": "[Select top level](command:verilog.project.selectTopLevel)"
       },
       {
-        "view": "verilog.instSelect",
+        "view": "verilog.project.instancesView",
         "contents": "[Select instance](command:verilog.project.setInstance)"
       }
     ],

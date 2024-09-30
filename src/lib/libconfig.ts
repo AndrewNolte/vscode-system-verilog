@@ -186,7 +186,13 @@ export abstract class ExtensionComponent extends ExtensionNode {
   async activate(_context: vscode.ExtensionContext): Promise<void> {}
 
   getViews(): ViewComponent[] {
-    return this.children.filter((child) => child instanceof ViewComponent) as ViewComponent[]
+    const views: ViewComponent[] = []
+    this.preOrderTraverse((child) => {
+      if (child instanceof ViewComponent) {
+        views.push(child)
+      }
+    })
+    return views
   }
 
   getCommands(): CommandNode[] {

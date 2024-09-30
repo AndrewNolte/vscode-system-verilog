@@ -23,7 +23,6 @@ import {
 import LintManager from './linter/LintManager'
 import { LanguageServerComponent } from './LSComponent'
 import { ProjectComponent } from './sidebar/HierarchyView'
-import { InstanceView } from './sidebar/InstancesView'
 import { SurferComponent } from './surferWaveformViewer'
 import { getWorkspaceFolder, isAnyVerilog, pathFilename, zip } from './utils'
 const asyncGlob = promisify(glob)
@@ -100,7 +99,6 @@ export class VerilogExtension extends ActivityBarComponent {
   verilogFormat: VerilogFormatProvider = new VerilogFormatProvider()
 
   project: ProjectComponent = new ProjectComponent()
-  instSelect: InstanceView = new InstanceView()
 
   languageServer: LanguageServerComponent = new LanguageServerComponent()
 

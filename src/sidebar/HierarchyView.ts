@@ -11,6 +11,7 @@ import {
   ViewComponent,
 } from '../lib/libconfig'
 import { DefaultMap } from '../utils'
+import { InstancesView } from './InstancesView'
 
 abstract class HierItem {
   getPath(): string {
@@ -147,10 +148,18 @@ const STRUCTURE_SYMS = new Set<string>(['instance', 'block'])
 export class ProjectComponent extends ViewComponent implements TreeDataProvider<HierItem> {
   top: RootItem | undefined = undefined
 
+  // Hierarchy Tree
   private _onDidChangeTreeData: vscode.EventEmitter<void> = new vscode.EventEmitter<void>()
   readonly onDidChangeTreeData: vscode.Event<void> = this._onDidChangeTreeData.event
   treeView: vscode.TreeView<HierItem> | undefined
+
+  // Instances Index
+  instancesView: InstancesView = new InstancesView()
   instancesByModule: DefaultMap<Symbol, InstanceItem[]> = new DefaultMap(() => [])
+
+  //////////////////////////////////////////////////////////////////
+  // Editor Buttons
+  //////////////////////////////////////////////////////////////////
 
   setTopLevel: EditorButton = new EditorButton(
     {
@@ -172,31 +181,6 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
       }
 
       this.setTopModule(module)
-    }
-  )
-
-  clearTopLevel: ViewButton = new ViewButton(
-    {
-      title: 'Clear Top Level',
-      icon: '$(panel-close)',
-    },
-    async () => {
-      this.top = undefined
-      this._onDidChangeTreeData.fire()
-    }
-  )
-
-  selectTopLevel: ViewButton = new ViewButton(
-    {
-      title: 'Select Top Level',
-      icon: '$(folder-opened)',
-    },
-    async () => {
-      const newtop = await selectModuleGlobal()
-      if (newtop === undefined) {
-        return
-      }
-      this.setTopModule(newtop)
     }
   )
 
@@ -229,6 +213,35 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
         return
       }
       this.setInstance.func(instance)
+    }
+  )
+
+  //////////////////////////////////////////////////////////////////
+  // Hierarchy View Buttons
+  //////////////////////////////////////////////////////////////////
+
+  clearTopLevel: ViewButton = new ViewButton(
+    {
+      title: 'Clear Top Level',
+      icon: '$(panel-close)',
+    },
+    async () => {
+      this.top = undefined
+      this._onDidChangeTreeData.fire()
+    }
+  )
+
+  selectTopLevel: ViewButton = new ViewButton(
+    {
+      title: 'Select Top Level',
+      icon: '$(folder-opened)',
+    },
+    async () => {
+      const newtop = await selectModuleGlobal()
+      if (newtop === undefined) {
+        return
+      }
+      this.setTopModule(newtop)
     }
   )
 
@@ -319,45 +332,14 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
           return
         }
       }
-      ext.instSelect.revealPath(instance.definition!, instance.getPath())
+      this.instancesView.revealPath(instance.definition!, instance.getPath())
     }
   )
 
   //////////////////////////////////////////////////////////////////
-  // Inline Item Buttons
+  // Symbol Filtering
   //////////////////////////////////////////////////////////////////
 
-  showSourceFile: TreeItemButton = new TreeItemButton(
-    {
-      title: 'Show Module',
-      inlineContext: ['Module'],
-      icon: {
-        light: './resources/light/go-to-file.svg',
-        dark: './resources/dark/go-to-file.svg',
-      },
-    },
-    async (item: HierItem) => {
-      if (item instanceof InstanceItem && item.definition) {
-        vscode.window.showTextDocument(item.definition.doc, {
-          selection: item.definition.getIdRange(),
-        })
-      }
-    }
-  )
-
-  copyHierarchyPath: TreeItemButton = new TreeItemButton(
-    {
-      title: 'Copy Path',
-      inlineContext: [],
-      icon: {
-        light: './resources/light/files.svg',
-        dark: './resources/dark/files.svg',
-      },
-    },
-    async (item: HierItem) => {
-      vscode.env.clipboard.writeText(item.getPath())
-    }
-  )
   symFilter: Set<string> = new Set<string>(STRUCTURE_SYMS)
   // params / localparams (constants)
   includeParams: boolean = false
@@ -402,7 +384,41 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
     }
   )
 
-  root: RootItem | undefined = undefined
+  //////////////////////////////////////////////////////////////////
+  // Inline Item Buttons
+  //////////////////////////////////////////////////////////////////
+
+  showSourceFile: TreeItemButton = new TreeItemButton(
+    {
+      title: 'Show Module',
+      inlineContext: ['Module'],
+      icon: {
+        light: './resources/light/go-to-file.svg',
+        dark: './resources/dark/go-to-file.svg',
+      },
+    },
+    async (item: HierItem) => {
+      if (item instanceof InstanceItem && item.definition) {
+        vscode.window.showTextDocument(item.definition.doc, {
+          selection: item.definition.getIdRange(),
+        })
+      }
+    }
+  )
+
+  copyHierarchyPath: TreeItemButton = new TreeItemButton(
+    {
+      title: 'Copy Path',
+      inlineContext: [],
+      icon: {
+        light: './resources/light/files.svg',
+        dark: './resources/dark/files.svg',
+      },
+    },
+    async (item: HierItem) => {
+      vscode.env.clipboard.writeText(item.getPath())
+    }
+  )
 
   constructor() {
     super({
@@ -449,7 +465,7 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
         })
 
         progress.report({ increment: 100, message: 'Done' })
-        ext.instSelect.onIndexComplete()
+        this.instancesView.onIndexComplete()
       }
     )
   }

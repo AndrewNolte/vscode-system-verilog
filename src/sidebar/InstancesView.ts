@@ -71,14 +71,16 @@ class ModuleItem {
     const instances = ext.project.instancesByModule.get(this.definition) || []
     return instances.map((item) => {
       const instanceViewItem = new InstanceViewItem(this, item)
-      ext.instSelect.modulesToInstances.get(this.definition)?.set(item.getPath(), instanceViewItem)
+      ext.project.instancesView.modulesToInstances
+        .get(this.definition)
+        ?.set(item.getPath(), instanceViewItem)
       return instanceViewItem
     })
   }
 }
 
 type InstanceTreeItem = InstanceViewItem | ModuleItem
-export class InstanceView
+export class InstancesView
   extends ViewComponent
   implements vscode.TreeDataProvider<InstanceTreeItem>
 {
