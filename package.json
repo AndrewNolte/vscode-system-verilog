@@ -862,7 +862,7 @@
       },
       {
         "view": "verilog.project.instancesView",
-        "contents": "[Select instance](command:verilog.project.setInstance)"
+        "contents": "[Select top level](command:verilog.project.selectTopLevel)"
       }
     ],
     "menus": {
