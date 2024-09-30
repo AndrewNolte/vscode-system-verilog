@@ -23,12 +23,10 @@ export class InstanceViewItem {
 
   resolveTreeItem(item: vscode.TreeItem, _token: vscode.CancellationToken): vscode.TreeItem {
     item.tooltip = this.inst.getPath()
-    if (this.inst.definition) {
-      item.command = {
-        title: 'Open Instance',
-        command: 'verilog.project.setInstance',
-        arguments: [this.inst],
-      }
+    item.command = {
+      title: 'Open Instance',
+      command: 'verilog.project.setInstance',
+      arguments: [this.inst, { revealInstance: false, revealFile: true, revealHierarchy: true }],
     }
     return item
   }
@@ -127,7 +125,7 @@ export class InstancesView
     super({
       name: 'Instances',
       welcome: {
-        contents: '[Select instance](command:verilog.project.setInstance)',
+        contents: '[Select top level](command:verilog.project.selectTopLevel)',
       },
     })
   }

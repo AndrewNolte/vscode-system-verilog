@@ -235,7 +235,11 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
         return
       }
       // reveal in sidebar, don't change file
-      this.setInstance.func(instance.inst, { revealHierarchy: true, revealFile: false })
+      this.setInstance.func(instance.inst, {
+        revealHierarchy: true,
+        revealFile: false,
+        revealInstance: true,
+      })
     }
   )
 
@@ -348,9 +352,14 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
     },
     async (
       instance: HierItem | undefined,
-      { revealHierarchy, revealFile }: { revealHierarchy?: boolean; revealFile?: boolean } = {
+      {
+        revealHierarchy,
+        revealFile,
+        revealInstance,
+      }: { revealHierarchy?: boolean; revealFile?: boolean; revealInstance?: boolean } = {
         revealHierarchy: true,
         revealFile: true,
+        revealInstance: true,
       }
     ) => {
       if (instance === undefined) {
@@ -358,8 +367,9 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
         return
       }
       if (revealHierarchy) {
-        this.treeView?.reveal(instance, { select: true, focus: true, expand: true })
+        console.log('revealHierarchy', instance)
         this._onDidChangeTreeData.fire()
+        await this.treeView?.reveal(instance, { select: true, focus: true, expand: true })
       }
       const exposeSym = instance.instance
       if (revealFile && exposeSym.doc !== vscode.window.activeTextEditor?.document) {
@@ -367,14 +377,16 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
           selection: exposeSym.getFullRange(),
         })
       }
-      // select the most recent module
-      while (!(instance instanceof InstanceItem)) {
-        instance = instance.parent
-        if (instance === undefined) {
-          return
+      if (revealInstance) {
+        // select the most recent module
+        while (!(instance instanceof InstanceItem)) {
+          instance = instance.parent
+          if (instance === undefined) {
+            return
+          }
         }
+        this.instancesView.revealPath(instance.definition!, instance.getPath())
       }
-      this.instancesView.revealPath(instance.definition!, instance.getPath())
     }
   )
 
@@ -529,7 +541,7 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
     item.command = {
       title: 'Go to definition',
       command: 'verilog.project.setInstance',
-      arguments: [element, { revealHierarchy: false, revealFile: true }],
+      arguments: [element, { revealHierarchy: false, revealFile: true, revealInstance: true }],
     }
 
     return item
