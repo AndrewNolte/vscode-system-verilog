@@ -99,7 +99,6 @@ export class VerilogExtension extends ActivityBarComponent {
   svFormat: SystemVerilogFormatProvider = new SystemVerilogFormatProvider()
   verilogFormat: VerilogFormatProvider = new VerilogFormatProvider()
 
-  // TODO: figure out frontend for instance view
   project: ProjectComponent = new ProjectComponent()
   instSelect: InstanceView = new InstanceView()
 

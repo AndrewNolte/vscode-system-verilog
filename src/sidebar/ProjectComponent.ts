@@ -233,7 +233,6 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
       icon: '$(inspect)',
     },
     async (rootItem: RootItem | undefined, instPath: string | undefined) => {
-      console.log('setInstanceByPath', rootItem, instPath)
       if (instPath === undefined) {
         instPath = await vscode.window.showInputBox({
           prompt: 'Enter instance path',
@@ -294,20 +293,28 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
     {
       title: 'Set Instance',
     },
-    async (instance: ScopeItem | undefined) => {
+    async (instance: ScopeItem | undefined, fromTreeCmd: boolean = false) => {
       if (instance === undefined) {
         vscode.window.showErrorMessage('setInstance: Instance is undefined')
         return
       }
-      this.treeView?.reveal(instance, { select: true, focus: true, expand: true })
+      if (!fromTreeCmd) {
+        this.treeView?.reveal(instance, { select: true, focus: true, expand: true })
+      }
       const exposeSym = instance.instance
-      if (exposeSym.doc !== vscode.window.activeTextEditor?.document) {
+      if (exposeSym.doc !== vscode.window.activeTextEditor?.document || fromTreeCmd) {
         vscode.window.showTextDocument(exposeSym.doc, {
           selection: exposeSym.getFullRange(),
         })
       }
       // select the most recent module
-      while (!(instance instanceof InstanceItem)) {
+      while (
+        !(
+          instance instanceof InstanceItem &&
+          instance.definition !== undefined &&
+          !(instance instanceof InternalScopeItem)
+        )
+      ) {
         instance = instance.parent
         if (instance === undefined) {
           return
@@ -485,8 +492,8 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
     item.tooltip = element.instance.getHoverText()
     item.command = {
       title: 'Go to definition',
-      command: 'vscode.open',
-      arguments: [element.instance.doc.uri, { selection: element.instance.getFullRange() }],
+      command: 'verilog.project.setInstance',
+      arguments: [element, true],
     }
 
     return item
