@@ -150,7 +150,6 @@ class InternalScopeItem extends ScopeItem {
     super(parent, scope)
   }
   async _getChildren(): Promise<HierItem[]> {
-    console.log('block getChildren', this.instance.children)
     return this.getChildrenFromSymbol(this.instance)
   }
 }
