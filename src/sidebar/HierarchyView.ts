@@ -10,10 +10,9 @@ import {
   ViewButton,
   ViewComponent,
 } from '../lib/libconfig'
-import { DefaultMap } from '../utils'
-import { InstancesView } from './InstancesView'
+import { InstancesView, InstanceViewItem } from './InstancesView'
 
-abstract class HierItem {
+export abstract class HierItem {
   getPath(): string {
     if (this.path !== undefined) {
       return this.path
@@ -123,7 +122,7 @@ class LogicItem extends HierItem {
   }
 }
 
-class RootItem extends InstanceItem {
+export class RootItem extends InstanceItem {
   constructor(instance: Symbol) {
     super(undefined, instance, instance)
   }
@@ -155,7 +154,6 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
 
   // Instances Index
   instancesView: InstancesView = new InstancesView()
-  instancesByModule: DefaultMap<Symbol, InstanceItem[]> = new DefaultMap(() => [])
 
   //////////////////////////////////////////////////////////////////
   // Editor Buttons
@@ -196,23 +194,28 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
         return
       } // let the user select the instance based on module
       const doc = await vscode.workspace.openTextDocument(openModule)
-      const module = await selectModule(doc)
-      if (module === undefined) {
+      const moduleSym = await selectModule(doc)
+      if (moduleSym === undefined) {
         return
       }
       // vscode show quickpick
-      const path = await vscode.window.showQuickPick(
-        this.instancesByModule.get(module).map((item) => item.getPath())
+      const moduleItem = this.instancesView.modules.get(moduleSym)
+      if (moduleItem === undefined) {
+        return
+      }
+      const instances: string[] = Array.from(moduleItem.instances.values()).map(
+        (item: InstanceViewItem) => item.inst.getPath()
       )
+      const path = await vscode.window.showQuickPick(instances)
       if (path === undefined) {
         return
       }
       // get instance that was selected
-      const instance = this.instancesByModule.get(module).find((item) => item.getPath() === path)
+      const instance = moduleItem.instances.get(path)
       if (instance === undefined) {
         return
       }
-      this.setInstance.func(instance)
+      this.setInstance.func(instance.inst, { revealHierarchy: true, revealFile: false })
     }
   )
 
@@ -311,16 +314,23 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
     {
       title: 'Set Instance',
     },
-    async (instance: HierItem | undefined, fromTreeCmd: boolean = false) => {
+    async (
+      instance: HierItem | undefined,
+      { revealHierarchy, revealFile }: { revealHierarchy?: boolean; revealFile?: boolean } = {
+        revealHierarchy: true,
+        revealFile: true,
+      }
+    ) => {
       if (instance === undefined) {
         vscode.window.showErrorMessage('setInstance: Instance is undefined')
         return
       }
-      if (!fromTreeCmd) {
+      if (revealHierarchy) {
         this.treeView?.reveal(instance, { select: true, focus: true, expand: true })
+        this._onDidChangeTreeData.fire()
       }
       const exposeSym = instance.instance
-      if (exposeSym.doc !== vscode.window.activeTextEditor?.document || fromTreeCmd) {
+      if (revealFile && exposeSym.doc !== vscode.window.activeTextEditor?.document) {
         vscode.window.showTextDocument(exposeSym.doc, {
           selection: exposeSym.getFullRange(),
         })
@@ -446,28 +456,7 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
       this.treeView.reveal(this.top, { select: true, focus: true })
       this._onDidChangeTreeData.fire()
     }
-
-    await vscode.window.withProgress(
-      {
-        location: vscode.ProgressLocation.Window,
-        title: 'Indexing Hierarchy',
-        cancellable: false,
-      },
-
-      async (progress) => {
-        progress.report({ increment: 0, message: 'Starting...' })
-
-        await this.top?.preOrderTraversal((item: HierItem) => {
-          if (item instanceof InstanceItem && item.definition) {
-            this.instancesByModule.get(item.definition).push(item)
-          }
-          progress.report({ increment: 1 })
-        })
-
-        progress.report({ increment: 100, message: 'Done' })
-        this.instancesView.onIndexComplete()
-      }
-    )
+    await this.instancesView.indexTop(this.top)
   }
 
   async getTreeItem(element: HierItem): Promise<TreeItem> {
@@ -506,7 +495,7 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
     item.command = {
       title: 'Go to definition',
       command: 'verilog.project.setInstance',
-      arguments: [element, true],
+      arguments: [element, { revealHierarchy: false, revealFile: true }],
     }
 
     return item

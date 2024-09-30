@@ -1,11 +1,10 @@
 import * as vscode from 'vscode'
 import { Symbol } from '../analysis/Symbol'
-import { ext } from '../extension'
 import { ViewComponent } from '../lib/libconfig'
 import { DefaultMap } from '../utils'
-import { InstanceItem } from './HierarchyView'
+import { HierItem, InstanceItem, RootItem } from './HierarchyView'
 
-class InstanceViewItem {
+export class InstanceViewItem {
   parent: ModuleItem
   inst: InstanceItem
   constructor(parent: ModuleItem, inst: InstanceItem) {
@@ -39,19 +38,25 @@ class InstanceViewItem {
   }
 }
 
-class ModuleItem {
+export class ModuleItem {
   definition: Symbol
+  instances: Map<string, InstanceViewItem> = new Map()
+
   constructor(definition: Symbol) {
     this.definition = definition
   }
+
+  addInstance(item: InstanceItem) {
+    this.instances.set(item.getPath(), new InstanceViewItem(this, item))
+  }
+
   getTreeItem(): vscode.TreeItem {
     const item = new vscode.TreeItem(
       this.definition.name,
       vscode.TreeItemCollapsibleState.Collapsed
     )
     item.iconPath = new vscode.ThemeIcon('file')
-    const instances = ext.project.instancesByModule.get(this.definition) || []
-    if (instances.length === 1) {
+    if (this.instances.size === 1) {
       item.collapsibleState = vscode.TreeItemCollapsibleState.Expanded
     }
     return item
@@ -68,13 +73,8 @@ class ModuleItem {
   }
 
   getChildren(): InstanceTreeItem[] {
-    const instances = ext.project.instancesByModule.get(this.definition) || []
-    return instances.map((item) => {
-      const instanceViewItem = new InstanceViewItem(this, item)
-      ext.project.instancesView.modulesToInstances
-        .get(this.definition)
-        ?.set(item.getPath(), instanceViewItem)
-      return instanceViewItem
+    return Array.from(this.instances.values()).map((item) => {
+      return item
     })
   }
 }
@@ -84,23 +84,44 @@ export class InstancesView
   extends ViewComponent
   implements vscode.TreeDataProvider<InstanceTreeItem>
 {
-  onIndexComplete() {
+  modules: DefaultMap<Symbol, ModuleItem> = new DefaultMap((sym: Symbol) => new ModuleItem(sym))
+  async indexTop(top: RootItem) {
+    this.modules.clear()
+    await vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Window,
+        title: 'Indexing Hierarchy',
+        cancellable: false,
+      },
+
+      async (progress) => {
+        progress.report({ increment: 0, message: 'Starting...' })
+
+        await top.preOrderTraversal((item: HierItem) => {
+          if (item instanceof InstanceItem && item.definition) {
+            this.modules.get(item.definition).addInstance(item)
+          }
+          progress.report({ increment: 1 })
+        })
+
+        progress.report({ increment: 100, message: 'Done' })
+      }
+    )
     this._onDidChangeTreeData.fire()
   }
   revealPath(module: Symbol, path: string) {
-    const inst = this.modulesToInstances.get(module).get(path)
+    const moduleItem = this.modules.get(module)
+    if (moduleItem === undefined) {
+      return
+    }
+    const inst = moduleItem.instances.get(path)
     if (inst) {
       this.treeView?.reveal(inst, { select: true, focus: true, expand: true })
     }
-    this._onDidChangeTreeData.fire()
   }
   private _onDidChangeTreeData: vscode.EventEmitter<void> = new vscode.EventEmitter<void>()
   readonly onDidChangeTreeData: vscode.Event<void> = this._onDidChangeTreeData.event
   treeView: vscode.TreeView<InstanceTreeItem> | undefined
-
-  modulesToInstances: DefaultMap<Symbol, Map<string, InstanceViewItem>> = new DefaultMap(
-    () => new Map<string, InstanceViewItem>()
-  )
 
   constructor() {
     super({
@@ -128,9 +149,7 @@ export class InstancesView
 
   getChildren(element?: undefined | InstanceTreeItem): vscode.ProviderResult<InstanceTreeItem[]> {
     if (element === undefined) {
-      return Array.from(ext.project.instancesByModule.keys()).map((item) => {
-        return new ModuleItem(item)
-      })
+      return Array.from(this.modules.values())
     }
     return element.getChildren()
   }

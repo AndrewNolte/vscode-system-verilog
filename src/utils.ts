@@ -138,13 +138,13 @@ export function isAnyVerilog(langid: string): boolean {
 }
 
 export class DefaultMap<K, V> extends Map<K, V> {
-  constructor(private defaultFactory: () => V) {
+  constructor(private defaultFactory: (key: K) => V) {
     super()
   }
 
   get(key: K): V {
     if (!this.has(key)) {
-      this.set(key, this.defaultFactory())
+      this.set(key, this.defaultFactory(key))
     }
     return super.get(key)!
   }
