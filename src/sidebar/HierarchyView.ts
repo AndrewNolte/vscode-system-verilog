@@ -81,7 +81,7 @@ abstract class ScopeItem extends HierItem {
         if (child.typeRef !== undefined) {
           def = childSyms.find((sym) => sym.name === child.typeRef)
         }
-        return new LogicItem(this, child)
+        return LogicItem.fromSymbol(this, child)
       })
     return await Promise.all(childItems)
   }
@@ -117,10 +117,22 @@ export class InstanceItem extends ScopeItem {
 }
 
 class LogicItem extends HierItem {
+  static PARAM_TYPES = new Set<string>(['parameter', 'constant'])
+  static DATA_TYPES = new Set<string>(['port', 'net', 'register'])
   constructor(parent: HierItem | undefined, instance: Symbol) {
     super(parent, instance)
   }
+  static fromSymbol(parent: HierItem | undefined, sym: Symbol): LogicItem {
+    if (LogicItem.PARAM_TYPES.has(sym.type)) {
+      return new ParamItem(parent, sym)
+    } else if (LogicItem.DATA_TYPES.has(sym.type)) {
+      return new DataItem(parent, sym)
+    }
+    return new LogicItem(parent, sym)
+  }
 }
+class ParamItem extends LogicItem {}
+class DataItem extends LogicItem {}
 
 export class RootItem extends InstanceItem {
   constructor(instance: Symbol) {
@@ -294,13 +306,25 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
       // go through hierarchy
       let current: HierItem | undefined = undefined
       for (let part of parts) {
-        let children = await this.getChildren(current)
-        let child = children.find((child) => child.instance.name === part)
+        let children: HierItem[]
+        if (current === undefined) {
+          children = await this.getChildren(current)
+        } else {
+          children = await current.getChildren()
+        }
+        let child: HierItem | undefined = children.find((child) => child.instance.name === part)
         if (child === undefined) {
           vscode.window.showErrorMessage(
             `Could not find instance ${part} in ${current?.instance.name ?? 'top level'}`
           )
           return
+        }
+        if (child instanceof LogicItem && !this.symFilter.has(child.instance.type)) {
+          if (child instanceof ParamItem) {
+            this.toggleParams.func()
+          } else if (child instanceof DataItem) {
+            this.toggleData.func()
+          }
         }
         current = child
       }
@@ -364,11 +388,13 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
     async () => {
       this.includeParams = !this.includeParams
       if (this.includeParams) {
-        this.symFilter.add('parameter')
-        this.symFilter.add('constant')
+        for (let type of LogicItem.PARAM_TYPES) {
+          this.symFilter.add(type)
+        }
       } else {
-        this.symFilter.delete('parameter')
-        this.symFilter.delete('constant')
+        for (let type of LogicItem.PARAM_TYPES) {
+          this.symFilter.delete(type)
+        }
       }
       this._onDidChangeTreeData.fire()
     }
@@ -382,13 +408,13 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
     async () => {
       this.includePorts = !this.includePorts
       if (this.includePorts) {
-        this.symFilter.add('port')
-        this.symFilter.add('net')
-        this.symFilter.add('register')
+        for (let type of LogicItem.DATA_TYPES) {
+          this.symFilter.add(type)
+        }
       } else {
-        this.symFilter.delete('port')
-        this.symFilter.delete('net')
-        this.symFilter.delete('register')
+        for (let type of LogicItem.DATA_TYPES) {
+          this.symFilter.delete(type)
+        }
       }
       this._onDidChangeTreeData.fire()
     }
