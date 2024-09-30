@@ -21,8 +21,9 @@ export abstract class HierItem {
   }
   // the symbol to get children from
   instance: Symbol
-  parent: HierItem | undefined
   path: string | undefined
+  parent: HierItem | undefined
+  children: HierItem[] | undefined
   constructor(parent: HierItem | undefined, instance: Symbol) {
     this.parent = parent
     this.instance = instance
@@ -31,14 +32,18 @@ export abstract class HierItem {
     }
   }
   async getChildren(): Promise<HierItem[]> {
+    if (this.children === undefined) {
+      this.children = await this._getChildren()
+    }
+    return this.children
+  }
+
+  async _getChildren(): Promise<HierItem[]> {
     return []
   }
 
   async getTreeItem(): Promise<TreeItem> {
     let item = new TreeItem(this.instance.name)
-    if (this.hasChildren()) {
-      item.collapsibleState = vscode.TreeItemCollapsibleState.Collapsed
-    }
     if (this.instance.typeRef !== null) {
       item.label = item.label + ' : ' + this.instance.typeRef
     }
@@ -101,7 +106,7 @@ export class InstanceItem extends ScopeItem {
     return item
   }
 
-  async getChildren(): Promise<HierItem[]> {
+  async _getChildren(): Promise<HierItem[]> {
     if (this.definition === undefined) {
       return []
     }
@@ -138,19 +143,14 @@ export class RootItem extends InstanceItem {
   constructor(instance: Symbol) {
     super(undefined, instance, instance)
   }
-
-  async getTreeItem(): Promise<TreeItem> {
-    const treeItem = await super.getTreeItem()
-    treeItem.collapsibleState = vscode.TreeItemCollapsibleState.Expanded
-    return treeItem
-  }
 }
 
 class InternalScopeItem extends ScopeItem {
   constructor(parent: HierItem | undefined, scope: Symbol) {
     super(parent, scope)
   }
-  getChildren(): Promise<HierItem[]> {
+  async _getChildren(): Promise<HierItem[]> {
+    console.log('block getChildren', this.instance.children)
     return this.getChildrenFromSymbol(this.instance)
   }
 }
@@ -367,8 +367,6 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
         return
       }
       if (revealHierarchy) {
-        console.log('revealHierarchy', instance)
-        this._onDidChangeTreeData.fire()
         await this.treeView?.reveal(instance, { select: true, focus: true, expand: true })
       }
       const exposeSym = instance.instance
@@ -510,8 +508,12 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
       element.getTreeItem(),
       this.getChildren(element),
     ])
-    if (children.length === 0) {
+    if (element === undefined) {
+      treeItem.collapsibleState = vscode.TreeItemCollapsibleState.Expanded
+    } else if (children.length === 0) {
       treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None
+    } else {
+      treeItem.collapsibleState = vscode.TreeItemCollapsibleState.Collapsed
     }
     return treeItem
   }
