@@ -204,13 +204,14 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
       if (openModule === undefined) {
         vscode.window.showErrorMessage('Open a verilog file to select instance')
         return
-      } // let the user select the instance based on module
+      }
+      // get the module from the current file
       const doc = await vscode.workspace.openTextDocument(openModule)
       const moduleSym = await selectModule(doc)
       if (moduleSym === undefined) {
         return
       }
-      // vscode show quickpick
+      // get the instances of the module
       const moduleItem = this.instancesView.modules.get(moduleSym)
       if (moduleItem === undefined) {
         return
@@ -218,15 +219,22 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
       const instances: string[] = Array.from(moduleItem.instances.values()).map(
         (item: InstanceViewItem) => item.inst.getPath()
       )
-      const path = await vscode.window.showQuickPick(instances)
+      if (instances.length === 0) {
+        vscode.window.showErrorMessage('No instances found in module')
+        return
+      }
+      const path = await vscode.window.showQuickPick(instances, {
+        title: 'Select Instance',
+      })
       if (path === undefined) {
         return
       }
-      // get instance that was selected
+      // look upinstance that was selected
       const instance = moduleItem.instances.get(path)
       if (instance === undefined) {
         return
       }
+      // reveal in sidebar, don't change file
       this.setInstance.func(instance.inst, { revealHierarchy: true, revealFile: false })
     }
   )
