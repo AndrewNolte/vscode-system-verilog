@@ -1,6 +1,6 @@
 import * as vscode from 'vscode'
 import { Symbol } from '../analysis/Symbol'
-import { ViewComponent } from '../lib/libconfig'
+import { TreeItemButton, ViewComponent } from '../lib/libconfig'
 import { DefaultMap } from '../utils'
 import { HierItem, InstanceItem, RootItem } from './ProjectComponent'
 
@@ -18,6 +18,7 @@ export class InstanceViewItem {
   getTreeItem(): vscode.TreeItem {
     const item = new vscode.TreeItem(this.inst.getPath(), vscode.TreeItemCollapsibleState.None)
     item.iconPath = new vscode.ThemeIcon('chip')
+    item.contextValue = 'Instance'
     return item
   }
 
@@ -82,6 +83,20 @@ export class InstancesView
   extends ViewComponent
   implements vscode.TreeDataProvider<InstanceTreeItem>
 {
+  copyHierarchyPath: TreeItemButton = new TreeItemButton(
+    {
+      title: 'Copy Path',
+      inlineContext: ['Instance'],
+      icon: {
+        light: './resources/light/files.svg',
+        dark: './resources/dark/files.svg',
+      },
+    },
+    async (item: InstanceViewItem) => {
+      vscode.env.clipboard.writeText(item.inst.getPath())
+    }
+  )
+
   modules: DefaultMap<Symbol, ModuleItem> = new DefaultMap((sym: Symbol) => new ModuleItem(sym))
   async indexTop(top: RootItem) {
     this.modules.clear()

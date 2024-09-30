@@ -739,6 +739,17 @@
     },
     "commands": [
       {
+        "command": "verilog.project.instancesView.copyHierarchyPath",
+        "title": "Copy Path",
+        "inlineContext": [
+          "Instance"
+        ],
+        "icon": {
+          "light": "./resources/light/files.svg",
+          "dark": "./resources/dark/files.svg"
+        }
+      },
+      {
         "command": "verilog.project.setTopLevel",
         "title": "Set Top Level",
         "shortTitle": "Set Top",
@@ -903,6 +914,11 @@
           "command": "verilog.project.copyHierarchyPath",
           "group": "inline",
           "when": "view == verilog.project"
+        },
+        {
+          "command": "verilog.project.instancesView.copyHierarchyPath",
+          "group": "inline",
+          "when": "view == verilog.project.instancesView && viewItem == Instance"
         }
       ],
       "editor/title": [
