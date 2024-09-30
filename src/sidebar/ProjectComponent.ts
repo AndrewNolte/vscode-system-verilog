@@ -490,7 +490,7 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
       dragAndDropController: undefined,
       manageCheckboxStateManually: false,
     })
-    context.subscriptions.push(this.treeView)
+    context.subscriptions.push(vscode.window.registerTreeDataProvider(this.configPath!, this))
   }
 
   async setTopModule(top: Symbol) {

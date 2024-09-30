@@ -138,7 +138,7 @@ export class InstancesView
       dragAndDropController: undefined,
       manageCheckboxStateManually: false,
     })
-    context.subscriptions.push(this.treeView)
+    context.subscriptions.push(vscode.window.registerTreeDataProvider(this.configPath!, this))
   }
 
   getTreeItem(element: InstanceTreeItem): vscode.TreeItem {
