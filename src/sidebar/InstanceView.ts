@@ -54,7 +54,7 @@ class ModuleItem {
     item.command = {
       title: 'Open Module',
       command: 'vscode.open',
-      arguments: [this.definition.doc.uri],
+      arguments: [this.definition.doc.uri, { selection: this.definition.getIdRange() }],
     }
     return item
   }
