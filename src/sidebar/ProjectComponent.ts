@@ -119,6 +119,16 @@ export class InstanceItem extends ScopeItem {
     }
     return this.definition.children.filter((child) => !EXCLUDED_SYMS.has(child.type)).length > 0
   }
+  async preOrderTraversal(fn: (item: HierItem) => void) {
+    /// Guard against recursive modules
+    fn(this)
+    if (this.parent instanceof InstanceItem && this.definition === this.parent!.definition) {
+      return
+    }
+    for (let child of await this.getChildren()) {
+      await child.preOrderTraversal(fn)
+    }
+  }
 }
 
 class LogicItem extends HierItem {
@@ -143,6 +153,7 @@ export class RootItem extends InstanceItem {
   constructor(instance: Symbol) {
     super(undefined, instance, instance)
   }
+  preOrderTraversal = HierItem.prototype.preOrderTraversal
 }
 
 class InternalScopeItem extends ScopeItem {
@@ -151,6 +162,15 @@ class InternalScopeItem extends ScopeItem {
   }
   async _getChildren(): Promise<HierItem[]> {
     return this.getChildrenFromSymbol(this.instance)
+  }
+  async preOrderTraversal(fn: (item: HierItem) => void) {
+    /// Guard against recursive modules
+    fn(this)
+    for (let child of await this.getChildren()) {
+      if (child.instance !== this.parent!.instance) {
+        await child.preOrderTraversal(fn)
+      }
+    }
   }
 }
 const STRUCTURE_SYMS = new Set<string>(['instance', 'block'])
