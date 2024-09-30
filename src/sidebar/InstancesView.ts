@@ -2,7 +2,7 @@ import * as vscode from 'vscode'
 import { Symbol } from '../analysis/Symbol'
 import { ViewComponent } from '../lib/libconfig'
 import { DefaultMap } from '../utils'
-import { HierItem, InstanceItem, RootItem } from './HierarchyView'
+import { HierItem, InstanceItem, RootItem } from './ProjectComponent'
 
 export class InstanceViewItem {
   parent: ModuleItem

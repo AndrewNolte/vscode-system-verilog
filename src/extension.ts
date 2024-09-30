@@ -22,7 +22,7 @@ import {
 } from './lib/libconfig'
 import LintManager from './linter/LintManager'
 import { LanguageServerComponent } from './LSComponent'
-import { ProjectComponent } from './sidebar/HierarchyView'
+import { ProjectComponent } from './sidebar/ProjectComponent'
 import { SurferComponent } from './surferWaveformViewer'
 import { getWorkspaceFolder, isAnyVerilog, pathFilename, zip } from './utils'
 const asyncGlob = promisify(glob)
