@@ -529,7 +529,7 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
     ])
     if (children.length === 0) {
       treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None
-    } else if (element instanceof RootItem || element.parent instanceof RootItem) {
+    } else if (element instanceof RootItem) {
       treeItem.collapsibleState = vscode.TreeItemCollapsibleState.Expanded
     } else {
       treeItem.collapsibleState = vscode.TreeItemCollapsibleState.Collapsed
