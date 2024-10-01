@@ -242,6 +242,11 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
       if (moduleItem === undefined) {
         return
       }
+      await this.instancesView.treeView?.reveal(moduleItem, {
+        select: true,
+        focus: true,
+        expand: true,
+      })
       const instances: string[] = Array.from(moduleItem.instances.values()).map(
         (item: InstanceViewItem) => item.inst.getPath()
       )
