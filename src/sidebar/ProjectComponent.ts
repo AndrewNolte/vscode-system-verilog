@@ -389,7 +389,7 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
         await this.treeView?.reveal(instance, { select: true, focus: true, expand: true })
       }
       const exposeSym = instance.instance
-      if (revealFile && exposeSym.doc !== vscode.window.activeTextEditor?.document) {
+      if (revealFile) {
         vscode.window.showTextDocument(exposeSym.doc, {
           selection: exposeSym.getFullRange(),
         })
