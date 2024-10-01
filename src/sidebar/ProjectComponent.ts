@@ -10,7 +10,7 @@ import {
   ViewButton,
   ViewComponent,
 } from '../lib/libconfig'
-import { InstancesView, InstanceViewItem } from './InstancesView'
+import { InstancesView, InstanceViewItem, ModuleItem } from './InstancesView'
 
 export abstract class HierItem {
   getPath(): string {
@@ -231,7 +231,14 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
         return
       }
       // get the instances of the module
-      const moduleItem = this.instancesView.modules.get(moduleSym)
+      let moduleItem: ModuleItem | undefined = undefined
+      // These are sometimes different symbols instances
+      for (const [key, value] of this.instancesView.modules.entries()) {
+        if (key.name === moduleSym.name) {
+          moduleItem = value
+          break
+        }
+      }
       if (moduleItem === undefined) {
         return
       }
