@@ -303,26 +303,10 @@ export class VerilogExtension extends ActivityBarComponent {
     // Configure Format on save
     /////////////////////////////////////////////
 
-    context.subscriptions.push(
-      vscode.workspace.onDidSaveTextDocument(async (document: vscode.TextDocument) => {
-        if (isAnyVerilog(document.languageId)) {
-          let dirs: string[] = this.formatDirs.getValue() ?? []
-          for (let dir of dirs) {
-            if (vscode.workspace.asRelativePath(document.uri.fsPath).startsWith(dir)) {
-              this.logger.info('Formatting on save due to directory ' + dir)
-              await vscode.commands.executeCommand('editor.action.formatDocument')
-              await document.save()
-              return
-            }
-          }
-        }
-      })
-    )
-
-    this.checkFormatDirs()
     this.onConfigUpdated(() => {
       this.checkFormatDirs()
     })
+    await this.checkFormatDirs()
 
     /////////////////////////////////////////////
     // Slow async tasks
@@ -338,20 +322,8 @@ export class VerilogExtension extends ActivityBarComponent {
 
   private async checkFormatDirs() {
     let dirs = this.formatDirs.getValue()
-    if (dirs.length > 0) {
-      const svSave = vscode.workspace
-        .getConfiguration('editor', { languageId: 'systemverilog' })
-        .get('formatOnSave')
-      const vSave = vscode.workspace
-        .getConfiguration('editor', { languageId: 'verilog' })
-        .get('formatOnSave')
-
-      if (vSave || svSave) {
-        vscode.window.showWarningMessage(
-          'Both verilog.formatDirs and editor.formatOnSave are set, so formatDirs will be ignored.'
-        )
-      }
-    }
+    this.svFormat.activateFormatter(dirs, ['sv', 'svh'], 'systemverilog')
+    this.verilogFormat.activateFormatter(dirs, ['v', 'vh'], 'verilog')
   }
 
   private async indexFiles(reset: boolean = false) {

@@ -154,13 +154,48 @@ class VeribleVerilogFormatEditProvider
 // Verilog Formatter
 /////////////////////////////////////////////
 
+abstract class ScopedFormatter
+  extends ExtensionComponent
+  implements vscode.DocumentFormattingEditProvider
+{
+  abstract provideDocumentFormattingEdits(
+    document: vscode.TextDocument,
+    options: vscode.FormattingOptions,
+    token: vscode.CancellationToken
+  ): vscode.ProviderResult<vscode.TextEdit[]>
+
+  provider: vscode.Disposable | undefined
+
+  activateFormatter(formatDirs: string[], exts: string[], language: string): void {
+    if (this.provider !== undefined) {
+      this.provider.dispose()
+    }
+
+    let dirSel = undefined
+    if (formatDirs.length > 0) {
+      dirSel = formatDirs.length > 1 ? `{${formatDirs.join(',')}}` : formatDirs[0]
+    }
+
+    const sel: vscode.DocumentSelector = {
+      scheme: 'file',
+      language: language,
+      pattern:
+        formatDirs.length > 0
+          ? `${getWorkspaceFolder()}/${dirSel}/**/*.{${exts.join(',')}}`
+          : undefined,
+    }
+
+    this.provider = vscode.languages.registerDocumentFormattingEditProvider(sel, this)
+  }
+}
+
 enum VerilogFormatter {
   VerilogFormat = 'verilog-format',
   IstyleFormat = 'istyle-format',
   Verible = 'verible-verilog-format',
 }
 export class VerilogFormatProvider
-  extends ExtensionComponent
+  extends ScopedFormatter
   implements vscode.DocumentFormattingEditProvider
 {
   verilogFormatter: VerilogFormatEditProvider = new VerilogFormatEditProvider('verilogFormat', '.v')
@@ -178,15 +213,6 @@ export class VerilogFormatProvider
     type: 'string',
     enum: [VerilogFormatter.VerilogFormat, VerilogFormatter.IstyleFormat, VerilogFormatter.Verible],
   })
-
-  async activate(context: vscode.ExtensionContext): Promise<void> {
-    context.subscriptions.push(
-      vscode.languages.registerDocumentFormattingEditProvider(
-        { scheme: 'file', language: 'verilog' },
-        this
-      )
-    )
-  }
 
   provideDocumentFormattingEdits(
     document: vscode.TextDocument,
@@ -217,7 +243,7 @@ enum SvFormatter {
   VeribleVerilogFormat = 'verible-verilog-format',
 }
 export class SystemVerilogFormatProvider
-  extends ExtensionComponent
+  extends ScopedFormatter
   implements vscode.DocumentFormattingEditProvider
 {
   verible: VeribleVerilogFormatEditProvider = new VeribleVerilogFormatEditProvider(
@@ -230,12 +256,6 @@ export class SystemVerilogFormatProvider
     type: 'string',
     enum: [SvFormatter.VeribleVerilogFormat],
   })
-
-  async activate(context: vscode.ExtensionContext): Promise<void> {
-    context.subscriptions.push(
-      vscode.languages.registerDocumentFormattingEditProvider(systemverilogSelector, this)
-    )
-  }
 
   provideDocumentFormattingEdits(
     document: vscode.TextDocument,
