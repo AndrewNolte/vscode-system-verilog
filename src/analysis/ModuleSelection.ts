@@ -15,16 +15,22 @@ export async function selectModule(doc: vscode.TextDocument): Promise<Symbol | u
   }
   let module: Symbol = modules[0]
   if (modules.length > 1) {
-    let moduleName = await vscode.window.showQuickPick(
-      modules.map((sym) => sym.name),
-      {
-        placeHolder: 'Choose a module to instantiate',
+    const module_modules = modules.filter((sym) => sym.type === 'module')
+    if (module_modules.length === 1) {
+      // try to select modules over interfaces
+      module = module_modules[0]
+    } else {
+      let moduleName = await vscode.window.showQuickPick(
+        modules.map((sym) => sym.name),
+        {
+          placeHolder: 'Choose a module to instantiate',
+        }
+      )
+      if (moduleName === undefined) {
+        return undefined
       }
-    )
-    if (moduleName === undefined) {
-      return undefined
+      module = modules.filter((tag) => tag.name === moduleName)[0]
     }
-    module = modules.filter((tag) => tag.name === moduleName)[0]
   }
   return module
 }
