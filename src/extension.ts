@@ -149,18 +149,22 @@ export class VerilogExtension extends ActivityBarComponent {
         }
 
         // exclude common top level modules names and file names
-        const COMMON_TOP_LEVEL_MODULES = ['top', 'tb', 'tb_top']
+        const COMMON_TOP_LEVEL_MODULES = ['top', 'tb', 'tb_top', 'dut']
         const fileName = pathFilename(uri)
-        if (COMMON_TOP_LEVEL_MODULES.includes(fileName)) {
+        if (COMMON_TOP_LEVEL_MODULES.some((c) => fileName.endsWith(c))) {
           continue
         }
-        if (modules.some((m) => COMMON_TOP_LEVEL_MODULES.includes(m.name))) {
+        if (modules.some((m) => COMMON_TOP_LEVEL_MODULES.some((c) => m.name.endsWith(c)))) {
           continue
         }
 
         if (modules.length === 1) {
           if (fileName === modules[0].name) {
             continue
+          }
+          // no ports => testbench
+          if (modules[0].children.filter((c) => c.type === 'port').length === 0) {
+            return
           }
           const canonUri = vscode.Uri.joinPath(
             uri.with({ path: path.dirname(uri.fsPath) }),
