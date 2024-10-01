@@ -116,12 +116,12 @@ export class InstancesView
         await top.preOrderTraversal((item: HierItem) => {
           if (item instanceof InstanceItem && item.definition) {
             this.modules.get(item.definition).addInstance(item)
-          }
-          pct += (95.0 - pct) * 0.0001
-          const fl = Math.floor(pct)
-          if (fl > lastReport) {
-            progress.report({ increment: fl - lastReport })
-            lastReport = fl
+            pct += (95.0 - pct) * 0.001
+            const fl = Math.floor(pct)
+            if (fl > lastReport) {
+              progress.report({ increment: fl - lastReport })
+              lastReport = fl
+            }
           }
         })
 
