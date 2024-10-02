@@ -124,12 +124,13 @@ class VeribleVerilogFormatEditProvider
     }
 
     let args = this.args.getValue().split(' ')
-    args.push(document.uri.fsPath)
+    args.push('-')
 
     this.logger.info('Executing command: ' + binPath + ' ' + args.join(' '))
 
     try {
-      let formattedText: string = child_process.execFileSync(binPath, args, {
+      const result = child_process.spawnSync(binPath, args, {
+        input: document.getText(),
         cwd: getWorkspaceFolder(),
         encoding: 'utf-8',
       })
@@ -139,7 +140,7 @@ class VeribleVerilogFormatEditProvider
             document.positionAt(0),
             document.lineAt(document.lineCount - 1).range.end
           ),
-          formattedText
+          result.stdout
         ),
       ]
     } catch (err) {
