@@ -58,7 +58,6 @@ export default class LintManager extends ExtensionComponent {
 
   async lint(doc: vscode.TextDocument) {
     if (!isAnyVerilog(doc.languageId)) {
-      this.logger.warn('skipping lint for non verilog file')
       return
     }
     let promises = Array.from(this.linters.values()).map((linter) => {
