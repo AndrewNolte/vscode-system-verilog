@@ -7,7 +7,7 @@ import * as os from 'os'
 import * as path from 'path'
 import * as vscode from 'vscode'
 import { ConfigObject, ExtensionComponent } from './lib/libconfig'
-import { getWorkspaceFolder, systemverilogSelector } from './utils'
+import { getWorkspaceFolder } from './utils'
 import { ToolConfig } from './lib/runner'
 // handle temporary file
 class TemporaryFile {
