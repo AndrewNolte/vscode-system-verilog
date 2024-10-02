@@ -1,5 +1,17 @@
 # Changelog
 
+## [24.10.0] - 2024-08-26
+- Switch to calendar versioning scheme (Y/M/PATCH)
+- Project View
+  - Hierarchy view- rename, and add toggles for viewing elaboration params as well as one for ports/regs
+  - Instances View! View all instances in a project, by module. Note: this and the Hierarchy are CSTs, not an elaborated tree. Each generate scope will generate exactly one instance, not 0 or N in the case of generate loops.
+  - `verilog.setInstanceByPath(_, str)`, among other commands. This allows for other extensions, namely waveform viewers, to open a path in the editor
+- .sv_cache/files was moved to per-workspace storage via a vscode api. This means the extension will no longer make random caches when opening other workspaces
+- Formatting backend change
+  - formatDirs no longer registers a hook for on save- it instead registers a different pattern for the provider
+  - Pros: avoids a glitch in some rare cases where the save loop would not resolve (triggering another edit/save)
+  - Cons: You can't run "format document" on an random file- it has to be in formatDirs that config was provided
+
 ## [0.9.17] - 2024-08-26
 - Slang lint
   - parse instance paths

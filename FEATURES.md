@@ -21,11 +21,11 @@ Underlined features show what was available in the project this was based on: ht
 
 ### Formatting
 - <u>Verilog formatting provider</u>
-- Format on save for specific dirs
+- Format on save for specific directories
 
 ### Linting
 - <u>Slang and Verilator linting</u>
-- Managed symlink index in `.sv_cache/files`, allowing tools to use -y on the index
+- Managed symlink index in vscode storage, allowing tools to use -y on the index
 - `verilog.includes` passed to all tools
 - Parses lint width from tool instead of underlining whole line
 - Parses slang instance paths when given
@@ -34,7 +34,12 @@ Underlined features show what was available in the project this was based on: ht
 
 ### Top level context
 - Lint an entire project with multiple linters
-- Explore module hierarchy in the sidebar
+- Hierarchy View
+  - Set top module
+  - Toggle Params and Data in tree
+  - Set Instance by Path
+- Instances View
+  - View each module in the design, and the instances of each
 
 ### Analysis / Aesthetics
 - Split view macro expansion
