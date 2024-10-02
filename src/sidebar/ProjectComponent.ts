@@ -522,7 +522,8 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
       dragAndDropController: undefined,
       manageCheckboxStateManually: false,
     })
-    context.subscriptions.push(vscode.window.registerTreeDataProvider(this.configPath!, this))
+    // If you actually register it, you don't get the collapsible state button :/ Thanks Microsoft
+    // context.subscriptions.push(vscode.window.registerTreeDataProvider(this.configPath!, this))
   }
 
   async setTopModule(top: Symbol) {

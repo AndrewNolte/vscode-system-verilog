@@ -161,7 +161,8 @@ export class InstancesView
       dragAndDropController: undefined,
       manageCheckboxStateManually: false,
     })
-    context.subscriptions.push(vscode.window.registerTreeDataProvider(this.configPath!, this))
+    // If you actually register it, you don't get the collapsible state button :/ Thanks Microsoft
+    // context.subscriptions.push(vscode.window.registerTreeDataProvider(this.configPath!, this))
   }
 
   getTreeItem(element: InstanceTreeItem): vscode.TreeItem {
