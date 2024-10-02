@@ -153,7 +153,7 @@ export class InstancesView
     })
   }
 
-  async activate(context: vscode.ExtensionContext) {
+  async activate(_context: vscode.ExtensionContext) {
     this.treeView = vscode.window.createTreeView(this.configPath!, {
       treeDataProvider: this,
       showCollapseAll: true,

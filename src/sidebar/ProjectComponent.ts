@@ -514,7 +514,7 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
     })
   }
 
-  async activate(context: vscode.ExtensionContext): Promise<void> {
+  async activate(_context: vscode.ExtensionContext): Promise<void> {
     this.treeView = vscode.window.createTreeView(this.configPath!, {
       treeDataProvider: this,
       showCollapseAll: true,
