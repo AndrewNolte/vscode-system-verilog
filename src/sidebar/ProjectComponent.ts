@@ -175,7 +175,18 @@ class InternalScopeItem extends ScopeItem {
 }
 const STRUCTURE_SYMS = new Set<string>(['instance', 'block'])
 
-export class ProjectComponent extends ViewComponent implements TreeDataProvider<HierItem> {
+class InstanceLink extends vscode.TerminalLink {
+  path: string
+  constructor(path: string, startIndex: number, length: number) {
+    super(startIndex, length, 'Open in Hierarhcy View')
+    this.path = path
+  }
+}
+
+export class ProjectComponent
+  extends ViewComponent
+  implements TreeDataProvider<HierItem>, vscode.TerminalLinkProvider<InstanceLink>
+{
   top: RootItem | undefined = undefined
 
   // Hierarchy Tree
@@ -323,8 +334,8 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
       let parts = cleaned.split('.')
 
       // try to get top module from path if root not set
-      if (rootItem === undefined) {
-        const topStr = parts[0]
+      const topStr = parts[0]
+      if (rootItem === undefined && !(this.top?.instance.name == topStr)) {
         if (ext.index.moduleMap.has(topStr)) {
           const topUri = ext.index.moduleMap.get(topStr)
           if (topUri !== undefined) {
@@ -525,7 +536,29 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
     })
   }
 
-  async activate(_context: vscode.ExtensionContext): Promise<void> {
+  static RE_INSTANCE_PATHS = /[\w\$]+(\.[\w\$]+)+/g
+
+  provideTerminalLinks(
+    context: vscode.TerminalLinkContext,
+    _token: vscode.CancellationToken
+  ): vscode.ProviderResult<InstanceLink[]> {
+    let links = []
+    for (let match of context.line.matchAll(ProjectComponent.RE_INSTANCE_PATHS)) {
+      const line = context.line
+      const startIndex = line.indexOf(match[0])
+      const path = match[0]
+      const topModule = path.split('.')[0]
+      if (this.top?.instance.name === topModule || ext.index.moduleMap.has(topModule)) {
+        links.push(new InstanceLink(path, startIndex, path.length))
+      }
+    }
+    return links
+  }
+  handleTerminalLink(link: InstanceLink): vscode.ProviderResult<void> {
+    this.setInstanceByPathInternal.func(undefined, link.path)
+  }
+
+  async activate(context: vscode.ExtensionContext): Promise<void> {
     this.treeView = vscode.window.createTreeView(this.configPath!, {
       treeDataProvider: this,
       showCollapseAll: true,
@@ -535,6 +568,8 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
     })
     // If you actually register it, you don't get the collapsible state button :/ Thanks Microsoft
     // context.subscriptions.push(vscode.window.registerTreeDataProvider(this.configPath!, this))
+
+    context.subscriptions.push(vscode.window.registerTerminalLinkProvider(this))
   }
 
   async setTopModule(top: Symbol) {
