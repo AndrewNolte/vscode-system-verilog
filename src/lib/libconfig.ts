@@ -317,7 +317,12 @@ interface CommandConfigSpec {
   title: string
   shortTitle?: string
   icon?: iconType
+  // Vscode CLAIMS that enablement: false will only disable menu/keybindings, but allow other extensions to not run a command.
+  // It does not in fact allow running via the executeCommand api
+  // This just doesn't tack on the extension's Category
+  hidden?: boolean
 
+  // From vscode api
   category?: string
   enablement?: string
 }
@@ -352,7 +357,7 @@ export class CommandNode<
     context.subscriptions.push(
       vscode.commands.registerCommand(this.configPath!, this.func, this.thisArg)
     )
-    if (this._parentNode !== undefined) {
+    if (this._parentNode !== undefined && !this.obj.hidden) {
       this.obj.title = this._parentNode.getRoot().title + ': ' + this.obj.title
     }
   }

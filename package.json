@@ -761,7 +761,7 @@
       },
       {
         "command": "verilog.project.setInstanceByFile",
-        "title": "Select Instance of Module",
+        "title": "Select Instance",
         "icon": "$(symbol-class)",
         "languages": [
           "verilog",
@@ -779,13 +779,18 @@
         "icon": "$(folder-opened)"
       },
       {
-        "command": "verilog.project.setInstanceByPath",
-        "title": "Set Instance By Path",
+        "command": "verilog.project.setInstanceByPathInternal",
+        "title": "Set Instance",
         "icon": "$(inspect)"
       },
       {
-        "command": "verilog.project.setInstance",
+        "command": "verilog.project.setInstanceByPath",
         "title": "Verilog: Set Instance"
+      },
+      {
+        "command": "verilog.project.setInstance",
+        "title": "Set Instance from Instance View",
+        "hidden": true
       },
       {
         "command": "verilog.project.toggleParams",
@@ -889,7 +894,7 @@
           "when": "view == verilog.project"
         },
         {
-          "command": "verilog.project.setInstanceByPath",
+          "command": "verilog.project.setInstanceByPathInternal",
           "group": "navigation",
           "when": "view == verilog.project"
         },

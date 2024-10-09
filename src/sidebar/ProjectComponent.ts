@@ -215,7 +215,7 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
 
   setInstanceByFile: EditorButton = new EditorButton(
     {
-      title: 'Select Instance of Module',
+      title: 'Select Instance',
       icon: '$(symbol-class)',
       languages: ['verilog', 'systemverilog'],
     },
@@ -303,9 +303,9 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
     }
   )
 
-  setInstanceByPath: ViewButton = new ViewButton(
+  setInstanceByPathInternal: ViewButton = new ViewButton(
     {
-      title: 'Set Instance By Path',
+      title: 'Set Instance',
       icon: '$(inspect)',
     },
     async (rootItem: RootItem | undefined, instPath: string | undefined) => {
@@ -377,9 +377,20 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
       this.setInstance.func(current)
     }
   )
-  setInstance: CommandNode = new CommandNode(
+
+  setInstanceByPath: CommandNode = new CommandNode(
     {
       title: 'Set Instance',
+    },
+    async (inst: string) => {
+      this.setInstanceByPathInternal.func(undefined, inst)
+    }
+  )
+
+  setInstance: CommandNode = new CommandNode(
+    {
+      title: 'Set Instance from Instance View',
+      hidden: true,
     },
     async (
       instance: HierItem | undefined,
