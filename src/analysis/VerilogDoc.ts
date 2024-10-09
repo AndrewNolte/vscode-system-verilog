@@ -277,17 +277,9 @@ export class VerilogDoc {
   }
 
   async getNestedHoverText(sym: Symbol): Promise<Array<string>> {
-    // TODO: maybe go deeper
     let ret: string[] = []
     ret.push(sym.getHoverText())
-    if (
-      sym.isModuleType() ||
-      sym.type === 'typedef' ||
-      sym.type === 'instance' ||
-      sym.type === 'function' ||
-      sym.type === 'class'
-    ) {
-      // limit depths for certain types
+    if (!(sym.type in ['port', 'parameter'])) {
       return ret
     }
     // find other words with definitions in the hover text, and add them
