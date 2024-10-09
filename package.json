@@ -831,10 +831,6 @@
         "title": "Verilog: Fix file names to match module names"
       },
       {
-        "command": "verilog.instantiateModule",
-        "title": "Verilog: Instantiate Module"
-      },
-      {
         "command": "verilog.expandMacros",
         "title": "Expand Macros",
         "shortTitle": "Expand macros",

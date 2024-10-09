@@ -8,7 +8,6 @@ import path from 'path'
 import { promisify } from 'util'
 import { CtagsComponent } from './analysis/CtagsComponent'
 import { CtagsServerComponent } from './analysis/CtagsServerComponent'
-import { selectModuleGlobal } from './analysis/ModuleSelection'
 import { SystemVerilogFormatProvider, VerilogFormatProvider } from './FormatProvider'
 import { IncludeConfig } from './IncludeConfig'
 import { IndexComponent } from './IndexComponent'
@@ -213,28 +212,6 @@ export class VerilogExtension extends ActivityBarComponent {
         }
       }
       vscode.window.showInformationMessage('File name fix complete')
-    }
-  )
-
-  instantiateModule: CommandNode = new CommandNode(
-    {
-      title: 'Instantiate Module',
-    },
-    async () => {
-      let module = await selectModuleGlobal()
-      if (module === undefined) {
-        return
-      }
-      const sym = await ext.index.findModuleSymbol(module.name)
-      if (sym === undefined) {
-        return
-      }
-
-      let snippet = sym.getModuleSnippet(true)
-      if (snippet === undefined) {
-        return
-      }
-      vscode.window.activeTextEditor?.insertSnippet(snippet)
     }
   )
 
