@@ -7,8 +7,8 @@ import * as os from 'os'
 import * as path from 'path'
 import * as vscode from 'vscode'
 import { ConfigObject, ExtensionComponent } from './lib/libconfig'
-import { getWorkspaceFolder } from './utils'
 import { ToolConfig } from './lib/runner'
+import { getWorkspaceFolder } from './utils'
 // handle temporary file
 class TemporaryFile {
   public readonly path: string
@@ -134,6 +134,9 @@ class VeribleVerilogFormatEditProvider
         cwd: getWorkspaceFolder(),
         encoding: 'utf-8',
       })
+      if (result.stdout.length === 0) {
+        return []
+      }
       return [
         vscode.TextEdit.replace(
           new vscode.Range(
