@@ -133,8 +133,14 @@ class VeribleVerilogFormatEditProvider
         input: document.getText(),
         cwd: getWorkspaceFolder(),
         encoding: 'utf-8',
+        timeout: 2000,
       })
       if (result.stdout.length === 0) {
+        vscode.window.showErrorMessage('Verilog formatting failed: empty output')
+        return []
+      }
+      if (result.status === null) {
+        vscode.window.showErrorMessage('Verilog formatting failed: timed out')
         return []
       }
       return [
