@@ -536,7 +536,7 @@ export class ProjectComponent
     })
   }
 
-  static RE_INSTANCE_PATHS = /[\w$]+(\.[\w$]+)+/g
+  static RE_INSTANCE_PATHS = /[\w$]+(\[\d+\])?(\.[\w$]+(\[\d+\])?)+/g
 
   provideTerminalLinks(
     context: vscode.TerminalLinkContext,
