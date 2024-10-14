@@ -335,7 +335,7 @@ export class ProjectComponent
 
       // try to get top module from path if root not set
       const topStr = parts[0]
-      if (rootItem === undefined && !(this.top?.instance.name == topStr)) {
+      if (rootItem === undefined && !(this.top?.instance.name === topStr)) {
         if (ext.index.moduleMap.has(topStr)) {
           const topUri = ext.index.moduleMap.get(topStr)
           if (topUri !== undefined) {
@@ -536,7 +536,7 @@ export class ProjectComponent
     })
   }
 
-  static RE_INSTANCE_PATHS = /[\w\$]+(\.[\w\$]+)+/g
+  static RE_INSTANCE_PATHS = /[\w$]+(\.[\w$]+)+/g
 
   provideTerminalLinks(
     context: vscode.TerminalLinkContext,
