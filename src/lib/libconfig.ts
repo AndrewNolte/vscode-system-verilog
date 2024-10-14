@@ -592,7 +592,6 @@ export class PathConfigObject extends ConfigObject<string> {
     try {
       const { stdout, stderr } = await execFilePromise(getShell(), args)
       if (stderr) {
-        console.error(`Error: ${stderr}`)
         return ''
       }
       if (getPlatform() === 'windows') {
@@ -601,7 +600,6 @@ export class PathConfigObject extends ConfigObject<string> {
       }
       return stdout.trim()
     } catch (error) {
-      console.error(`Error: ${error}`)
       return ''
     }
   }
