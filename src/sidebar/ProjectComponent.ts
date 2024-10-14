@@ -220,7 +220,7 @@ export class ProjectComponent
         return
       }
 
-      this.setTopModule(module)
+      await this.setTopModule(module)
     }
   )
 
@@ -277,7 +277,7 @@ export class ProjectComponent
         return
       }
       // reveal in sidebar, don't change file
-      this.setInstance.func(instance.inst, {
+      await this.setInstance.func(instance.inst, {
         revealHierarchy: true,
         revealFile: false,
         revealInstance: true,
@@ -310,7 +310,7 @@ export class ProjectComponent
       if (newtop === undefined) {
         return
       }
-      this.setTopModule(newtop)
+      await this.setTopModule(newtop)
     }
   )
 
@@ -342,7 +342,7 @@ export class ProjectComponent
             const topDoc = await vscode.workspace.openTextDocument(topUri)
             const topModule = await selectModule(topDoc)
             if (topModule !== undefined) {
-              this.setTopModule(topModule)
+              await this.setTopModule(topModule)
             }
           }
         }
@@ -369,23 +369,29 @@ export class ProjectComponent
         let child: HierItem | undefined = children.find((child) => child.instance.name === part)
         if (child === undefined) {
           vscode.window.showErrorMessage(
-            `Could not find instance ${part} in ${current?.instance.name ?? 'top level'}`
+            `Could not find instance ${part} in ${current?.instance.name ?? 'top level'}: ${
+              current?.instance.typeRef
+            }`
           )
-          return
-        }
-        if (child instanceof LogicItem && !this.symFilter.has(child.instance.type)) {
-          if (child instanceof ParamItem) {
-            this.toggleParams.func()
-          } else if (child instanceof DataItem) {
-            this.toggleData.func()
+          await this.setInstance.func(current, {
+            revealHierarchy: true,
+            revealFile: false,
+            revealInstance: true,
+          })
+          if (current instanceof InstanceItem && current.definition !== undefined) {
+            await vscode.window.showTextDocument(current.definition.doc)
+          } else if (current) {
+            await vscode.window.showTextDocument(current.instance.doc)
           }
+
+          return
         }
         current = child
       }
       if (current === undefined) {
         return
       }
-      this.setInstance.func(current)
+      await this.setInstance.func(current)
     }
   )
 
@@ -420,6 +426,13 @@ export class ProjectComponent
         return
       }
       if (revealHierarchy) {
+        if (instance instanceof LogicItem && !this.symFilter.has(instance.instance.type)) {
+          if (instance instanceof ParamItem) {
+            await this.toggleParams.func()
+          } else if (instance instanceof DataItem) {
+            await this.toggleData.func()
+          }
+        }
         await this.treeView?.reveal(instance, { select: true, focus: true, expand: true })
       }
       const exposeSym = instance.instance
@@ -578,7 +591,7 @@ export class ProjectComponent
       this.treeView.reveal(this.top, { select: true, focus: true })
       this._onDidChangeTreeData.fire()
     }
-    await this.instancesView.indexTop(this.top)
+    this.instancesView.indexTop(this.top)
   }
 
   async getTreeItem(element: HierItem): Promise<TreeItem> {
