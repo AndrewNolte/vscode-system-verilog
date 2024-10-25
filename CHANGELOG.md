@@ -1,6 +1,12 @@
 # Changelog
 
-## [24.10.0] - 2024-08-26
+## [24.10.1] - 2024-10-24
+- Add Terminal Links for hierarchical paths. Clicking on one does a best effort of following the path, meaning if it can't find one symbol in the path, it'll stop at the latest one. It'll open that symbol in the editor, hierachical view, and instances view.
+- Add timeout to formatter
+- typing 'module' in comments no longer autocloses (https://github.com/AndrewNolte/vscode-system-verilog/issues/12)
+- remove instantiate module command- this is redundant because of the completion support
+
+## [24.10.0] - 2024-10-02
 - Switch to calendar versioning scheme (Y/M/PATCH)
 - Project View
   - Hierarchy view- rename, and add toggles for viewing elaboration params as well as one for ports/regs

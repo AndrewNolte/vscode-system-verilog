@@ -40,6 +40,7 @@ Underlined features show what was available in the project this was based on: ht
   - Set Instance by Path
 - Instances View
   - View each module in the design, and the instances of each
+- Terminal links for hierarchical paths- opens paths in views and editor
 
 ### Analysis / Aesthetics
 - Split view macro expansion
