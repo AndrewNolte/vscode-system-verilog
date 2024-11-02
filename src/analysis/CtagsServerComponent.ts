@@ -181,9 +181,12 @@ export class CtagsServerComponent
         // port completion
         symbols = await ext.index.getVerilogDoc(document).getSymbols({ type: 'instance' })
         // TODO: binary search instead
-        symbols = symbols.filter(
-          (inst) => inst.getFullRange().contains(position) && inst.typeRef !== null
-        )
+        symbols = symbols.filter((inst) => {
+          const range = inst.getFullRange()
+          // translate one more line in case adding ports on a new line.
+          const extRange = new vscode.Range(range.start, range.end.translate(1, 0))
+          return extRange.contains(position) && inst.typeRef !== null
+        })
         let inst = symbols[0]
         if (inst.typeRef !== null) {
           let mod = await ext.index.findModule(inst.typeRef)
