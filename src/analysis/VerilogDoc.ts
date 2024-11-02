@@ -115,7 +115,8 @@ export class VerilogDoc {
     return await this.getSymbols({ type: 'instance' })
   }
 
-  NON_PKG_TYPES = new Set(['member', 'register', 'port', 'define'])
+  // valid package members
+  NON_PKG_TYPES = new Set(['member', 'register', 'port', 'define', 'package'])
 
   async getPackageSymbols(): Promise<Symbol[]> {
     let syms = await this.getSymbols({}, false)
