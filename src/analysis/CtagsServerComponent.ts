@@ -192,6 +192,7 @@ export class CtagsServerComponent
           let mod = await ext.index.findModule(inst.typeRef)
 
           if (mod) {
+            // filter out ports or params
             let isPort = position.isAfter(inst.getIdRange().end)
             if (isPort) {
               symbols = (await mod.getSymbols()).filter(
@@ -200,6 +201,9 @@ export class CtagsServerComponent
             } else {
               symbols = (await mod.getSymbols()).filter((sym) => sym.type === 'parameter')
             }
+            // filter out already used ports/params
+            const text = document.getText(inst.getFullRange())
+            symbols = symbols.filter((sym) => !text.includes('.' + sym.name))
           }
         }
       } else {
