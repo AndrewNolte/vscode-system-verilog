@@ -326,22 +326,21 @@ export class Symbol {
     }
     return item
   }
-  static RE_PARAM = /=(.*?)([;,]|\/\/.*|\))?$/
 
   public getTypeInfo(): string {
     if (this.type === 'port') {
       const hover = this.getHoverText()
       return hover.substring(0, hover.indexOf(this.name) - 1)
     } else if (this.type === 'parameter') {
-      const line = this.doc.lineAt(this.line).text
-      // get default
-      const match = line.match(Symbol.RE_PARAM)
-      const defaultStr = match ? `=${match[1]}` : ''
-      // get param type
-      const paramInd = line.indexOf('parameter ') + 'parameter '.length
-      const nameInd = line.indexOf(this.name)
-      const paramType = line.substring(paramInd, nameInd)
-      return paramType + defaultStr
+      return getAssignment(this.doc.getText(this.getFullRange()), this.name, 'parameter')
+    } else if (this.type === 'constant') {
+      // enum case
+      if (this.parentType === 'typedef') {
+        return this.parentScope.split('.').at(-1) ?? ''
+      }
+
+      // localparam case
+      return getAssignment(this.doc.getText(this.getFullRange()), this.name, 'localparam')
     }
     return this.typeRef ?? this.type
   }
@@ -499,9 +498,21 @@ export class Symbol {
   }
 }
 
+const RE_ASSIGN = /=(.*?)([;,]|\/\/.*|\))?$/
+
+function getAssignment(line: string, name: string, typeText: string): string {
+  // get param type
+  const paramInd = line.indexOf(typeText + ' ') + typeText.length + 1
+  const nameInd = line.indexOf(name)
+  const type = line.substring(paramInd, nameInd)
+  const match = line.match(RE_ASSIGN)
+  const defaultStr = match ? `=${match[1]}` : ''
+  return type + defaultStr
+}
+
 function appendPorts(s: vscode.SnippetString, ports: Symbol[]): vscode.SnippetString {
   // only include required ports/params, user can use completions for others
-  ports = ports.filter((port) => !port.doc.lineAt(port.line).text.match(Symbol.RE_PARAM))
+  ports = ports.filter((port) => !port.doc.lineAt(port.line).text.match(RE_ASSIGN))
 
   // get maxLen for formatting
   let maxLen = 0

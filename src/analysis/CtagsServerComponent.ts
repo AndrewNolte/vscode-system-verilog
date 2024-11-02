@@ -194,7 +194,9 @@ export class CtagsServerComponent
           if (mod) {
             let isPort = position.isAfter(inst.getIdRange().end)
             if (isPort) {
-              symbols = (await mod.getSymbols()).filter((sym) => sym.type === 'port')
+              symbols = (await mod.getSymbols()).filter(
+                (sym) => sym.type === 'port' && sym.parentScope == inst.typeRef
+              )
             } else {
               symbols = (await mod.getSymbols()).filter((sym) => sym.type === 'parameter')
             }
