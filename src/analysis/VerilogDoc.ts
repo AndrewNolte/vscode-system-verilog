@@ -120,7 +120,9 @@ export class VerilogDoc {
 
   async getPackageSymbols(): Promise<Symbol[]> {
     let syms = await this.getSymbols({}, false)
-    return syms.filter((tag) => !this.NON_PKG_TYPES.has(tag.type))
+    syms = syms.filter((sym) => !this.NON_PKG_TYPES.has(sym.type))
+    syms = syms.filter((sym) => !sym.name.startsWith('`'))
+    return syms
   }
 
   async execCtags(filepath: string): Promise<string> {
