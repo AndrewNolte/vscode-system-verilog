@@ -119,7 +119,7 @@ export class CtagsServerComponent
   async provideCompletionItems(
     document: vscode.TextDocument,
     position: vscode.Position,
-    _token: vscode.CancellationToken,
+    token: vscode.CancellationToken,
     context: vscode.CompletionContext
   ): Promise<vscode.CompletionItem[]> {
     let prevChar = getPrevChar(document, position)
@@ -133,7 +133,7 @@ export class CtagsServerComponent
       const moduleCompletions = await this.provideModuleCompletion(
         document,
         position,
-        _token,
+        token,
         context
       )
       this.logger.info(`Returning ${moduleCompletions.length} module completions`)
@@ -172,7 +172,7 @@ export class CtagsServerComponent
         return []
       }
       symbols = await ctags.getPackageSymbols()
-      this.logger.info(`Found ${symbols.length} completions in package`)
+      this.logger.info(`Found ${symbols.length} completions in package ${pkgName}`)
     } else if (context.triggerCharacter === '.') {
       let parentScope = getParentText(document, new vscode.Range(position, position))
 

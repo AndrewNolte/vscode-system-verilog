@@ -319,7 +319,7 @@ export class Symbol {
       },
       this.getCompletionItemKind()
     )
-    if (!(this.type === 'typedef' || this.type === 'instance')) {
+    if (!(this.type === 'instance')) {
       let md = new vscode.MarkdownString()
       md.appendCodeblock(this.getHoverText(), 'systemverilog')
       item.documentation = md
@@ -328,19 +328,33 @@ export class Symbol {
   }
 
   public getTypeInfo(): string {
+    // maybe one day ctags will have these
     if (this.type === 'port') {
       const hover = this.getHoverText()
       return hover.substring(0, hover.indexOf(this.name) - 1)
     } else if (this.type === 'parameter') {
       return getAssignment(this.doc.getText(this.getFullRange()), this.name, 'parameter')
     } else if (this.type === 'constant') {
-      // enum case
+      // enum child case
       if (this.parentType === 'typedef') {
         return this.parentScope.split('.').at(-1) ?? ''
       }
+      const text = this.doc.getText(this.getFullRange())
 
-      // localparam case
-      return getAssignment(this.doc.getText(this.getFullRange()), this.name, 'localparam')
+      if (text.includes('localparam')) {
+        return getAssignment(text, this.name, 'localparam')
+      } else if (text.includes('parameter')) {
+        return getAssignment(text, this.name, 'parameter')
+      }
+    } else if (this.type === 'typedef') {
+      const text = this.doc.getText(this.getFullRange())
+      const assign = getAssignment(text, this.name, 'typedef')
+      if (assign.startsWith('enum')) {
+        return 'enum'
+      } else if (assign.startsWith('struct')) {
+        return 'struct'
+      }
+      return 'typedef ' + assign
     }
     return this.typeRef ?? this.type
   }
