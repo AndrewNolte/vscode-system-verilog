@@ -22,7 +22,6 @@ import {
 import LintManager from './linter/LintManager'
 import { LanguageServerComponent } from './LSComponent'
 import { ProjectComponent } from './sidebar/ProjectComponent'
-import { SurferComponent } from './surferWaveformViewer'
 import { getWorkspaceFolder, pathFilename, zip } from './utils'
 const asyncGlob = promisify(glob)
 
@@ -103,8 +102,6 @@ export class VerilogExtension extends ActivityBarComponent {
 
   ctagsServer: CtagsServerComponent = new CtagsServerComponent()
   inlayHints: InlayHintsComponent = new InlayHintsComponent()
-
-  SurferComponent: SurferComponent = new SurferComponent()
 
   ////////////////////////////////////////////////
   /// top level commands
@@ -380,7 +377,6 @@ export async function activate(context: vscode.ExtensionContext) {
   await ext.activateExtension('verilog', 'Verilog', context, [
     'mshr-h.veriloghdl',
     'eirikpre.systemverilog',
-    'IMCTradingBV.svlangserver',
-    'surfer-project.surfer',
+    'IMCTradingBV.svlangserver'
   ])
 }

@@ -26,8 +26,7 @@
     "Programming Languages",
     "Snippets",
     "Linters",
-    "Formatters",
-    "Visualization"
+    "Formatters"
   ],
   "icon": "images/icon.png",
   "main": "./dist/main.js",
@@ -84,18 +83,6 @@
     ]
   },
   "contributes": {
-    "customEditors": [
-      {
-        "viewType": "surfer.waveformViewer",
-        "displayName": "Surfer Waveform Viewer",
-        "selector": [
-          {
-            "filenamePattern": "*.{vcd,fst,ghw}"
-          }
-        ],
-        "priority": "default"
-      }
-    ],
     "languages": [
       {
         "id": "verilog",
@@ -156,14 +143,6 @@
           "light": "./resources/svh_light.svg",
           "dark": "./resources/svh_dark.svg"
         }
-      },
-      {
-        "id": "wave-file",
-        "extensions": [
-          ".fst",
-          ".vcd",
-          ".ghw"
-        ]
       },
       {
         "id": "ucf",

@@ -1,6 +1,6 @@
 # Verilog/SystemVerilog Tools
 
-Verilog and SystemVerilog support including linting from popular tools, completions, formatting, waveform viewer, and project level analysis.
+Verilog and SystemVerilog support including linting from popular tools, completions, formatting, and project level analysis.
 
 Install it from the [VS Code Marketplace](https://marketplace.visualstudio.com/items/AndrewNolte.vscode-system-verilog) or [OpenVSX](https://open-vsx.org/extension/AndrewNolte/vscode-system-verilog)
 
@@ -39,9 +39,6 @@ Verible supports both SystemVerilog and Verilog, while the others are only veril
 
 #### Third party options: [`verible-verilog-ls`](https://github.com/chipsalliance/verible/tree/master/verilog/tools/ls) || [`veridian`](https://github.com/vivekmalneedi/veridian) || [`svls`](https://github.com/dalance/svls)
 
-
-## Fst/Vcd/Ghw support from [Surfer](https://surfer-project.org/)
-<img src="images/surfer.png" width="50%"/>
 
 ## Recommended SystemVerilog Configuration
 
