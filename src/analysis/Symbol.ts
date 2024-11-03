@@ -76,6 +76,23 @@ export class Symbol {
     return this.idRange
   }
 
+  getSemicolonRange(): vscode.Range {
+    // leading comments + id range + to next semicolon. Used for hovers
+    const idRange = this.getIdRange()
+    const nextSemi = this.doc.getText().indexOf(';', this.doc.offsetAt(idRange.end))
+    let start = idRange.start
+    while (
+      start.line > 1 &&
+      this.doc
+        .lineAt(start.line - 1)
+        .text.trimStart()
+        .startsWith('//')
+    ) {
+      start = start.translate(-1)
+    }
+    return new vscode.Range(start, this.doc.positionAt(nextSemi))
+  }
+
   getFullRange(): vscode.Range {
     if (this.fullRange !== undefined) {
       return this.fullRange
@@ -123,8 +140,7 @@ export class Symbol {
     return this.fullRange
   }
 
-  getUnindented(): string {
-    let range = this.getFullRange()
+  getUnindented(range: vscode.Range): string {
     let leadingSpaces = this.doc.lineAt(range.start.line).text.match(/^ */)?.[0].length ?? 0
 
     let outline = []
@@ -180,7 +196,9 @@ export class Symbol {
 
   getHoverText(): string {
     if (this.type === 'typedef' || this.type === 'instance' || this.isMacro()) {
-      return this.getUnindented()
+      return this.getUnindented(this.getFullRange())
+    } else if (this.type === 'task' || this.type === 'function') {
+      return this.getUnindented(this.getSemicolonRange())
     }
 
     let code = this.doc
