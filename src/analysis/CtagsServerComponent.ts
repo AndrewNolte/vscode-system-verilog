@@ -252,6 +252,7 @@ export class CtagsServerComponent
           )
         }
       }
+      symbols = symbols.filter((sym) => !(sym.type === 'block' && sym.children.length == 0))
     }
 
     let items = symbols.map((symbol: Symbol) => {
