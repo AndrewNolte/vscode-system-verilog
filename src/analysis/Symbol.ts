@@ -351,7 +351,7 @@ export class Symbol {
       const hover = this.getHoverText()
       return hover.substring(0, hover.indexOf(this.name) - 1)
     } else if (this.type === 'parameter') {
-      return getAssignment(this.doc.getText(this.getFullRange()), this.name, 'parameter')
+      return 'param ' + getAssignment(this.doc.getText(this.getFullRange()), this.name, 'parameter')
     } else if (this.type === 'constant') {
       // enum child case
       if (this.parentType === 'typedef') {
