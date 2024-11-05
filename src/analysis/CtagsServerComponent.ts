@@ -86,6 +86,11 @@ export class CtagsServerComponent
     }
   }
 
+  
+  ////////////////////////////////////////////////
+  // Completion Providers
+  ////////////////////////////////////////////////
+
   async provideModuleCompletion(
     document: vscode.TextDocument,
     position: vscode.Position, // module_name #(
@@ -112,9 +117,36 @@ export class CtagsServerComponent
     return items
   }
 
-  ////////////////////////////////////////////////
-  // Completion Provider
-  ////////////////////////////////////////////////
+  async providePortParamCompletion(
+    document: vscode.TextDocument,
+    position: vscode.Position, // module_name #(
+    _token: vscode.CancellationToken,
+    _context: vscode.CompletionContext
+  ): Promise<vscode.CompletionItem[]> {
+    this.logger.info(`Finding completions for ports/params`)
+    const instances = await ext.index.getVerilogDoc(document).getSymbols({ type: 'instance' })
+    // TODO: binary search instead
+    const inst = instances.reverse().find((inst) => {
+      return inst.getFullRange().start.compareTo(position) < 0
+    })
+    if(inst === undefined || inst.typeRef === null){
+      this.logger.info("Couldn't find suitable instance for port/param completion")
+      return []
+    }
+    let mod = await ext.index.findModule(inst.typeRef)
+    if (mod === undefined){
+      this.logger.info(`Couldn't find module ${inst.typeRef} for completions`)
+      return []
+    }
+    
+    let ports = (await mod.getSymbols()).filter(
+      (sym) => (sym.type === 'port' || sym.type === 'parameter') && sym.parentScope == inst.typeRef
+    )
+    return ports.map(
+      (sym) => sym.getCompletionItem()
+    )
+  
+  }
 
   async provideCompletionItems(
     document: vscode.TextDocument,
@@ -177,35 +209,14 @@ export class CtagsServerComponent
       let parentScope = getParentText(document, new vscode.Range(position, position))
 
       if (parentScope === '') {
-        this.logger.info(`Finding completions for ports/params`)
-        // port completion
-        symbols = await ext.index.getVerilogDoc(document).getSymbols({ type: 'instance' })
-        // TODO: binary search instead
-        symbols = symbols.filter((inst) => {
-          const range = inst.getFullRange()
-          // translate one more line in case adding ports on a new line.
-          const extRange = new vscode.Range(range.start, range.end.translate(1, 0))
-          return extRange.contains(position) && inst.typeRef !== null
-        })
-        let inst = symbols[0]
-        if (inst.typeRef !== null) {
-          let mod = await ext.index.findModule(inst.typeRef)
-
-          if (mod) {
-            // filter out ports or params
-            let isPort = position.isAfter(inst.getIdRange().end)
-            if (isPort) {
-              symbols = (await mod.getSymbols()).filter(
-                (sym) => sym.type === 'port' && sym.parentScope == inst.typeRef
-              )
-            } else {
-              symbols = (await mod.getSymbols()).filter((sym) => sym.type === 'parameter')
-            }
-            // filter out already used ports/params
-            const text = document.getText(inst.getFullRange())
-            symbols = symbols.filter((sym) => !text.includes('.' + sym.name))
-          }
-        }
+        const portCompletions = await this.providePortParamCompletion(
+          document,
+          position,
+          token,
+          context
+        )
+        this.logger.info(`Returning ${portCompletions.length} port/param completions`)
+        return portCompletions
       } else {
         // hierarchial reference completion
         let insts = await ext.index.getVerilogDoc(document).getSymbols({ name: parentScope })
