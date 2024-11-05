@@ -1,5 +1,13 @@
 # Changelog
 
+## [24.11.0] - 2024-11-05
+- Prevent file base names from being recognized as a hierarchical path.
+- Improved completions:
+  - improved context for completions- type info is on every entry now
+  - improved filtering of completions
+  - port/param completions show both now, as extension isn't able to get full edit buffer
+- Remove included surfer, https://marketplace.visualstudio.com/items?itemName=surfer-project.surfer supports FST now and is more up to date
+
 ## [24.10.1] - 2024-10-24
 - Add Terminal Links for hierarchical paths. Clicking on one does a best effort of following the path, meaning if it can't find one symbol in the path, it'll stop at the latest one. It'll open that symbol in the editor, hierachical view, and instances view.
 - Add timeout to formatter
