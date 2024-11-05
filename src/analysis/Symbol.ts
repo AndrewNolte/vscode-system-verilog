@@ -520,12 +520,11 @@ export class Symbol {
     s = s.appendText('(')
     if (params.length > 0) {
       s.appendText('\n')
-      s = appendPorts(s, params)
+      s = appendPorts(s, params, true)
     }
     s.appendText(') ')
     s = s.appendPlaceholder(`${this.name.toLowerCase()}`).appendText(' (\n')
-    s = appendPorts(s, ports)
-    s.appendText(');')
+    s = appendPorts(s, ports, false).appendText(');')
     return s
   }
 }
@@ -542,11 +541,11 @@ function getAssignment(line: string, name: string, typeText: string): string {
   return type + defaultStr
 }
 
-function appendPorts(s: vscode.SnippetString, ports: Symbol[]): vscode.SnippetString {
-  // only include required ports/params, user can use completions for others
-  ports = ports.filter((port) => !port.doc.lineAt(port.line).text.match(RE_ASSIGN))
-
-  // get maxLen for formatting
+function appendPorts(
+  s: vscode.SnippetString,
+  ports: Symbol[],
+  isParam: boolean
+): vscode.SnippetString {
   let maxLen = 0
   for (let i = 0; i < ports.length; i++) {
     if (ports[i].name.length > maxLen) {
@@ -556,9 +555,19 @@ function appendPorts(s: vscode.SnippetString, ports: Symbol[]): vscode.SnippetSt
   for (let i = 0; i < ports.length; i++) {
     const name = ports[i].name
     const nameFmt = name + ' '.repeat(maxLen - name.length)
-    const endStr = i === ports.length - 1 ? '\n' : ',\n'
     s.appendText(`\t.${nameFmt}(`)
-    s.appendPlaceholder(ports[i].name)
+    if (isParam) {
+      let line = ports[i].doc.lineAt(ports[i].line).text
+      let match = line.match(RE_ASSIGN)
+      if (match && match[1].indexOf('(') === -1) {
+        s.appendText(match[1].trim())
+      } else {
+        s.appendPlaceholder(ports[i].name)
+      }
+    } else {
+      s.appendPlaceholder(ports[i].name)
+    }
+    const endStr = i === ports.length - 1 ? '\n' : ',\n'
     s.appendText(`)${endStr}`)
   }
   return s
