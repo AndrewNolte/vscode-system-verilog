@@ -230,9 +230,14 @@ export class CtagsServerComponent
         symbols = symbols.filter((sym) => sym.isData())
       } else if (context.triggerCharacter === undefined) {
         for (let name of ext.index.moduleMap.keys()) {
-          // The 'kind' just affects the icon
           additionalCompletions.push(
-            new vscode.CompletionItem(name, vscode.CompletionItemKind.Module)
+            new vscode.CompletionItem(
+              {
+                label: name,
+                detail: ' Component', // would need to open files to determin module/interface/package
+              },
+              vscode.CompletionItemKind.Module
+            )
           )
         }
       }
