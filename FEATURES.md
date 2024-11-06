@@ -47,7 +47,6 @@ Underlined features show what was available in the project this was based on: ht
 - Improvements to syntax highlighting
 - Improve symbol tree generation and icon choice
 
-
 <br>
 
 # Future plans
@@ -60,11 +59,8 @@ Underlined features show what was available in the project this was based on: ht
 ### Top level context
 - Specify build.f file (defines, includes), not just top level
 - Commmand to generate build.f file
-- Hierarchical paths
-  - instance selection
-  - param inlay hints for selected instance
-  - Fuzzy search for hierarchical paths
-  - Jump to instance for hierarchical paths (lint, terminal output)
+- param inlay hints for selected instance
+- wire inlay hints from waveform + timestamp
 - Open instance/file from waveform viewer
 - Open waveform viewer from instance signal
 

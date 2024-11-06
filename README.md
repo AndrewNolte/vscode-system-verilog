@@ -8,45 +8,55 @@ Install it from the [VS Code Marketplace](https://marketplace.visualstudio.com/i
 [![Install Count](https://img.shields.io/visual-studio-marketplace/i/AndrewNolte.vscode-system-verilog)](https://marketplace.visualstudio.com/items?itemName=AndrewNolte.vscode-system-verilog)
 [![Download Count](https://img.shields.io/visual-studio-marketplace/d/AndrewNolte.vscode-system-verilog.png)](https://marketplace.visualstudio.com/items?itemName=AndrewNolte.vscode-system-verilog) -->
 
-![sample](images/sample.gif)
 
 ## Linters
-### [`slang`](https://github.com/MikePopoloski/slang) (recommended) || [`iverilog`](https://github.com/steveicarus/iverilog) (Icarus) || [`verilator`](https://github.com/verilator/verilator) ||  [`modelsim`](https://eda.sw.siemens.com/en-US/ic/modelsim/) || [`xvlog`](https://www.xilinx.com/products/design-tools/vivado.html) (Xilinx/Vivado)
+### [`slang`](https://github.com/MikePopoloski/slang) (recommended) || [`iverilog`](https://github.com/steveicarus/iverilog) (Icarus) || [`verilator`](https://github.com/verilator/verilator) ||  [`modelsim`](https://eda.sw.siemens.com/en-US/ic/modelsim/) || [`xvlog`](https://www.xilinx.com/products/design-tools/vivado.html) (Xilinx/Vivado) || [`xrun`](https://www.cadence.com/en_US/home/tools/system-design-and-verification/simulation-and-testbench-verification/xcelium-simulator.html) (Cadence/Xcelium)
 
-  The extension will make symlinks to all verilog files in .sv_cache/files, and then pass that to tools with the -y flag so they can discover modules without the need for individual build configs. This can be disabled with `verilog.index.enableSymlinks: false`. Note for windows users: "Developer Mode" needs to be turned on in order to reduce the permissions needed to create a symlink, otherwise .sv_cache/files will not get populated.
+  The extension leverages the "-y" flag found on most tools, pointing it to a symlink index of the repo. This makes for almost zero per-project config when modules match each file name. A command titled `Verilog: Fix filenames...` is offered to help with refactoring these to match.
+  
+  Note for windows users: "Developer Mode" needs to be turned on in order to create symlinks.
 
+  Multiple linters are able to run in parallel:
+
+![sample](images/MultiLint.png)
+
+## Language Server
+
+Snappy Hover/Goto Definition on nearly every symbol, including in other files. Optional inlay hints for ports.
+
+![sample](images/Hovers.gif)
+
+Compeltions- Modules, Params/Ports, Macros, Package references, SV builtins, etc.
+
+![sample](images/Completions.gif)
+
+Set top level, which shows the hierarchy, different modules used, project level linting, and soon to be waveform integration.
+
+<!-- ![sample](images/Project.png){: width="50%" height="auto"}
+ -->
+ <img src="images/Project.png" alt="Project View" width="700"/>
+
+
+
+### See a detailed feature list and roadmap in [FEATURES.md](FEATURES.md)
+
+#### Third party language server options: [`verible-verilog-ls`](https://github.com/chipsalliance/verible/tree/master/verilog/tools/ls) || [`veridian`](https://github.com/vivekmalneedi/veridian) || [`svls`](https://github.com/dalance/svls)
 
 ## Formatters
 
 ### [`verible-verilog-format`](https://github.com/chipsalliance/verible/tree/master/verilog/formatting) (recommended) || [`verilog-format`](https://github.com/ericsonj/verilog-format) || [`istyle`](https://github.com/thomasrussellmurphy/istyle-verilog-formatter)
 
 
-Verible supports both SystemVerilog and Verilog, while the others are only verilog. `verilog.formatDirs` lets you specify directories that you want to format on save, or you can use the global formatOnSave option for verilog/systemverilog.
+Verible supports both SystemVerilog and Verilog, while the others are only verilog. `verilog.formatDirs` lets you specify directories that you want to be formatted.
 
-## Language Servers
-
-###  Built-in language server
-
-<img src="images/completion.gif" alt="Alt text" width="50%"/> -->
-
-- Document symbols outline
-- Hover and definitions across files, including macros defined in svh files or whatever you choose to pre-index
-- Code completion for modules on "ModuleName #"
-- Zero config required if module names match file
-- Code completion suggests relevant symbols- package refs, params, ports, macros, builtins, etc.
-- Hover and Completion for builtin functions like $bits()
-### See a detailed feature list and roadmap in [FEATURES.md](FEATURES.md)
-
-#### Third party options: [`verible-verilog-ls`](https://github.com/chipsalliance/verible/tree/master/verilog/tools/ls) || [`veridian`](https://github.com/vivekmalneedi/veridian) || [`svls`](https://github.com/dalance/svls)
+<br>
 
 
-## Recommended SystemVerilog Configuration
+# Recommended Configuration
 
 ### Install [universal-ctags](https://github.com/universal-ctags/ctags)
 
-This is used for definition support, hover support, and most of the analysis features.
-
-Use 6.1 or later for port/param definition support
+This is used for definition support, hover support, and most of the analysis features. Use 6.1 or later for port/param definition support
 
 - Windows - Release are [here](https://github.com/universal-ctags/ctags-win32/releases)
 - Linux - Releases are [here](https://github.com/universal-ctags/ctags/releases/)
@@ -85,9 +95,8 @@ This is the recommended linter because it's the [fastest and most compliant](htt
 ],
 ```
 
-### See all config options in [CONFIG.md](CONFIG.md)
+### See all config options in [CONFIG.md](CONFIG.md) 
 
 For debugging your config, you can see the logs in Output tab > select 'verilog' in the dropdown
-
 
 ### Contributions are welcome, see [DEVELOPING.md](DEVELOPING.md)
