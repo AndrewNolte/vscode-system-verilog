@@ -26,7 +26,7 @@ Snappy Hover/Goto Definition on nearly every symbol, including in other files. O
 
 ![sample](images/Hovers.gif)
 
-Compeltions- Modules, Params/Ports, Macros, Package references, SV builtins, etc.
+Completions- Modules, Params/Ports, Macros, Package references, SV builtins, etc.
 
 ![sample](images/Completions.gif)
 
