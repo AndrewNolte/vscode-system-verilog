@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 import * as vscode from 'vscode'
 import { ext } from '../extension'
-import { FileDiagnostic, isSystemVerilog } from '../utils'
+import { FileDiagnostic, getWorkspaceFolder, isSystemVerilog } from '../utils'
 import BaseLinter from './BaseLinter'
 
 class VerilogFileLink extends vscode.TerminalLink {
@@ -32,7 +32,7 @@ export default class XceliumLinter
     _token: vscode.CancellationToken
   ): VerilogFileLink[] {
     // TODO: have this update diagnostics too?
-    const re = /\((.*),(\d+)\|(\d+)\)/g
+    const re = /\(([^,]+),(\d+)\|(\d+)\)/g
     let links: VerilogFileLink[] = []
     let match
     while ((match = re.exec(context.line)) !== null) {
@@ -52,7 +52,16 @@ export default class XceliumLinter
   }
 
   async handleTerminalLink(link: VerilogFileLink): Promise<void> {
-    const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(link.fileName))
+    let uri: vscode.Uri
+    if (link.fileName.startsWith('./')) {
+      const ws = getWorkspaceFolder()
+      uri = ws
+        ? vscode.Uri.file(ws + '/' + link.fileName.substring(2))
+        : vscode.Uri.file(link.fileName.substring(2))
+    } else {
+      uri = vscode.Uri.file(link.fileName)
+    }
+    const doc = await vscode.workspace.openTextDocument(uri)
     await vscode.window.showTextDocument(doc, {
       preview: false,
       selection: new vscode.Range(link.position, link.position),
