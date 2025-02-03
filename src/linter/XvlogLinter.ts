@@ -12,15 +12,6 @@ export default class XvlogLinter extends BaseLinter {
     return args
   }
 
-  protected formatIncludes(includes: string[]): string[] {
-    let ret = []
-    for (let inc of includes) {
-      ret.push('-i')
-      ret.push(inc)
-    }
-    return ret
-  }
-
   protected parseDiagnostics(args: {
     doc: vscode.TextDocument
     stdout: string

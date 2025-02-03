@@ -16,8 +16,7 @@ class VerilogFileLink extends vscode.TerminalLink {
 
 export default class XceliumLinter
   extends BaseLinter
-  implements vscode.TerminalLinkProvider<VerilogFileLink>
-{
+  implements vscode.TerminalLinkProvider<VerilogFileLink> {
   // error code -> regex for extracting package name
   pkgDiags: Map<string, RegExp>
   constructor(name: string) {
@@ -83,14 +82,6 @@ export default class XceliumLinter
       return vscode.DiagnosticSeverity.Warning
     }
     return vscode.DiagnosticSeverity.Information
-  }
-
-  protected formatIncludes(includes: string[]): string[] {
-    let incs: string[] = []
-    for (let inc of includes) {
-      incs.push('-incdir ' + inc)
-    }
-    return incs
   }
 
   protected async makeAdjustments(targetKey: string, diags: FileDiagnostic[]): Promise<boolean> {

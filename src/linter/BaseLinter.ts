@@ -233,7 +233,7 @@ export default abstract class BaseLinter extends ToolConfig {
   }
 
   protected formatIncludes(includes: string[]): string[] {
-    return includes.map((path: string) => `-I${getAbsPath(path)}`)
+    return includes.map((path: string) => `+incdir+${getAbsPath(path)}`)
   }
 
   protected toolArgs(_doc: vscode.TextDocument): string[] {
