@@ -4,6 +4,10 @@ on:
       kind:
         description: 'Update kind (major, minor, patch)'
         default: 'patch'
+      prerelease:
+        description: 'Publish as pre-release'
+        type: boolean
+        default: false
 
 name: Publish extension to marketplace
 permissions:
@@ -18,12 +22,11 @@ jobs:
           node-version: 20
       - run: npm ci
       - run: npm install -g @vscode/vsce
-      - run: git config --global user.email "anolte5"12@gmail.com
-      - run: git config --global user.name "Andrew Nolte"
-        # Use vsce first- this will bump the version number
+      - run: git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+      - run: git config --global user.name "${{ github.actor }}"
       - name: Publish to Visual Studio Marketplace
-        run: vsce publish ${{ github.event.inputs.kind }} --pat ${{ secrets.VS_MARKETPLACE_TOKEN }}
+        run: vsce publish ${{ inputs.kind }} ${{ inputs.prerelease && '--pre-release' || '' }} --pat ${{ secrets.VS_MARKETPLACE_TOKEN }}
       - run: npm install -g ovsx
       - name: Publish to Open Vsix
-        run: npx ovsx publish --pat ${{ secrets.OPEN_VSX_TOKEN }}
+        run: npx ovsx publish ${{ inputs.prerelease && '--pre-release' || '' }} --pat ${{ secrets.OPEN_VSX_TOKEN }}
       - run: git push
