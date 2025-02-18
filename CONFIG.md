@@ -426,6 +426,16 @@
     
 
 
+- `verilog.languageServer.slang.enabled`: boolean = false
+
+    Enable this Language Server
+
+
+- `verilog.languageServer.slang.path`: string = "slang-server"
+
+    
+
+
 - `verilog.inlayHints.wildcardPorts`: string = "on"
 
     Show wildcard port hints (.*: port1, port2, etc.) in module instantiation

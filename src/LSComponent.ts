@@ -9,6 +9,7 @@ export class LanguageServerComponent extends ExtensionComponent {
   svls: BaseLanguageServer = new BaseLanguageServer('svls')
   veridian: BaseLanguageServer = new BaseLanguageServer('veridian')
   veribleVerilogLs: BaseLanguageServer = new BaseLanguageServer('verible-verilog-ls')
+  slang: BaseLanguageServer = new BaseLanguageServer('slang-server')
 
   async activate(context: vscode.ExtensionContext) {
     this.initAllLanguageClients()
@@ -33,6 +34,10 @@ export class LanguageServerComponent extends ExtensionComponent {
 
     // init verible-verilog-ls
     this.veribleVerilogLs.setupLanguageClient([], [], {
+      documentSelector: anyVerilogSelector,
+    })
+
+    this.slang.setupLanguageClient([], [], {
       documentSelector: anyVerilogSelector,
     })
   }
@@ -91,7 +96,7 @@ class BaseLanguageServer extends ExtensionComponent {
     )
 
     lc.start()
-    this.logger.info('language server started.')
+    this.logger.info(`${this.toolName} language server started`)
     return lc
   }
 }

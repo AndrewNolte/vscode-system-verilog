@@ -695,6 +695,16 @@
           "description": "",
           "type": "string"
         },
+        "verilog.languageServer.slang.enabled": {
+          "default": false,
+          "description": "Enable this Language Server",
+          "type": "boolean"
+        },
+        "verilog.languageServer.slang.path": {
+          "default": "slang-server",
+          "description": "",
+          "type": "string"
+        },
         "verilog.inlayHints.wildcardPorts": {
           "default": "on",
           "description": "Show wildcard port hints (.*: port1, port2, etc.) in module instantiation",
