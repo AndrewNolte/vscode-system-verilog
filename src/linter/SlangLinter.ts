@@ -1,10 +1,7 @@
 // SPDX-License-Identifier: MIT
-import * as process from 'process'
 import * as vscode from 'vscode'
 import { FileDiagnostic } from '../utils'
 import BaseLinter from './BaseLinter'
-
-let isWindows = process.platform === 'win32'
 
 export default class SlangLinter extends BaseLinter {
   protected convertToSeverity(severityString: string): vscode.DiagnosticSeverity {
@@ -17,6 +14,7 @@ export default class SlangLinter extends BaseLinter {
   }
 
   protected parseDiagnostics(args: {
+    wsUri: vscode.Uri
     doc: vscode.TextDocument
     stdout: string
     stderr: string
@@ -24,6 +22,8 @@ export default class SlangLinter extends BaseLinter {
     /// TODO: reuse tasks/problem matchers for this
 
     let diags: FileDiagnostic[] = []
+
+    let nonNoteDiag: FileDiagnostic | undefined = undefined
 
     const re = /(.+?):(\d+):(\d+):\s(note|warning|error):\s(.*?)(\[-W(.*)\]|$)/
     let lines = args.stderr.split(/\r?\n/g)
@@ -73,10 +73,11 @@ export default class SlangLinter extends BaseLinter {
         n++
       }
       n += 2
+      const slangSeverity = rex[4]
 
-      diags.push({
+      const diag = {
         file: filePath,
-        severity: this.convertToSeverity(rex[4]),
+        severity: this.convertToSeverity(slangSeverity),
         range: new vscode.Range(
           new vscode.Position(lineNum, begin),
           new vscode.Position(lineNum, end)
@@ -84,7 +85,30 @@ export default class SlangLinter extends BaseLinter {
         message: msg,
         code: rex[7] ? rex[7] : 'error',
         source: 'slang',
-      })
+      }
+
+      if (slangSeverity === 'note') {
+        // Add to previous diag
+        this.logger.info('[slang] note from previous error: ' + line)
+        if (nonNoteDiag === undefined) {
+          this.logger.warn('[slang] previous error not found: ' + line)
+        } else {
+          if (nonNoteDiag.relatedInformation === undefined) {
+            nonNoteDiag.relatedInformation = []
+          }
+          nonNoteDiag.relatedInformation?.push({
+            location: new vscode.Location(
+              vscode.Uri.file(args.wsUri.fsPath + '/' + filePath),
+              new vscode.Position(lineNum, colNum)
+            ),
+            message: msg,
+          })
+        }
+      } else {
+        nonNoteDiag = diag
+      }
+
+      diags.push(diag)
     }
 
     return diags

@@ -112,6 +112,7 @@ export default abstract class BaseLinter extends ToolConfig {
     do {
       const output: any = await this.runTool(doc)
       diags = this.parseDiagnostics({
+        wsUri: getWorkspaceUri()!,
         doc: doc,
         stdout: output.stdout,
         stderr: output.stderr,
@@ -241,6 +242,7 @@ export default abstract class BaseLinter extends ToolConfig {
   }
 
   protected abstract parseDiagnostics(args: {
+    wsUri: vscode.Uri
     doc: vscode.TextDocument
     stdout: string
     stderr: string
