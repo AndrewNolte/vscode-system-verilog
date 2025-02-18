@@ -86,7 +86,6 @@ export class CtagsServerComponent
     }
   }
 
-  
   ////////////////////////////////////////////////
   // Completion Providers
   ////////////////////////////////////////////////
@@ -129,23 +128,20 @@ export class CtagsServerComponent
     const inst = instances.reverse().find((inst) => {
       return inst.getFullRange().start.compareTo(position) < 0
     })
-    if(inst === undefined || inst.typeRef === null){
+    if (inst === undefined || inst.typeRef === null) {
       this.logger.info("Couldn't find suitable instance for port/param completion")
       return []
     }
     let mod = await ext.index.findModule(inst.typeRef)
-    if (mod === undefined){
+    if (mod === undefined) {
       this.logger.info(`Couldn't find module ${inst.typeRef} for completions`)
       return []
     }
-    
+
     let ports = (await mod.getSymbols()).filter(
-      (sym) => (sym.type === 'port' || sym.type === 'parameter') && sym.parentScope == inst.typeRef
+      (sym) => (sym.type === 'port' || sym.type === 'parameter') && sym.parentScope === inst.typeRef
     )
-    return ports.map(
-      (sym) => sym.getCompletionItem()
-    )
-  
+    return ports.map((sym) => sym.getCompletionItem())
   }
 
   async provideCompletionItems(
