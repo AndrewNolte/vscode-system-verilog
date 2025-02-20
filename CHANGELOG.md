@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased
+- Added fading unused variables reported by slang.
+
 ## [24.11.0] - 2024-11-05
 - Prevent file base names from being recognized as a hierarchical path.
 - Improved completions:

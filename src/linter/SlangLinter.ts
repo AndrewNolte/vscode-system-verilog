@@ -74,16 +74,28 @@ export default class SlangLinter extends BaseLinter {
       }
       n += 2
 
+      let code = rex[7] ? rex[7] : 'error'
+
+      let tags = []
+
+      let severity = this.convertToSeverity(rex[4])
+
+      if (code.startsWith("unused")) {
+        tags.push(vscode.DiagnosticTag.Unnecessary)
+        severity = vscode.DiagnosticSeverity.Hint
+      }
+
       diags.push({
         file: filePath,
-        severity: this.convertToSeverity(rex[4]),
+        severity: severity,
         range: new vscode.Range(
           new vscode.Position(lineNum, begin),
           new vscode.Position(lineNum, end)
         ),
         message: msg,
-        code: rex[7] ? rex[7] : 'error',
+        code: code,
         source: 'slang',
+        tags: tags
       })
     }
 
