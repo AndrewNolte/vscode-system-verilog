@@ -75,7 +75,7 @@ export default class SlangLinter extends BaseLinter {
       n += 2
       const slangSeverity = rex[4]
 
-      const diag = {
+      const diag: FileDiagnostic = {
         file: filePath,
         severity: this.convertToSeverity(slangSeverity),
         range: new vscode.Range(
@@ -106,6 +106,18 @@ export default class SlangLinter extends BaseLinter {
         }
       } else {
         nonNoteDiag = diag
+
+        if (
+          rex[7] &&
+          rex[7].startsWith('unused-') &&
+          !rex[7].startsWith('unused-config') &&
+          !rex[7].startsWith('unused-but')
+        ) {
+          diag.tags = [vscode.DiagnosticTag.Unnecessary]
+          if (diag.severity === vscode.DiagnosticSeverity.Warning) {
+            diag.severity = vscode.DiagnosticSeverity.Hint
+          }
+        }
       }
 
       diags.push(diag)
