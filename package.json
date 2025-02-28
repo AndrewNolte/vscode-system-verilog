@@ -675,6 +675,14 @@
           "description": "Enable this Language Server",
           "type": "boolean"
         },
+        "verilog.languageServer.svls.args": {
+          "default": [],
+          "description": "Arguments to pass to the server",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "verilog.languageServer.svls.path": {
           "default": "svls",
           "description": "",
@@ -684,6 +692,14 @@
           "default": false,
           "description": "Enable this Language Server",
           "type": "boolean"
+        },
+        "verilog.languageServer.veridian.args": {
+          "default": [],
+          "description": "Arguments to pass to the server",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         },
         "verilog.languageServer.veridian.path": {
           "default": "veridian",
@@ -695,6 +711,14 @@
           "description": "Enable this Language Server",
           "type": "boolean"
         },
+        "verilog.languageServer.veribleVerilogLs.args": {
+          "default": [],
+          "description": "Arguments to pass to the server",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "verilog.languageServer.veribleVerilogLs.path": {
           "default": "verible-verilog-ls",
           "description": "",
@@ -704,6 +728,14 @@
           "default": false,
           "description": "Enable this Language Server",
           "type": "boolean"
+        },
+        "verilog.languageServer.slang.args": {
+          "default": [],
+          "description": "Arguments to pass to the server",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         },
         "verilog.languageServer.slang.path": {
           "default": "slang-server",

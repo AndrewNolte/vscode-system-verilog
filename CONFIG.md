@@ -406,6 +406,11 @@
     Enable this Language Server
 
 
+- `verilog.languageServer.svls.args`: array = []
+
+    Arguments to pass to the server
+
+
 - `verilog.languageServer.svls.path`: string = "svls"
 
     
@@ -414,6 +419,11 @@
 - `verilog.languageServer.veridian.enabled`: boolean = false
 
     Enable this Language Server
+
+
+- `verilog.languageServer.veridian.args`: array = []
+
+    Arguments to pass to the server
 
 
 - `verilog.languageServer.veridian.path`: string = "veridian"
@@ -426,6 +436,11 @@
     Enable this Language Server
 
 
+- `verilog.languageServer.veribleVerilogLs.args`: array = []
+
+    Arguments to pass to the server
+
+
 - `verilog.languageServer.veribleVerilogLs.path`: string = "verible-verilog-ls"
 
     
@@ -434,6 +449,11 @@
 - `verilog.languageServer.slang.enabled`: boolean = false
 
     Enable this Language Server
+
+
+- `verilog.languageServer.slang.args`: array = []
+
+    Arguments to pass to the server
 
 
 - `verilog.languageServer.slang.path`: string = "slang-server"

@@ -23,21 +23,21 @@ export class LanguageServerComponent extends ExtensionComponent {
 
   initAllLanguageClients() {
     // init svls
-    this.svls.setupLanguageClient([], ['--debug'], {
+    this.svls.setupLanguageClient([], {
       documentSelector: systemverilogSelector,
     })
 
     // init veridian
-    this.veridian.setupLanguageClient([], [], {
+    this.veridian.setupLanguageClient([], {
       documentSelector: systemverilogSelector,
     })
 
     // init verible-verilog-ls
-    this.veribleVerilogLs.setupLanguageClient([], [], {
+    this.veribleVerilogLs.setupLanguageClient([], {
       documentSelector: anyVerilogSelector,
     })
 
-    this.slang.setupLanguageClient([], [], {
+    this.slang.setupLanguageClient([], {
       documentSelector: anyVerilogSelector,
     })
   }
@@ -59,6 +59,10 @@ class BaseLanguageServer extends ExtensionComponent {
     description: 'Enable this Language Server',
   })
   path: ConfigObject<string>
+  args: ConfigObject<string[]> = new ConfigObject({
+    default: [],
+    description: 'Arguments to pass to the server',
+  })
   toolName: string
   constructor(toolName: string) {
     super()
@@ -72,7 +76,6 @@ class BaseLanguageServer extends ExtensionComponent {
   async activate(_context: vscode.ExtensionContext): Promise<void> {}
 
   setupLanguageClient(
-    serverArgs: string[],
     serverDebugArgs: string[],
     clientOptions: LanguageClientOptions
   ): LanguageClient | undefined {
@@ -84,16 +87,11 @@ class BaseLanguageServer extends ExtensionComponent {
     }
 
     let serverOptions: ServerOptions = {
-      run: { command: binPath, args: serverArgs },
+      run: { command: binPath, args: this.args.getValue() },
       debug: { command: binPath, args: serverDebugArgs },
     }
 
-    let lc = new LanguageClient(
-      this.toolName,
-      this.toolName + ' language server',
-      serverOptions,
-      clientOptions
-    )
+    let lc = new LanguageClient(this.toolName, this.toolName, serverOptions, clientOptions)
 
     lc.start()
     this.logger.info(`${this.toolName} language server started`)
