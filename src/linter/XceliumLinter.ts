@@ -16,7 +16,8 @@ class VerilogFileLink extends vscode.TerminalLink {
 
 export default class XceliumLinter
   extends BaseLinter
-  implements vscode.TerminalLinkProvider<VerilogFileLink> {
+  implements vscode.TerminalLinkProvider<VerilogFileLink>
+{
   // error code -> regex for extracting package name
   pkgDiags: Map<string, RegExp>
   constructor(name: string) {
@@ -144,14 +145,12 @@ export default class XceliumLinter
     const re = /(.+?):\s\*(\w+),(\w+)\s\(([^,]+),(\d+)\|(\d+)\):\s(.*)$/
     let lines = args.stdout.split(/\r?\n/g)
     for (let n = 0; n < lines.length; n++) {
-      console.log('testing', lines[n])
       let line = lines[n]
 
       let rex = line.match(re)
       if (rex === null) {
         continue
       }
-      console.log(rex)
 
       if (!rex || rex[0].length === 0) {
         this.logger.warn('[xcelium] failed to parse error: ' + line)
