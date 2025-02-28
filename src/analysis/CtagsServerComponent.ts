@@ -2,7 +2,7 @@
 import * as vscode from 'vscode'
 import { ext } from '../extension'
 import { InlayPorts } from '../InlayHintsComponent'
-import { ExtensionComponent } from '../lib/libconfig'
+import { ExtensionComponent, ConfigObject, PathConfigObject } from '../lib/libconfig'
 import { anyVerilogSelector, getParentText, getPrev2Char, getPrevChar } from '../utils'
 import builtins from './builtins.json'
 import { Symbol } from './Symbol'
@@ -16,12 +16,38 @@ export class CtagsServerComponent
     vscode.HoverProvider,
     vscode.InlayHintsProvider
 {
+  enabled: ConfigObject<boolean> = new ConfigObject({
+    default: true,
+    description: 'Enable ctags indexing',
+  })
+
+  path: PathConfigObject = new PathConfigObject(
+    {
+      description: 'Path to ctags universal executable',
+    },
+    {
+      windows: 'ctags.exe',
+      linux: 'ctags-universal',
+      mac: 'ctags',
+    }
+  )
+
+  indexAllIncludes: ConfigObject<boolean> = new ConfigObject({
+    default: false,
+    description: '(Deprecated) Use `verilog.index.IndexAllIncludes` instead',
+  })
+
   builtinsPath: string | undefined
   builtinCompletions: Map<string, vscode.CompletionItem> = new Map()
   builtinHovers: Map<string, vscode.Hover> = new Map()
 
   async activate(context: vscode.ExtensionContext) {
     // push provider subs to .v and .sv files
+    if (this.enabled.getValue() === false) {
+      this.logger.info('Ctags indexing disabled, skipping registration')
+      return
+    }
+    this.loadBuiltins()
     context.subscriptions.push(
       vscode.languages.registerDocumentSymbolProvider(anyVerilogSelector, this)
     )

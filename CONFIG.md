@@ -10,6 +10,11 @@
     Whether to index all .svh files
 
 
+- `verilog.ctags.enabled`: boolean = true
+
+    Enable ctags indexing
+
+
 - `verilog.ctags.path`: path
 
   Platform Defaults:

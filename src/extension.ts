@@ -6,7 +6,6 @@ import * as child_process from 'child_process'
 import { glob } from 'glob'
 import path from 'path'
 import { promisify } from 'util'
-import { CtagsComponent } from './analysis/CtagsComponent'
 import { CtagsServerComponent } from './analysis/CtagsServerComponent'
 import { SystemVerilogFormatProvider, VerilogFormatProvider } from './FormatProvider'
 import { IncludeConfig } from './IncludeConfig'
@@ -45,7 +44,7 @@ export enum VerilogStandard {
 export class VerilogExtension extends ActivityBarComponent {
   /// Important components to load first
   index: IndexComponent = new IndexComponent()
-  ctags: CtagsComponent = new CtagsComponent()
+  ctags: CtagsServerComponent = new CtagsServerComponent()
 
   ////////////////////////////////////////////////
   /// top level configs
@@ -100,7 +99,6 @@ export class VerilogExtension extends ActivityBarComponent {
 
   languageServer: LanguageServerComponent = new LanguageServerComponent()
 
-  ctagsServer: CtagsServerComponent = new CtagsServerComponent()
   inlayHints: InlayHintsComponent = new InlayHintsComponent()
 
   ////////////////////////////////////////////////
@@ -111,6 +109,10 @@ export class VerilogExtension extends ActivityBarComponent {
       title: 'Reindex',
     },
     async () => {
+      if (this.ctags.enabled.getValue() === false) {
+        vscode.window.showErrorMessage('`verilog.ctags.enabled` == false, not indexing...')
+        return
+      }
       this.indexFiles(true)
         .then(() => {
           vscode.window.showInformationMessage('Reindexing complete')
@@ -288,7 +290,7 @@ export class VerilogExtension extends ActivityBarComponent {
 
     // let ctags index include files
 
-    let tasks = [this.indexFiles(), this.ctagsServer.loadBuiltins()]
+    let tasks = [this.indexFiles()]
     await Promise.all(tasks)
 
     this.logger.info(`${context.extension.id} activation finished.`)
@@ -302,6 +304,11 @@ export class VerilogExtension extends ActivityBarComponent {
 
   private async indexFiles(reset: boolean = false) {
     if (!(await this.ctags.path.checkPathNotify())) {
+      return
+    }
+
+    if (this.ctags.enabled.getValue() === false) {
+      this.logger.info('ctags disabled, not indexing')
       return
     }
 
@@ -377,6 +384,6 @@ export async function activate(context: vscode.ExtensionContext) {
   await ext.activateExtension('verilog', 'Verilog', context, [
     'mshr-h.veriloghdl',
     'eirikpre.systemverilog',
-    'IMCTradingBV.svlangserver'
+    'IMCTradingBV.svlangserver',
   ])
 }

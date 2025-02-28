@@ -307,6 +307,11 @@
           "description": "Whether to index all .svh files",
           "type": "boolean"
         },
+        "verilog.ctags.enabled": {
+          "default": true,
+          "description": "Enable ctags indexing",
+          "type": "boolean"
+        },
         "verilog.ctags.path": {
           "description": "Path to ctags universal executable",
           "default": "",

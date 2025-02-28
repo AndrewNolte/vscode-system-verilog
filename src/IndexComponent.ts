@@ -197,12 +197,12 @@ export class IndexComponent extends ExtensionComponent {
   }
 
   getVerilogDoc(doc: vscode.TextDocument): VerilogDoc {
-    let ctags: VerilogDoc | undefined = this.filemap.get(doc)
-    if (ctags === undefined) {
-      ctags = new VerilogDoc(this.logger, doc)
-      this.filemap.set(doc, ctags)
+    let vdoc: VerilogDoc | undefined = this.filemap.get(doc)
+    if (vdoc === undefined) {
+      vdoc = new VerilogDoc(this.logger, doc)
+      this.filemap.set(doc, vdoc)
     }
-    return ctags
+    return vdoc
   }
 
   async findFile(moduleName: string): Promise<vscode.TextDocument | undefined> {
@@ -264,7 +264,7 @@ export class IndexComponent extends ExtensionComponent {
         insts = insts.filter((inst) => inst.getFullRange().contains(position))
         if (insts.length > 0 && insts[0].typeRef !== null) {
           verilogDoc.hoverSet.add(insts[0].name)
-          ext.ctagsServer.onDidChangeInlayHintsEmitter.fire()
+          ext.ctags.onDidChangeInlayHintsEmitter.fire()
           return await this.findDefinitionByName(insts[0].typeRef, targetText)
         }
       } else if (parentScope !== undefined) {
