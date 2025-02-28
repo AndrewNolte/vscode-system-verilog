@@ -139,11 +139,13 @@ export default abstract class BaseLinter extends ToolConfig {
       for (const [file, diagnostics] of fmap.entries()) {
         let uri: vscode.Uri
         if (file.includes('sv_cache')) {
-          uri = vscode.Uri.joinPath(wsUri, file)
-        } else if (!file.startsWith(wsUri.fsPath)) {
           // resolve symlink
           uri = ext.index.findModuleUri(file) ?? vscode.Uri.file(await realpath(file))
+        } else if (!file.startsWith(wsUri.fsPath)) {
+          // relative to wsUri
+          uri = vscode.Uri.joinPath(wsUri, file)
         } else {
+          // abs path
           uri = vscode.Uri.file(file)
         }
         this.diagnostics.set(uri, diagnostics)
