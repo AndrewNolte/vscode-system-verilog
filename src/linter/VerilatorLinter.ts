@@ -3,7 +3,6 @@ import * as vscode from 'vscode'
 import { ext } from '../extension'
 import { FileDiagnostic, isSystemVerilog } from '../utils'
 import BaseLinter from './BaseLinter'
-import * as path from 'path'
 
 export default class VerilatorLinter extends BaseLinter {
   constructor(name: string) {
