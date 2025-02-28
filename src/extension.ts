@@ -19,7 +19,7 @@ import {
   ViewContainerSpec,
 } from './lib/libconfig'
 import LintManager from './linter/LintManager'
-import { LanguageServerComponent } from './LSComponent'
+import { LanguageServerComponent, LanguageServers } from './LSComponent'
 import { ProjectComponent } from './sidebar/ProjectComponent'
 import { getWorkspaceFolder, pathFilename, zip } from './utils'
 const asyncGlob = promisify(glob)
@@ -109,10 +109,6 @@ export class VerilogExtension extends ActivityBarComponent {
       title: 'Reindex',
     },
     async () => {
-      if (this.ctags.enabled.getValue() === false) {
-        vscode.window.showErrorMessage('`verilog.ctags.enabled` == false, not indexing...')
-        return
-      }
       this.indexFiles(true)
         .then(() => {
           vscode.window.showInformationMessage('Reindexing complete')
@@ -307,20 +303,19 @@ export class VerilogExtension extends ActivityBarComponent {
       return
     }
 
-    if (this.ctags.enabled.getValue() === false) {
-      this.logger.info('ctags disabled, not indexing')
-      return
+    if (this.ctagsEnabled()) {
+      this.index
+        .indexIncludes(reset)
+        .then(() => {
+          this.logger.info('ctags index includes finished')
+        })
+        .catch((err) => {
+          this.logger.error('ctags index includes failed:')
+          this.logger.error(err)
+        })
+    } else {
+      this.logger.info('ctags disabled, not indexing includes')
     }
-
-    this.index
-      .indexIncludes(reset)
-      .then(() => {
-        this.logger.info('ctags index includes finished')
-      })
-      .catch((err) => {
-        this.logger.error('ctags index includes failed:')
-        this.logger.error(err)
-      })
 
     // index all files (symlinks in .sv_cache/files + in memory cache)
     this.index
@@ -332,6 +327,15 @@ export class VerilogExtension extends ActivityBarComponent {
         this.logger.error('index files failed:')
         this.logger.error(err)
       })
+  }
+
+  ctagsEnabled(): boolean {
+    return this.languageServer.server.getValue() === LanguageServers.Ctags
+  }
+
+  // TODO: may need this to disable slang linting so we don't get double
+  slangServerEnabled(): boolean {
+    return this.languageServer.server.getValue() === LanguageServers.Slang
   }
 
   public async findFiles(globs: string[]): Promise<vscode.Uri[]> {
@@ -370,9 +374,9 @@ export class VerilogExtension extends ActivityBarComponent {
   }
 }
 
-export function deactivate(): Promise<void> {
+export async function deactivate(): Promise<void> {
   ext.logger.info('Deactivated')
-  return ext.languageServer.stopAllLanguageClients()
+  await ext.languageServer.stop()
 }
 
 export async function activate(context: vscode.ExtensionContext) {

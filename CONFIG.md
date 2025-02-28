@@ -10,11 +10,6 @@
     Whether to index all .svh files
 
 
-- `verilog.ctags.enabled`: boolean = true
-
-    Enable ctags indexing
-
-
 - `verilog.ctags.path`: path
 
   Platform Defaults:
@@ -401,64 +396,30 @@
     - istyle-format
     - verible-verilog-format
 
-- `verilog.languageServer.svls.enabled`: boolean = false
+- `verilog.languageServer.path`: string = ""
 
-    Enable this Language Server
-
-
-- `verilog.languageServer.svls.args`: array = []
-
-    Arguments to pass to the server
+    Path to the language server
 
 
-- `verilog.languageServer.svls.path`: string = "svls"
+- `verilog.languageServer.server`: string = "ctags"
 
-    
+    Selected Language server
 
+    Options:
+    - ctags
+    - slang-server
+    - svls
+    - veridian
+    - verible-verilog-ls
 
-- `verilog.languageServer.veridian.enabled`: boolean = false
-
-    Enable this Language Server
-
-
-- `verilog.languageServer.veridian.args`: array = []
+- `verilog.languageServer.args`: array = []
 
     Arguments to pass to the server
 
 
-- `verilog.languageServer.veridian.path`: string = "veridian"
+- `verilog.languageServer.debugArgs`: array = []
 
-    
-
-
-- `verilog.languageServer.veribleVerilogLs.enabled`: boolean = false
-
-    Enable this Language Server
-
-
-- `verilog.languageServer.veribleVerilogLs.args`: array = []
-
-    Arguments to pass to the server
-
-
-- `verilog.languageServer.veribleVerilogLs.path`: string = "verible-verilog-ls"
-
-    
-
-
-- `verilog.languageServer.slang.enabled`: boolean = false
-
-    Enable this Language Server
-
-
-- `verilog.languageServer.slang.args`: array = []
-
-    Arguments to pass to the server
-
-
-- `verilog.languageServer.slang.path`: string = "slang-server"
-
-    
+    Arguments to pass to the server when debugging
 
 
 - `verilog.inlayHints.wildcardPorts`: string = "on"

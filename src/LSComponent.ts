@@ -1,100 +1,110 @@
 import * as vscode from 'vscode'
 import { LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient/node'
-import { ConfigObject, ExtensionComponent } from './lib/libconfig'
+import { CommandNode, ConfigObject, ExtensionComponent } from './lib/libconfig'
 import { anyVerilogSelector, systemverilogSelector } from './utils'
 
-export class LanguageServerComponent extends ExtensionComponent {
-  languageClients = new Map<string, LanguageClient>()
-
-  svls: BaseLanguageServer = new BaseLanguageServer('svls')
-  veridian: BaseLanguageServer = new BaseLanguageServer('veridian')
-  veribleVerilogLs: BaseLanguageServer = new BaseLanguageServer('verible-verilog-ls')
-  slang: BaseLanguageServer = new BaseLanguageServer('slang-server')
-
-  async activate(context: vscode.ExtensionContext) {
-    this.initAllLanguageClients()
-    context.subscriptions.push(
-      this.onConfigUpdated(async () => {
-        await this.stopAllLanguageClients()
-        this.initAllLanguageClients()
-      })
-    )
-  }
-
-  initAllLanguageClients() {
-    // init svls
-    this.svls.setupLanguageClient([], {
-      documentSelector: systemverilogSelector,
-    })
-
-    // init veridian
-    this.veridian.setupLanguageClient([], {
-      documentSelector: systemverilogSelector,
-    })
-
-    // init verible-verilog-ls
-    this.veribleVerilogLs.setupLanguageClient([], {
-      documentSelector: anyVerilogSelector,
-    })
-
-    this.slang.setupLanguageClient([], {
-      documentSelector: anyVerilogSelector,
-    })
-  }
-
-  async stopAllLanguageClients(): Promise<any> {
-    var p = []
-    for (const [name, client] of this.languageClients) {
-      if (client.isRunning()) {
-        p.push(client.stop())
-        this.logger.info('"' + name + '" language server stopped.')
-      }
-    }
-    return Promise.all(p)
-  }
+export enum LanguageServers {
+  Ctags = 'ctags',
+  Slang = 'slang-server',
+  Svls = 'svls',
+  Veridian = 'veridian',
+  VeribleVerilogLs = 'verible-verilog-ls',
 }
-class BaseLanguageServer extends ExtensionComponent {
-  enabled: ConfigObject<boolean> = new ConfigObject({
-    default: false,
-    description: 'Enable this Language Server',
+
+// map from enum to client options
+const languageServerOptions: Record<LanguageServers, LanguageClientOptions> = {
+  [LanguageServers.Ctags]: {
+    documentSelector: anyVerilogSelector,
+  },
+  [LanguageServers.Slang]: {
+    documentSelector: anyVerilogSelector,
+  },
+  [LanguageServers.Svls]: {
+    documentSelector: systemverilogSelector,
+  },
+  [LanguageServers.Veridian]: {
+    documentSelector: systemverilogSelector,
+  },
+  [LanguageServers.VeribleVerilogLs]: {
+    documentSelector: anyVerilogSelector,
+  },
+}
+
+export class LanguageServerComponent extends ExtensionComponent {
+  path: ConfigObject<string> = new ConfigObject({
+    default: '',
+    description: 'Path to the language server',
   })
-  path: ConfigObject<string>
+  server: ConfigObject<LanguageServers> = new ConfigObject({
+    enum: Object.values(LanguageServers),
+    default: LanguageServers.Ctags,
+    description: 'Selected Language server',
+  })
+
   args: ConfigObject<string[]> = new ConfigObject({
     default: [],
     description: 'Arguments to pass to the server',
   })
-  toolName: string
-  constructor(toolName: string) {
-    super()
-    this.toolName = toolName
-    this.path = new ConfigObject({
-      default: toolName,
-      description: '',
-    })
+
+  debugArgs: ConfigObject<string[]> = new ConfigObject({
+    default: [],
+    description: 'Arguments to pass to the server when debugging',
+  })
+
+  restartLanguageServer: CommandNode = new CommandNode(
+    {
+      title: 'Restart Language Server',
+    },
+    async () => {
+      if (this.client === undefined) {
+        await vscode.window.showErrorMessage('To restart Ctags, reload the window.')
+        return
+      }
+
+      if (!this.client.isRunning()) {
+        await vscode.window.showErrorMessage('Language server is not running.')
+        return
+      }
+      await this.client.restart()
+      this.logger.info('"' + this.client.name + '" language server restarted')
+    }
+  )
+
+  client: LanguageClient | undefined
+
+  async activate(context: vscode.ExtensionContext) {
+    context.subscriptions.push(
+      this.onConfigUpdated(async () => {
+        if (this.client !== undefined) {
+          await this.client.stop()
+          await this.setupLanguageClient()
+        }
+      })
+    )
+    await this.setupLanguageClient()
   }
 
-  async activate(_context: vscode.ExtensionContext): Promise<void> {}
-
-  setupLanguageClient(
-    serverDebugArgs: string[],
-    clientOptions: LanguageClientOptions
-  ): LanguageClient | undefined {
-    let enabled: boolean = this.enabled.getValue()
-    let binPath = this.path.getValue()
-
-    if (!enabled) {
-      return undefined
+  async stop() {
+    if (this.client !== undefined) {
+      await this.client.stop()
+      this.client = undefined
     }
+  }
 
-    let serverOptions: ServerOptions = {
-      run: { command: binPath, args: this.args.getValue() },
-      debug: { command: binPath, args: serverDebugArgs },
+  async setupLanguageClient(): Promise<void> {
+    const selection = this.server.getValue()
+    if (selection === LanguageServers.Ctags) {
+      this.logger.info('Ctags language server selected... no server to client to set up')
+      return
     }
+    const serverOptions: ServerOptions = {
+      run: { command: this.path.getValue(), args: this.args.getValue() },
+      debug: { command: this.path.getValue(), args: this.debugArgs.getValue() },
+    }
+    const clientOptions = languageServerOptions[selection]
 
-    let lc = new LanguageClient(this.toolName, this.toolName, serverOptions, clientOptions)
-
-    lc.start()
-    this.logger.info(`${this.toolName} language server started`)
-    return lc
+    this.client = new LanguageClient(selection, selection, serverOptions, clientOptions)
+    await this.client.start()
+    this.logger.info(`${selection} language server started`)
   }
 }

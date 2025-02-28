@@ -16,11 +16,6 @@ export class CtagsServerComponent
     vscode.HoverProvider,
     vscode.InlayHintsProvider
 {
-  enabled: ConfigObject<boolean> = new ConfigObject({
-    default: true,
-    description: 'Enable ctags indexing',
-  })
-
   path: PathConfigObject = new PathConfigObject(
     {
       description: 'Path to ctags universal executable',
@@ -43,7 +38,7 @@ export class CtagsServerComponent
 
   async activate(context: vscode.ExtensionContext) {
     // push provider subs to .v and .sv files
-    if (this.enabled.getValue() === false) {
+    if (!ext.ctagsEnabled()) {
       this.logger.info('Ctags indexing disabled, skipping registration')
       return
     }
