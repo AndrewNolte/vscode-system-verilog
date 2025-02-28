@@ -3,6 +3,7 @@ import * as vscode from 'vscode'
 import { ext } from '../extension'
 import { FileDiagnostic, isSystemVerilog } from '../utils'
 import BaseLinter from './BaseLinter'
+import * as path from 'path'
 
 export default class VerilatorLinter extends BaseLinter {
   constructor(name: string) {
@@ -56,6 +57,7 @@ export default class VerilatorLinter extends BaseLinter {
   }
 
   protected parseDiagnostics(args: {
+    wsUri: vscode.Uri
     doc: vscode.TextDocument
     stdout: string
     stderr: string
@@ -87,6 +89,17 @@ export default class VerilatorLinter extends BaseLinter {
       let elen = pline.length - pindex
       n += 2
       /// right index
+
+      //Convert to abs paths in case that verilator outputs relative paths
+      if (!path.isAbsolute(file)) {
+        file = path.resolve(args.wsUri.fsPath, file)
+      }
+      // check if parent is sv_cache/files
+      if (file.includes('sv_cache/files')) {
+        const filename = path.basename(file).split('.')[0]
+        file = ext.index.findModuleUri(filename)?.fsPath ?? file
+      }
+      file = path.normalize(file)
 
       if (!isNaN(lineNum)) {
         diagnostics.push({
