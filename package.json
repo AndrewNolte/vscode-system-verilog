@@ -2,7 +2,7 @@
   "name": "vscode-system-verilog",
   "displayName": "Verilog/SystemVerilog Tools",
   "description": "Verilog and SystemVerilog support including linting from popular tools, completions, formatting, and project level analysis.",
-  "version": "25.1.0",
+  "version": "25.2.0",
   "publisher": "AndrewNolte",
   "keywords": [
     "verilog",
