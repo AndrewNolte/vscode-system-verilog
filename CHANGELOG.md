@@ -1,6 +1,24 @@
 # Changelog
 
-## [24.11.0] - 2024-11-05
+## [25.0.0]
+- Fix bug with lint results not showing correctly for multi-level directories when using verilator as linter. (Thanks @AdorableMiku1015)
+- Slang
+  - Unused variable warnings so that they can be marked by the editor. Note if these are marked as errors they will stay errors. (Thanks @rskvprd)
+  - 'note' diagnostics are now parsed properly into the related content field, meaning the orignal lint location will now point to the note locations, and vice versa.
+
+  - Add option for slang-server (unreleased)
+- Language Servers
+  - Remove support for multiple language servers. If there's major pushback on this I'll revert, but I think most people that use this extension use the built in language server. Note that multiple linters are still allowed and will always be allowed, as this is extremely useful if you need multiple simulators to parse your code.
+  - Add command to restart the language server. This is super useful when developing one of the language servers.
+
+
+## [24.11.2]
+- Use +incdir+ for passing includes, as all tools support that format
+
+## [24.11.1]
+- Fix xcelium linter paths
+
+## [24.11.0]
 - Prevent file base names from being recognized as a hierarchical path.
 - Improved completions:
   - improved context for completions- type info is on every entry now
@@ -8,13 +26,13 @@
   - port/param completions show both now, as extension isn't able to get full edit buffer
 - Remove included surfer, https://marketplace.visualstudio.com/items?itemName=surfer-project.surfer supports FST now and is more up to date
 
-## [24.10.1] - 2024-10-24
+## [24.10.1]
 - Add Terminal Links for hierarchical paths. Clicking on one does a best effort of following the path, meaning if it can't find one symbol in the path, it'll stop at the latest one. It'll open that symbol in the editor, hierachical view, and instances view.
 - Add timeout to formatter
 - typing 'module' in comments no longer autocloses (https://github.com/AndrewNolte/vscode-system-verilog/issues/12)
 - remove instantiate module command- this is redundant because of the completion support
 
-## [24.10.0] - 2024-10-02
+## [24.10.0]
 - Switch to calendar versioning scheme (Y/M/PATCH)
 - Project View
   - Hierarchy view- rename, and add toggles for viewing elaboration params as well as one for ports/regs
@@ -112,7 +130,7 @@
 - Improve Verilator package resolution
   - Verilator requires packages be specified beforehand, so this will iterate the verilator lint step, prepending packages that it complains about. More work should be done on this to produce a topo sort of the packages
 - use execFile for ctags (no shell)
-- Add index component 
+- Add index component
   - symlink index (.sv_cache/files)
   - in-memory file index, makes everything much much snappier
 
