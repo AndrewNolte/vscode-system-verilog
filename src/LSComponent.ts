@@ -77,8 +77,8 @@ export class LanguageServerComponent extends ExtensionComponent {
       this.onConfigUpdated(async () => {
         if (this.client !== undefined) {
           await this.client.stop()
-          await this.setupLanguageClient()
         }
+        await this.setupLanguageClient()
       })
     )
     await this.setupLanguageClient()
