@@ -61,12 +61,8 @@ export class LanguageServerComponent extends ExtensionComponent {
         return
       }
 
-      if (!this.client.isRunning()) {
-        await vscode.window.showErrorMessage('Language server is not running.')
-        return
-      }
       await this.client.restart()
-      this.logger.info('"' + this.client.name + '" language server restarted')
+      this.logger.info('"' + this.client.name + '" language server started')
     }
   )
 
