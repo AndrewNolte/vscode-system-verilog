@@ -61,7 +61,11 @@ export class LanguageServerComponent extends ExtensionComponent {
         return
       }
 
-      await this.client.restart()
+      if (this.client.isRunning()) {
+        await this.client.restart()
+      } else {
+        await this.setupLanguageClient()
+      }
       this.logger.info('"' + this.client.name + '" language server started')
     }
   )
