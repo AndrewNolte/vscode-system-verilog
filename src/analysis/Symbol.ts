@@ -291,7 +291,7 @@ export class Symbol {
         return vscode.SymbolKind.Variable
       // Boolean uses a double headed arrow as symbol (kinda looks like a port)
       case 'port':
-        return vscode.SymbolKind.Boolean
+        return vscode.SymbolKind.Interface
       case 'register':
         return vscode.SymbolKind.Variable
       case 'task':
