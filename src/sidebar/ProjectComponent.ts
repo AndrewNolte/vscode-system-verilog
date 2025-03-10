@@ -12,25 +12,27 @@ import {
 // import { InstancesView, InstanceViewItem, ModuleItem } from './InstancesView'
 import * as slang from './SlangInterface'
 
+const STRUCTURE_SYMS = [slang.SlangKind.Instance, slang.SlangKind.Scope]
 export abstract class HierItem {
   getPath(): string {
     if (this.path !== undefined) {
       return this.path
     }
-    return this.parent!.getPath() + '.' + this.instName
+    return this.parent!.getPath() + '.' + this.inst.instName
   }
   // the symbol to get children from
   path: string | undefined
-  instName: string
-  instLoc: slang.Location
+  isVirtualLoc: boolean
+  inst: slang.Item
 
   parent: HierItem | undefined
   children: HierItem[] | undefined
 
   constructor(parent: HierItem | undefined, item: slang.Item) {
     this.parent = parent
-    this.instName = item.instName
-    this.instLoc = item.instLoc
+    this.inst = item
+    // blank uri- file://
+    this.isVirtualLoc = item.instLoc.uri.length === 7
   }
   async getChildren(): Promise<HierItem[]> {
     if (this.children === undefined) {
@@ -44,7 +46,7 @@ export abstract class HierItem {
   }
 
   async getTreeItem(): Promise<TreeItem> {
-    let item = new TreeItem(this.instName)
+    let item = new TreeItem(this.inst.instName)
     item.iconPath = new vscode.ThemeIcon('chip')
     return item
   }
@@ -73,6 +75,9 @@ function mapChildren(parent: HierItem, items: slang.Item[]): HierItem[] {
       case slang.SlangKind.Logic:
         res.push(new VarItem(parent, item as slang.Var))
         break
+      case slang.SlangKind.Scope:
+        res.push(new ScopeItem(parent, item as slang.Scope))
+        break
       default:
         vscode.window.showErrorMessage('Unknown item kind: ' + item.kind)
     }
@@ -85,28 +90,25 @@ async function getSlangChildren(parent: HierItem, path: string): Promise<HierIte
   return mapChildren(parent, items)
 }
 
-// abstract class ScopeItem extends HierItem {
-//   // queried from slang when expanded
+class ScopeItem extends HierItem {
+  // scopes come with children populated
+  inst: slang.Scope
 
-//   inst: slang.Instance
+  constructor(parent: HierItem | undefined, inst: slang.Scope) {
+    super(parent, inst)
+    this.inst = inst
+  }
 
-//   constructor(parent: HierItem | undefined, cData: slang.Instance) {
-//     super(parent, cData.instName)
-//     this.inst = inst
-//     this.children = undefined
-//   }
+  async _fetchChildren(): Promise<HierItem[]> {
+    return mapChildren(this, this.inst.children)
+  }
 
-//   async _fetchChildren(): Promise<HierItem[]> {
-//     if (this.children === undefined) {
-//       this.children = await slang.getScope(this.getPath())
-//     }
-//     let children = []
-//     for (let child of this.data.children) {
-//       children.push(new InstanceItem(this, child))
-//     }
-//     return children
-//   }
-// }
+  async getTreeItem(): Promise<TreeItem> {
+    let item = new TreeItem(this.inst.instName)
+    item.iconPath = new vscode.ThemeIcon('symbol-namespace')
+    return item
+  }
+}
 
 export class InstanceItem extends HierItem {
   // Used by instances tree view as well
@@ -142,20 +144,23 @@ export class RootItem extends InstanceItem {
   }
 
   getPath(): string {
-    return this.instName
+    return this.inst.instName
   }
   preOrderTraversal = HierItem.prototype.preOrderTraversal
 }
 
 class VarItem extends HierItem {
   inst: slang.Var
+  static PARAM_TYPES: slang.SlangKind[] = [slang.SlangKind.Param]
+  static DATA_TYPES: slang.SlangKind[] = [slang.SlangKind.Logic, slang.SlangKind.Port]
+
   constructor(parent: HierItem | undefined, instance: slang.Var) {
     super(parent, instance)
     this.inst = instance
   }
 
   async getTreeItem(): Promise<TreeItem> {
-    const item = new TreeItem(this.instName)
+    const item = new TreeItem(this.inst.instName)
     item.iconPath = new vscode.ThemeIcon('symbol-variable')
     item.description = ''
     switch (this.inst.kind) {
@@ -460,8 +465,8 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
       //   await this.treeView?.reveal(instance, { select: true, focus: true, expand: true })
       // }
       if (revealFile) {
-        vscode.window.showTextDocument(vscode.Uri.parse(instance.instLoc.uri), {
-          selection: instance.instLoc.range,
+        vscode.window.showTextDocument(vscode.Uri.parse(instance.inst.instLoc.uri), {
+          selection: instance.inst.instLoc.range,
         })
       }
       // if (revealInstance) {
@@ -516,51 +521,65 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
   // Symbol Filtering
   //////////////////////////////////////////////////////////////////
 
-  // symFilter: Set<string> = new Set<string>(STRUCTURE_SYMS)
-  // // params / localparams (constants)
-  // includeParams: boolean = false
-  // // ports / nets / registers (variables)
-  // includePorts: boolean = false
+  symFilter: Set<string> = new Set<string>(STRUCTURE_SYMS)
+  // params / localparams (constants)
+  includeParams: boolean = false
+  // ports / nets / registers (variables)
+  includeData: boolean = false
 
-  // toggleParams: ViewButton = new ViewButton(
-  //   {
-  //     title: 'Toggle Params',
-  //     icon: '$(symbol-type-parameter)',
-  //   },
-  //   async () => {
-  //     this.includeParams = !this.includeParams
-  //     if (this.includeParams) {
-  //       for (let type of VarItem.PARAM_TYPES) {
-  //         this.symFilter.add(type)
-  //       }
-  //     } else {
-  //       for (let type of VarItem.PARAM_TYPES) {
-  //         this.symFilter.delete(type)
-  //       }
-  //     }
-  //     this._onDidChangeTreeData.fire()
-  //   }
-  // )
+  // symbols hidden behind macros
+  includeHidden: boolean = false
 
-  // toggleData: ViewButton = new ViewButton(
-  //   {
-  //     title: 'Toggle Data',
-  //     icon: '$(symbol-variable)',
-  //   },
-  //   async () => {
-  //     this.includePorts = !this.includePorts
-  //     if (this.includePorts) {
-  //       for (let type of VarItem.DATA_TYPES) {
-  //         this.symFilter.add(type)
-  //       }
-  //     } else {
-  //       for (let type of VarItem.DATA_TYPES) {
-  //         this.symFilter.delete(type)
-  //       }
-  //     }
-  //     this._onDidChangeTreeData.fire()
-  //   }
-  // )
+  toggleParams: ViewButton = new ViewButton(
+    {
+      title: 'Toggle Params',
+      icon: '$(symbol-type-parameter)',
+    },
+    async () => {
+      this.includeParams = !this.includeParams
+      if (this.includeParams) {
+        for (let type of VarItem.PARAM_TYPES) {
+          this.symFilter.add(type)
+        }
+      } else {
+        for (let type of VarItem.PARAM_TYPES) {
+          this.symFilter.delete(type)
+        }
+      }
+      this._onDidChangeTreeData.fire()
+    }
+  )
+
+  toggleData: ViewButton = new ViewButton(
+    {
+      title: 'Toggle Data',
+      icon: '$(symbol-variable)',
+    },
+    async () => {
+      this.includeData = !this.includeData
+      if (this.includeData) {
+        for (let type of VarItem.DATA_TYPES) {
+          this.symFilter.add(type)
+        }
+      } else {
+        for (let type of VarItem.DATA_TYPES) {
+          this.symFilter.delete(type)
+        }
+      }
+      this._onDidChangeTreeData.fire()
+    }
+  )
+
+  toggleHidden: ViewButton = new ViewButton(
+    {
+      title: 'Toggle Hidden',
+      icon: '$(eye)',
+    },
+    async () => {
+      this.includeHidden = !this.includeHidden
+      this._onDidChangeTreeData.fire()
+    }
+  )
 
   //////////////////////////////////////////////////////////////////
   // Inline Item Buttons
@@ -676,7 +695,11 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
       return [this.top]
     }
     const children = await element.getChildren()
-    return children
+    const filtered = children.filter((child) => this.symFilter.has(child.inst.kind))
+    if (this.includeHidden) {
+      return filtered
+    }
+    return filtered.filter((child) => !child.isVirtualLoc)
   }
 
   getParent(element: HierItem): HierItem | undefined {

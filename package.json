@@ -734,17 +734,6 @@
     },
     "commands": [
       {
-        "command": "verilog.project.instancesView.copyHierarchyPath",
-        "title": "Copy Path",
-        "inlineContext": [
-          "Instance"
-        ],
-        "icon": {
-          "light": "./resources/light/files.svg",
-          "dark": "./resources/dark/files.svg"
-        }
-      },
-      {
         "command": "verilog.project.setTopLevel",
         "title": "Set Top Level",
         "shortTitle": "Set Top",
@@ -755,32 +744,9 @@
         "icon": "$(chip)"
       },
       {
-        "command": "verilog.project.setInstanceByFile",
-        "title": "Select Instance",
-        "icon": "$(symbol-class)",
-        "languages": [
-          "verilog",
-          "systemverilog"
-        ]
-      },
-      {
         "command": "verilog.project.clearTopLevel",
         "title": "Clear Top Level",
         "icon": "$(panel-close)"
-      },
-      {
-        "command": "verilog.project.selectTopLevel",
-        "title": "Select Top Level",
-        "icon": "$(folder-opened)"
-      },
-      {
-        "command": "verilog.project.setInstanceByPathInternal",
-        "title": "Set Instance",
-        "icon": "$(inspect)"
-      },
-      {
-        "command": "verilog.project.setInstanceByPath",
-        "title": "Verilog: Set Instance"
       },
       {
         "command": "verilog.project.setInstance",
@@ -801,6 +767,11 @@
         "command": "verilog.project.toggleData",
         "title": "Toggle Data",
         "icon": "$(symbol-variable)"
+      },
+      {
+        "command": "verilog.project.toggleHidden",
+        "title": "Toggle Hidden",
+        "icon": "$(eye)"
       },
       {
         "command": "verilog.project.showSourceFile",
@@ -864,10 +835,6 @@
         {
           "id": "verilog.project",
           "name": "Hierarchy"
-        },
-        {
-          "id": "verilog.project.instancesView",
-          "name": "Instances"
         }
       ]
     },
@@ -875,26 +842,12 @@
       {
         "view": "verilog.project",
         "contents": "[Select top level](command:verilog.project.selectTopLevel)"
-      },
-      {
-        "view": "verilog.project.instancesView",
-        "contents": "[Select top level](command:verilog.project.selectTopLevel)"
       }
     ],
     "menus": {
       "view/title": [
         {
           "command": "verilog.project.clearTopLevel",
-          "group": "navigation",
-          "when": "view == verilog.project"
-        },
-        {
-          "command": "verilog.project.selectTopLevel",
-          "group": "navigation",
-          "when": "view == verilog.project"
-        },
-        {
-          "command": "verilog.project.setInstanceByPathInternal",
           "group": "navigation",
           "when": "view == verilog.project"
         },
@@ -912,6 +865,11 @@
           "command": "verilog.project.toggleData",
           "group": "navigation",
           "when": "view == verilog.project"
+        },
+        {
+          "command": "verilog.project.toggleHidden",
+          "group": "navigation",
+          "when": "view == verilog.project"
         }
       ],
       "view/item/context": [
@@ -924,21 +882,11 @@
           "command": "verilog.project.copyHierarchyPath",
           "group": "inline",
           "when": "view == verilog.project"
-        },
-        {
-          "command": "verilog.project.instancesView.copyHierarchyPath",
-          "group": "inline",
-          "when": "view == verilog.project.instancesView && viewItem == Instance"
         }
       ],
       "editor/title": [
         {
           "command": "verilog.project.setTopLevel",
-          "when": "resourceLangId == verilog || resourceLangId == systemverilog",
-          "group": "navigation"
-        },
-        {
-          "command": "verilog.project.setInstanceByFile",
           "when": "resourceLangId == verilog || resourceLangId == systemverilog",
           "group": "navigation"
         },
