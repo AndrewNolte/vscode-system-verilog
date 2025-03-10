@@ -120,6 +120,11 @@ export class VerilogExtension extends ActivityBarComponent {
     }
   )
 
+  buildfGlob: ConfigObject<string> = new ConfigObject({
+    default: '',
+    description: 'Glob for finding build.f files',
+  })
+
   fixModules: CommandNode = new CommandNode(
     {
       title: 'Fix file names to match module names',
@@ -218,13 +223,18 @@ export class VerilogExtension extends ActivityBarComponent {
       icon: '$(open-preview)',
     },
     async () => {
-      if (ext.expandMacroScript.getValue() === '') {
-        vscode.window.showErrorMessage('`verilog.expandMacroScript` not provided')
-        return
-      }
       let doc = vscode.window.activeTextEditor?.document
       if (doc === undefined) {
         vscode.window.showErrorMessage('Open a verilog document to expand macros')
+        return
+      }
+      if (this.slangServerEnabled()) {
+        await vscode.commands.executeCommand('slang.expandMacros', doc.uri.fsPath)
+        return
+      }
+
+      if (ext.expandMacroScript.getValue() === '') {
+        vscode.window.showErrorMessage('`verilog.expandMacroScript` not provided')
         return
       }
       let expDir = this.expandDir
@@ -338,7 +348,7 @@ export class VerilogExtension extends ActivityBarComponent {
     return this.languageServer.server.getValue() === LanguageServers.Slang
   }
 
-  public async findFiles(globs: string[]): Promise<vscode.Uri[]> {
+  public async findFiles(globs: string[], useGlob = false): Promise<vscode.Uri[]> {
     let ws = getWorkspaceFolder()
     if (ws === undefined) {
       return []
@@ -349,6 +359,8 @@ export class VerilogExtension extends ActivityBarComponent {
       let ret: vscode.Uri[]
       if (path.isAbsolute(str)) {
         ret = (await asyncGlob(str)).map((p) => vscode.Uri.file(p))
+      } else if (useGlob) {
+        ret = (await asyncGlob(path.join(ws, str))).map((p) => vscode.Uri.file(p))
       } else {
         ret = await vscode.workspace.findFiles(new vscode.RelativePattern(ws, str), exclude)
       }

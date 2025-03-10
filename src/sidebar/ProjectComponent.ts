@@ -1,7 +1,6 @@
 import * as vscode from 'vscode'
 import { TreeDataProvider, TreeItem } from 'vscode'
-import { selectModule, selectModuleGlobal } from '../analysis/ModuleSelection'
-import { Symbol } from '../analysis/Symbol'
+import { selectModule } from '../analysis/ModuleSelection'
 import { ext } from '../extension'
 import {
   CommandNode,
@@ -10,183 +9,204 @@ import {
   ViewButton,
   ViewComponent,
 } from '../lib/libconfig'
-import { InstancesView, InstanceViewItem, ModuleItem } from './InstancesView'
+// import { InstancesView, InstanceViewItem, ModuleItem } from './InstancesView'
+import * as slang from './SlangInterface'
 
 export abstract class HierItem {
   getPath(): string {
     if (this.path !== undefined) {
       return this.path
     }
-    return this.parent!.getPath() + '.' + this.instance.name
+    return this.parent!.getPath() + '.' + this.instName
   }
   // the symbol to get children from
-  instance: Symbol
   path: string | undefined
+  instName: string
+  instLoc: slang.Location
+
   parent: HierItem | undefined
   children: HierItem[] | undefined
-  constructor(parent: HierItem | undefined, instance: Symbol) {
+
+  constructor(parent: HierItem | undefined, item: slang.Item) {
     this.parent = parent
-    this.instance = instance
-    if (parent === undefined) {
-      this.path = this.instance.name
-    }
+    this.instName = item.instName
+    this.instLoc = item.instLoc
   }
   async getChildren(): Promise<HierItem[]> {
     if (this.children === undefined) {
-      this.children = await this._getChildren()
+      this.children = await this._fetchChildren()
     }
     return this.children
   }
 
-  async _getChildren(): Promise<HierItem[]> {
+  async _fetchChildren(): Promise<HierItem[]> {
     return []
   }
 
   async getTreeItem(): Promise<TreeItem> {
-    let item = new TreeItem(this.instance.name)
-    if (this.instance.typeRef !== null) {
-      item.label = item.label + ' : ' + this.instance.typeRef
-    }
-    item.iconPath = new vscode.ThemeIcon(this.instance.getIcon())
-    return item
-  }
-
-  async preOrderTraversal(fn: (item: HierItem) => void) {
-    fn(this)
-    for (let child of await this.getChildren()) {
-      await child.preOrderTraversal(fn)
-    }
-  }
-
-  hasChildren(): boolean {
-    return false
-  }
-}
-
-const EXCLUDED_SYMS = new Set<string>(['enum', 'typedef', 'assert', 'function'])
-
-abstract class ScopeItem extends HierItem {
-  async getChildrenFromSymbol(sym: Symbol): Promise<HierItem[]> {
-    if (sym.children.length === 0) {
-      return []
-    }
-    const childSyms = sym.children
-    const childItems = childSyms
-      .filter((child) => !EXCLUDED_SYMS.has(child.type))
-      // always blocks are not different from generate blocks here, so want to avoid them
-      .filter((child) => !(child.type === 'block' && child.children.length === 0))
-      .map(async (child) => {
-        if (child.type === 'block') {
-          return new InternalScopeItem(this, child)
-        } else if (child.type === 'instance') {
-          let def = await ext.index.findModuleSymbol(child.typeRef ?? '')
-          return new InstanceItem(this, child, def)
-        }
-        let def = undefined
-        if (child.typeRef !== undefined) {
-          def = childSyms.find((sym) => sym.name === child.typeRef)
-        }
-        return LogicItem.fromSymbol(this, child)
-      })
-    return await Promise.all(childItems)
-  }
-}
-
-export class InstanceItem extends ScopeItem {
-  // Used by instances tree view as well
-  definition: Symbol | undefined
-  constructor(parent: HierItem | undefined, instance: Symbol, definition: Symbol | undefined) {
-    super(parent, instance)
-    this.definition = definition
-  }
-  async getTreeItem(): Promise<vscode.TreeItem> {
-    let item = await super.getTreeItem()
-    item.contextValue = 'Module'
+    let item = new TreeItem(this.instName)
     item.iconPath = new vscode.ThemeIcon('chip')
     return item
   }
 
-  async _getChildren(): Promise<HierItem[]> {
-    if (this.definition === undefined) {
-      return []
-    }
-    return await this.getChildrenFromSymbol(this.definition)
-  }
-
-  hasChildren(): boolean {
-    if (this.definition === undefined) {
-      return false
-    }
-    return this.definition.children.filter((child) => !EXCLUDED_SYMS.has(child.type)).length > 0
-  }
   async preOrderTraversal(fn: (item: HierItem) => void) {
-    /// Guard against recursive modules
     fn(this)
-    if (this.parent instanceof InstanceItem && this.definition === this.parent!.definition) {
-      return
-    }
     for (let child of await this.getChildren()) {
       await child.preOrderTraversal(fn)
     }
   }
+
+  async hasChildren(): Promise<boolean> {
+    return false
+  }
 }
 
-class LogicItem extends HierItem {
-  static PARAM_TYPES = new Set<string>(['parameter', 'constant'])
-  static DATA_TYPES = new Set<string>(['port', 'net', 'register'])
-  constructor(parent: HierItem | undefined, instance: Symbol) {
-    super(parent, instance)
-  }
-  static fromSymbol(parent: HierItem | undefined, sym: Symbol): LogicItem {
-    if (LogicItem.PARAM_TYPES.has(sym.type)) {
-      return new ParamItem(parent, sym)
-    } else if (LogicItem.DATA_TYPES.has(sym.type)) {
-      return new DataItem(parent, sym)
+function mapChildren(parent: HierItem, items: slang.Item[]): HierItem[] {
+  const res = []
+  for (let item of items) {
+    switch (item.kind) {
+      case slang.SlangKind.Instance:
+        res.push(new InstanceItem(parent, item as slang.Instance))
+        break
+      case slang.SlangKind.Param:
+      case slang.SlangKind.Port:
+      case slang.SlangKind.Logic:
+        res.push(new VarItem(parent, item as slang.Var))
+        break
+      default:
+        vscode.window.showErrorMessage('Unknown item kind: ' + item.kind)
     }
-    return new LogicItem(parent, sym)
+  }
+  return res
+}
+
+async function getSlangChildren(parent: HierItem, path: string): Promise<HierItem[]> {
+  let items = await slang.getScope(path)
+  return mapChildren(parent, items)
+}
+
+// abstract class ScopeItem extends HierItem {
+//   // queried from slang when expanded
+
+//   inst: slang.Instance
+
+//   constructor(parent: HierItem | undefined, cData: slang.Instance) {
+//     super(parent, cData.instName)
+//     this.inst = inst
+//     this.children = undefined
+//   }
+
+//   async _fetchChildren(): Promise<HierItem[]> {
+//     if (this.children === undefined) {
+//       this.children = await slang.getScope(this.getPath())
+//     }
+//     let children = []
+//     for (let child of this.data.children) {
+//       children.push(new InstanceItem(this, child))
+//     }
+//     return children
+//   }
+// }
+
+export class InstanceItem extends HierItem {
+  // Used by instances tree view as well
+  inst: slang.Instance
+  children: HierItem[] | undefined
+  constructor(parent: HierItem | undefined, inst: slang.Instance) {
+    super(parent, inst)
+    this.inst = inst
+  }
+
+  async getTreeItem(): Promise<vscode.TreeItem> {
+    let item = await super.getTreeItem()
+    item.contextValue = 'Module'
+    item.iconPath = new vscode.ThemeIcon('chip')
+    item.description = ': ' + this.inst.declName
+    return item
+  }
+
+  async _fetchChildren(): Promise<HierItem[]> {
+    return await getSlangChildren(this, this.getPath())
+  }
+
+  async hasChildren(): Promise<boolean> {
+    // TODO: filter these based on port/param etc filters
+    return (await this.getChildren()).length > 0
   }
 }
-class ParamItem extends LogicItem {}
-class DataItem extends LogicItem {}
 
 export class RootItem extends InstanceItem {
-  constructor(instance: Symbol) {
-    super(undefined, instance, instance)
+  constructor(instance: slang.FilledInstance) {
+    super(undefined, instance)
+    this.children = mapChildren(this, instance.children)
+  }
+
+  getPath(): string {
+    return this.instName
   }
   preOrderTraversal = HierItem.prototype.preOrderTraversal
 }
 
-class InternalScopeItem extends ScopeItem {
-  constructor(parent: HierItem | undefined, scope: Symbol) {
-    super(parent, scope)
+class VarItem extends HierItem {
+  inst: slang.Var
+  constructor(parent: HierItem | undefined, instance: slang.Var) {
+    super(parent, instance)
+    this.inst = instance
   }
-  async _getChildren(): Promise<HierItem[]> {
-    return this.getChildrenFromSymbol(this.instance)
-  }
-  async preOrderTraversal(fn: (item: HierItem) => void) {
-    /// Guard against recursive modules
-    fn(this)
-    for (let child of await this.getChildren()) {
-      if (child.instance !== this.parent!.instance) {
-        await child.preOrderTraversal(fn)
-      }
+
+  async getTreeItem(): Promise<TreeItem> {
+    const item = new TreeItem(this.instName)
+    item.iconPath = new vscode.ThemeIcon('symbol-variable')
+    item.description = ''
+    switch (this.inst.kind) {
+      case slang.SlangKind.Param:
+        item.iconPath = new vscode.ThemeIcon('symbol-type-parameter')
+        break
+      case slang.SlangKind.Port:
+        item.iconPath = new vscode.ThemeIcon('symbol-interface')
+        break
+      case slang.SlangKind.Logic:
+        item.iconPath = new vscode.ThemeIcon('symbol-variable')
+        break
     }
+    // if has value, show value
+    if (this.inst.type) {
+      item.description += ': ' + this.inst.type + ' '
+    }
+    if (this.inst.value) {
+      item.description += '= ' + this.inst.value
+    }
+    return item
   }
 }
-const STRUCTURE_SYMS = new Set<string>(['instance', 'block'])
 
-class InstanceLink extends vscode.TerminalLink {
-  path: string
-  constructor(path: string, startIndex: number, length: number) {
-    super(startIndex, length, 'Open in Hierarhcy View')
-    this.path = path
-  }
-}
+// class InternalScopeItem extends ScopeItem {
+//   constructor(parent: HierItem | undefined, scope: slang.Scope) {
+//     super(parent, scope)
+//   }
+//   async _fetchChildren(): Promise<HierItem[]> {
+//     return this.getChildrenFromSymbol(this.instance)
+//   }
+//   async preOrderTraversal(fn: (item: HierItem) => void) {
+//     /// Guard against recursive modules
+//     fn(this)
+//     for (let child of await this.getChildren()) {
+//       if (child.instance !== this.parent!.instance) {
+//         await child.preOrderTraversal(fn)
+//       }
+//     }
+//   }
+// }k
 
-export class ProjectComponent
-  extends ViewComponent
-  implements TreeDataProvider<HierItem>, vscode.TerminalLinkProvider<InstanceLink>
-{
+// class InstanceLink extends vscode.TerminalLink {
+//   path: string
+//   constructor(path: string, startIndex: number, length: number) {
+//     super(startIndex, length, 'Open in Hierarhcy View')
+//     this.path = path
+//   }
+// }
+
+export class ProjectComponent extends ViewComponent implements TreeDataProvider<HierItem> {
   top: RootItem | undefined = undefined
 
   // Hierarchy Tree
@@ -195,7 +215,8 @@ export class ProjectComponent
   treeView: vscode.TreeView<HierItem> | undefined
 
   // Instances Index
-  instancesView: InstancesView = new InstancesView()
+  // TODO
+  // instancesView: InstancesView = new InstancesView()
 
   //////////////////////////////////////////////////////////////////
   // Editor Buttons
@@ -219,71 +240,72 @@ export class ProjectComponent
       if (module === undefined) {
         return
       }
-
-      await this.setTopModule(module)
+      await slang.setTopLevel(uri.fsPath)
+      const item = (await slang.getScope('')) as slang.FilledInstance[]
+      this.setTopModule(item[0])
     }
   )
 
-  setInstanceByFile: EditorButton = new EditorButton(
-    {
-      title: 'Select Instance',
-      icon: '$(symbol-class)',
-      languages: ['verilog', 'systemverilog'],
-    },
-    async (openModule: vscode.Uri | undefined) => {
-      if (openModule === undefined) {
-        vscode.window.showErrorMessage('Open a verilog file to select instance')
-        return
-      }
-      // get the module from the current file
-      const doc = await vscode.workspace.openTextDocument(openModule)
-      const moduleSym = await selectModule(doc)
-      if (moduleSym === undefined) {
-        return
-      }
-      // get the instances of the module
-      let moduleItem: ModuleItem | undefined = undefined
-      // These are sometimes different symbols instances
-      for (const [key, value] of this.instancesView.modules.entries()) {
-        if (key.name === moduleSym.name) {
-          moduleItem = value
-          break
-        }
-      }
-      if (moduleItem === undefined) {
-        return
-      }
-      await this.instancesView.treeView?.reveal(moduleItem, {
-        select: true,
-        focus: true,
-        expand: true,
-      })
-      const instances: string[] = Array.from(moduleItem.instances.values()).map(
-        (item: InstanceViewItem) => item.inst.getPath()
-      )
-      if (instances.length === 0) {
-        vscode.window.showErrorMessage('No instances found in module')
-        return
-      }
-      const path = await vscode.window.showQuickPick(instances, {
-        title: 'Select Instance',
-      })
-      if (path === undefined) {
-        return
-      }
-      // look upinstance that was selected
-      const instance = moduleItem.instances.get(path)
-      if (instance === undefined) {
-        return
-      }
-      // reveal in sidebar, don't change file
-      await this.setInstance.func(instance.inst, {
-        revealHierarchy: true,
-        revealFile: false,
-        revealInstance: true,
-      })
-    }
-  )
+  // setInstanceByFile: EditorButton = new EditorButton(
+  //   {
+  //     title: 'Select Instance',
+  //     icon: '$(symbol-class)',
+  //     languages: ['verilog', 'systemverilog'],
+  //   },
+  //   async (openModule: vscode.Uri | undefined) => {
+  //     if (openModule === undefined) {
+  //       vscode.window.showErrorMessage('Open a verilog file to select instance')
+  //       return
+  //     }
+  //     // get the module from the current file
+  //     const doc = await vscode.workspace.openTextDocument(openModule)
+  //     const moduleSym = await selectModule(doc)
+  //     if (moduleSym === undefined) {
+  //       return
+  //     }
+  //     // get the instances of the module
+  //     let moduleItem: ModuleItem | undefined = undefined
+  //     // These are sometimes different symbols instances
+  //     for (const [key, value] of this.instancesView.modules.entries()) {
+  //       if (key.name === moduleSym.name) {
+  //         moduleItem = value
+  //         break
+  //       }
+  //     }
+  //     if (moduleItem === undefined) {
+  //       return
+  //     }
+  //     await this.instancesView.treeView?.reveal(moduleItem, {
+  //       select: true,
+  //       focus: true,
+  //       expand: true,
+  //     })
+  //     const instances: string[] = Array.from(moduleItem.instances.values()).map(
+  //       (item: InstanceViewItem) => item.inst.getPath()
+  //     )
+  //     if (instances.length === 0) {
+  //       vscode.window.showErrorMessage('No instances found in module')
+  //       return
+  //     }
+  //     const path = await vscode.window.showQuickPick(instances, {
+  //       title: 'Select Instance',
+  //     })
+  //     if (path === undefined) {
+  //       return
+  //     }
+  //     // look upinstance that was selected
+  //     const instance = moduleItem.instances.get(path)
+  //     if (instance === undefined) {
+  //       return
+  //     }
+  //     // reveal in sidebar, don't change file
+  //     await this.setInstance.func(instance.inst, {
+  //       revealHierarchy: true,
+  //       revealFile: false,
+  //       revealInstance: true,
+  //     })
+  //   }
+  // )
 
   //////////////////////////////////////////////////////////////////
   // Hierarchy View Buttons
@@ -296,113 +318,115 @@ export class ProjectComponent
     },
     async () => {
       this.top = undefined
+      this.buildfile = undefined
       this._onDidChangeTreeData.fire()
     }
   )
 
-  selectTopLevel: ViewButton = new ViewButton(
-    {
-      title: 'Select Top Level',
-      icon: '$(folder-opened)',
-    },
-    async () => {
-      const newtop = await selectModuleGlobal()
-      if (newtop === undefined) {
-        return
-      }
-      await this.setTopModule(newtop)
-    }
-  )
+  // selectTopLevel: ViewButton = new ViewButton(
+  //   {
+  //     title: 'Select Top Level',
+  //     icon: '$(folder-opened)',
+  //   },
+  //   async (): Promise<boolean> => {
+  //     const newtop = await selectModuleGlobal()
+  //     if (newtop === undefined) {
+  //       return false
+  //     }
+  //     await this.setTopModule(newtop)
+  //     return true
+  //   }
+  // )
 
-  setInstanceByPathInternal: ViewButton = new ViewButton(
-    {
-      title: 'Set Instance',
-      icon: '$(inspect)',
-    },
-    async (rootItem: RootItem | undefined, instPath: string | undefined) => {
-      if (instPath === undefined) {
-        instPath = await vscode.window.showInputBox({
-          prompt: 'Enter instance path',
-        })
-        if (instPath === undefined) {
-          return
-        }
-      }
-      // instance is a string path, maybe containing brackets from elaboration, so strip those
-      const regex = /\[\d+\]/g
-      let cleaned = instPath.replace(regex, '')
-      let parts = cleaned.split('.')
+  // setInstanceByPathInternal: ViewButton = new ViewButton(
+  //   {
+  //     title: 'Set Instance',
+  //     icon: '$(inspect)',
+  //   },
+  //   async (rootItem: RootItem | undefined, instPath: string | undefined) => {
+  //     if (instPath === undefined) {
+  //       instPath = await vscode.window.showInputBox({
+  //         prompt: 'Enter instance path',
+  //       })
+  //       if (instPath === undefined) {
+  //         return
+  //       }
+  //     }
+  //     // instance is a string path, maybe containing brackets from elaboration, so strip those
+  //     const regex = /\[\d+\]/g
+  //     let cleaned = instPath.replace(regex, '')
+  //     let parts = cleaned.split('.')
 
-      // try to get top module from path if root not set
-      const topStr = parts[0]
-      if (rootItem === undefined && !(this.top?.instance.name === topStr)) {
-        if (ext.index.moduleMap.has(topStr)) {
-          const topUri = ext.index.moduleMap.get(topStr)
-          if (topUri !== undefined) {
-            const topDoc = await vscode.workspace.openTextDocument(topUri)
-            const topModule = await selectModule(topDoc)
-            if (topModule !== undefined) {
-              await this.setTopModule(topModule)
-            }
-          }
-        }
-      }
-      // root Item is already top, no need to do anything with the value
+  //     // try to get top module from path if root not set
+  //     const topStr = parts[0]
+  //     if (rootItem === undefined && !(this.top?.inst.instName === topStr)) {
+  //       if (ext.index.moduleMap.has(topStr)) {
+  //         const topUri = ext.index.moduleMap.get(topStr)
+  //         if (topUri !== undefined) {
+  //           const topDoc = await vscode.workspace.openTextDocument(topUri)
+  //           const topModule = await selectModule(topDoc)
+  //           if (topModule !== undefined) {
+  //             await this.setTopModule(topModule)
+  //           }
+  //         }
+  //       }
+  //     }
+  //     // root Item is already top, no need to do anything with the value
 
-      // have user select top if that didn't work
-      if (this.top === undefined) {
-        await this.selectTopLevel.func()
-        if (this.top === undefined) {
-          return
-        }
-      }
+  //     // have user select top if that didn't work
+  //     if (this.top === undefined) {
+  //       await this.selectTopLevel.func()
+  //       if (this.top === undefined) {
+  //         return
+  //       }
+  //     }
 
-      // go through hierarchy
-      let current: HierItem | undefined = undefined
-      for (let part of parts) {
-        let children: HierItem[]
-        if (current === undefined) {
-          children = await this.getChildren(current)
-        } else {
-          children = await current.getChildren()
-        }
-        let child: HierItem | undefined = children.find((child) => child.instance.name === part)
-        if (child === undefined) {
-          vscode.window.showErrorMessage(
-            `Could not find instance ${part} in ${current?.instance.name ?? 'top level'}: ${
-              current?.instance.typeRef
-            }`
-          )
-          await this.setInstance.func(current, {
-            revealHierarchy: true,
-            revealFile: false,
-            revealInstance: true,
-          })
-          if (current instanceof InstanceItem && current.definition !== undefined) {
-            await vscode.window.showTextDocument(current.definition.doc)
-          } else if (current) {
-            await vscode.window.showTextDocument(current.instance.doc)
-          }
+  //     // go through hierarchy
+  //     let current: HierItem | undefined = undefined
+  //     for (let part of parts) {
+  //       let children: HierItem[]
+  //       if (current === undefined) {
+  //         children = await this.getChildren(current)
+  //       } else {
+  //         children = await current.getChildren()
+  //       }
+  //       let child: HierItem | undefined = children.find((child) => child.instance.name === part)
+  //       if (child === undefined) {
+  //         vscode.window.showErrorMessage(
+  //           `Could not find instance ${part} in ${current?.instance.name ?? 'top level'}: ${
+  //             current?.instance.typeRef
+  //           }`
+  //         )
+  //         await this.setInstance.func(current, {
+  //           revealHierarchy: true,
+  //           revealFile: false,
+  //           revealInstance: true,
+  //         })
+  //         if (current instanceof InstanceItem && current.definition !== undefined) {
+  //           await vscode.window.showTextDocument(current.definition.doc)
+  //         } else if (current) {
+  //           await vscode.window.showTextDocument(current.instance.doc)
+  //         }
 
-          return
-        }
-        current = child
-      }
-      if (current === undefined) {
-        return
-      }
-      await this.setInstance.func(current)
-    }
-  )
+  //         return
+  //       }
+  //       current = child
+  //     }
+  //     if (current === undefined) {
+  //       return
+  //     }
+  //     await this.setInstance.func(current)
+  //   }
+  // )
 
-  setInstanceByPath: CommandNode = new CommandNode(
-    {
-      title: 'Set Instance',
-    },
-    async (inst: string) => {
-      this.setInstanceByPathInternal.func(undefined, inst)
-    }
-  )
+  // setInstanceByPath: CommandNode = new CommandNode(
+  //   {
+  //     title: 'Set Instance',
+  //   },
+  //   async (inst: string) => {
+  //     this.setInstanceByPathInternal.func(undefined, inst)
+  //   }
+  // )
 
   setInstance: CommandNode = new CommandNode(
     {
@@ -425,32 +449,66 @@ export class ProjectComponent
         vscode.window.showErrorMessage('setInstance: Instance is undefined')
         return
       }
-      if (revealHierarchy) {
-        if (instance instanceof LogicItem && !this.symFilter.has(instance.instance.type)) {
-          if (instance instanceof ParamItem) {
-            await this.toggleParams.func()
-          } else if (instance instanceof DataItem) {
-            await this.toggleData.func()
-          }
-        }
-        await this.treeView?.reveal(instance, { select: true, focus: true, expand: true })
-      }
-      const exposeSym = instance.instance
+      // if (revealHierarchy) {
+      //   if (instance instanceof VarItem && !this.symFilter.has(instance.instance.type)) {
+      //     if (instance instanceof ParamItem) {
+      //       await this.toggleParams.func()
+      //     } else if (instance instanceof DataItem) {
+      //       await this.toggleData.func()
+      //     }
+      //   }
+      //   await this.treeView?.reveal(instance, { select: true, focus: true, expand: true })
+      // }
       if (revealFile) {
-        vscode.window.showTextDocument(exposeSym.doc, {
-          selection: exposeSym.getFullRange(),
+        vscode.window.showTextDocument(vscode.Uri.parse(instance.instLoc.uri), {
+          selection: instance.instLoc.range,
         })
       }
-      if (revealInstance) {
-        // select the most recent module
-        while (!(instance instanceof InstanceItem)) {
-          instance = instance.parent
-          if (instance === undefined) {
-            return
-          }
-        }
-        this.instancesView.revealPath(instance.definition!, instance.getPath())
+      // if (revealInstance) {
+      //   // select the most recent module
+      //   while (!(instance instanceof InstanceItem)) {
+      //     instance = instance.parent
+      //     if (instance === undefined) {
+      //       return
+      //     }
+      //   }
+      //   this.instancesView.revealPath(instance.definition!, instance.getPath())
+      // }
+    }
+  )
+
+  buildfile: string | undefined = undefined
+
+  setBuildFile: ViewButton = new ViewButton(
+    {
+      title: 'Set build file',
+      icon: '$(file-code)',
+    },
+    async () => {
+      // quick pick from the glob
+      const glob = ext.buildfGlob.getValue()
+      if (glob.length === 0) {
+        vscode.window.showErrorMessage('No build file glob set at `verilog.buildfGlob`')
+        return
       }
+      // can't use workspace findfiles bc the build.f files are probably generated and not in repo
+      const files = await ext.findFiles([glob], true)
+      if (files.length === 0) {
+        vscode.window.showErrorMessage('No build files found')
+        return
+      }
+      let items = files.map((f) => f.fsPath)
+      let selection = await vscode.window.showQuickPick(items, {
+        placeHolder: 'Select a build file',
+      })
+      if (selection === undefined) {
+        return
+      }
+
+      this.buildfile = selection
+      await slang.setBuildFile(selection)
+
+      this.top = new RootItem((await slang.getScope(''))[0] as slang.FilledInstance)
     }
   )
 
@@ -458,51 +516,51 @@ export class ProjectComponent
   // Symbol Filtering
   //////////////////////////////////////////////////////////////////
 
-  symFilter: Set<string> = new Set<string>(STRUCTURE_SYMS)
-  // params / localparams (constants)
-  includeParams: boolean = false
-  // ports / nets / registers (variables)
-  includePorts: boolean = false
+  // symFilter: Set<string> = new Set<string>(STRUCTURE_SYMS)
+  // // params / localparams (constants)
+  // includeParams: boolean = false
+  // // ports / nets / registers (variables)
+  // includePorts: boolean = false
 
-  toggleParams: ViewButton = new ViewButton(
-    {
-      title: 'Toggle Params',
-      icon: '$(symbol-type-parameter)',
-    },
-    async () => {
-      this.includeParams = !this.includeParams
-      if (this.includeParams) {
-        for (let type of LogicItem.PARAM_TYPES) {
-          this.symFilter.add(type)
-        }
-      } else {
-        for (let type of LogicItem.PARAM_TYPES) {
-          this.symFilter.delete(type)
-        }
-      }
-      this._onDidChangeTreeData.fire()
-    }
-  )
+  // toggleParams: ViewButton = new ViewButton(
+  //   {
+  //     title: 'Toggle Params',
+  //     icon: '$(symbol-type-parameter)',
+  //   },
+  //   async () => {
+  //     this.includeParams = !this.includeParams
+  //     if (this.includeParams) {
+  //       for (let type of VarItem.PARAM_TYPES) {
+  //         this.symFilter.add(type)
+  //       }
+  //     } else {
+  //       for (let type of VarItem.PARAM_TYPES) {
+  //         this.symFilter.delete(type)
+  //       }
+  //     }
+  //     this._onDidChangeTreeData.fire()
+  //   }
+  // )
 
-  toggleData: ViewButton = new ViewButton(
-    {
-      title: 'Toggle Data',
-      icon: '$(symbol-variable)',
-    },
-    async () => {
-      this.includePorts = !this.includePorts
-      if (this.includePorts) {
-        for (let type of LogicItem.DATA_TYPES) {
-          this.symFilter.add(type)
-        }
-      } else {
-        for (let type of LogicItem.DATA_TYPES) {
-          this.symFilter.delete(type)
-        }
-      }
-      this._onDidChangeTreeData.fire()
-    }
-  )
+  // toggleData: ViewButton = new ViewButton(
+  //   {
+  //     title: 'Toggle Data',
+  //     icon: '$(symbol-variable)',
+  //   },
+  //   async () => {
+  //     this.includePorts = !this.includePorts
+  //     if (this.includePorts) {
+  //       for (let type of VarItem.DATA_TYPES) {
+  //         this.symFilter.add(type)
+  //       }
+  //     } else {
+  //       for (let type of VarItem.DATA_TYPES) {
+  //         this.symFilter.delete(type)
+  //       }
+  //     }
+  //     this._onDidChangeTreeData.fire()
+  //   }
+  // )
 
   //////////////////////////////////////////////////////////////////
   // Inline Item Buttons
@@ -518,9 +576,9 @@ export class ProjectComponent
       },
     },
     async (item: HierItem) => {
-      if (item instanceof InstanceItem && item.definition) {
-        vscode.window.showTextDocument(item.definition.doc, {
-          selection: item.definition.getIdRange(),
+      if (item instanceof InstanceItem && item) {
+        vscode.window.showTextDocument(vscode.Uri.parse(item.inst.declLoc.uri), {
+          selection: item.inst.declLoc.range,
         })
       }
     }
@@ -549,30 +607,30 @@ export class ProjectComponent
     })
   }
 
-  static RE_INSTANCE_PATHS = /(?<!\/)[\w$]+(\[\d+\])?(\.[\w$]+(\[\d+\])?)+/g;
+  static RE_INSTANCE_PATHS = /(?<!\/)[\w$]+(\[\d+\])?(\.[\w$]+(\[\d+\])?)+/g
 
-
-  provideTerminalLinks(
-    context: vscode.TerminalLinkContext,
-    _token: vscode.CancellationToken
-  ): vscode.ProviderResult<InstanceLink[]> {
-    let links = []
-    for (let match of context.line.matchAll(ProjectComponent.RE_INSTANCE_PATHS)) {
-      const line = context.line
-      const startIndex = line.indexOf(match[0])
-      const path = match[0]
-      const topModule = path.split('.')[0]
-      if (this.top?.instance.name === topModule || ext.index.moduleMap.has(topModule)) {
-        links.push(new InstanceLink(path, startIndex, path.length))
-      }
-    }
-    return links
-  }
-  handleTerminalLink(link: InstanceLink): vscode.ProviderResult<void> {
-    this.setInstanceByPathInternal.func(undefined, link.path)
-  }
+  // provideTerminalLinks(
+  //   context: vscode.TerminalLinkContext,
+  //   _token: vscode.CancellationToken
+  // ): vscode.ProviderResult<InstanceLink[]> {
+  //   let links = []
+  //   for (let match of context.line.matchAll(ProjectComponent.RE_INSTANCE_PATHS)) {
+  //     const line = context.line
+  //     const startIndex = line.indexOf(match[0])
+  //     const path = match[0]
+  //     const topModule = path.split('.')[0]
+  //     if (this.top?.instance.name === topModule || ext.index.moduleMap.has(topModule)) {
+  //       links.push(new InstanceLink(path, startIndex, path.length))
+  //     }
+  //   }
+  //   return links
+  // }
+  // handleTerminalLink(link: InstanceLink): vscode.ProviderResult<void> {
+  //   this.setInstanceByPathInternal.func(undefined, link.path)
+  // }
 
   async activate(context: vscode.ExtensionContext): Promise<void> {
+    vscode.window.createTreeView
     this.treeView = vscode.window.createTreeView(this.configPath!, {
       treeDataProvider: this,
       showCollapseAll: true,
@@ -583,16 +641,16 @@ export class ProjectComponent
     // If you actually register it, you don't get the collapsible state button :/ Thanks Microsoft
     // context.subscriptions.push(vscode.window.registerTreeDataProvider(this.configPath!, this))
 
-    context.subscriptions.push(vscode.window.registerTerminalLinkProvider(this))
+    // context.subscriptions.push(vscode.window.registerTerminalLinkProvider(this))
   }
 
-  async setTopModule(top: Symbol) {
+  async setTopModule(top: slang.FilledInstance) {
     this.top = new RootItem(top)
     if (this.top !== undefined && this.treeView !== undefined) {
       this.treeView.reveal(this.top, { select: true, focus: true })
       this._onDidChangeTreeData.fire()
     }
-    this.instancesView.indexTop(this.top)
+    // this.instancesView.indexTop(this.top)
   }
 
   async getTreeItem(element: HierItem): Promise<TreeItem> {
@@ -618,7 +676,7 @@ export class ProjectComponent
       return [this.top]
     }
     const children = await element.getChildren()
-    return children.filter((child) => this.symFilter.has(child.instance.type))
+    return children
   }
 
   getParent(element: HierItem): HierItem | undefined {
@@ -631,7 +689,7 @@ export class ProjectComponent
     _token: vscode.CancellationToken
   ): Promise<TreeItem> {
     /// Triggered on hover
-    item.tooltip = element.instance.getHoverText()
+    // item.tooltip = element.instName
     item.command = {
       title: 'Go to definition',
       command: 'verilog.project.setInstance',

@@ -439,3 +439,8 @@
     - hover
     - off
 
+- `verilog.buildfGlob`: string = ""
+
+    Glob for finding build.f files
+
+

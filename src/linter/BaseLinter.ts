@@ -190,7 +190,13 @@ export default abstract class BaseLinter extends ToolConfig {
     if (this.args.cachedValue !== '') {
       args.push(...this.args.cachedValue.trim().split(/\s+/))
     }
-    if (ext.index.enableSymlinks.cachedValue && this.indexDir !== undefined) {
+
+    if (ext.project.buildfile !== undefined) {
+      // Buildfile mode
+      args.push('-f')
+      args.push(ext.project.buildfile)
+    } else if (ext.index.enableSymlinks.cachedValue && this.indexDir !== undefined) {
+      // Explore mode
       args.push('-y')
       args.push(this.indexDir.fsPath)
     }

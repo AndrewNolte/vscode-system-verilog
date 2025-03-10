@@ -83,6 +83,14 @@
     ]
   },
   "contributes": {
+    "jsonValidation": [
+      {
+        "fileMatch": [
+          ".slang-server.json"
+        ],
+        "url": "./src/config.json"
+      }
+    ],
     "languages": [
       {
         "id": "verilog",
@@ -716,6 +724,11 @@
             "off"
           ],
           "type": "string"
+        },
+        "verilog.buildfGlob": {
+          "default": "",
+          "description": "Glob for finding build.f files",
+          "type": "string"
         }
       }
     },
@@ -773,6 +786,11 @@
         "command": "verilog.project.setInstance",
         "title": "Set Instance from Instance View",
         "hidden": true
+      },
+      {
+        "command": "verilog.project.setBuildFile",
+        "title": "Set build file",
+        "icon": "$(file-code)"
       },
       {
         "command": "verilog.project.toggleParams",
@@ -877,6 +895,11 @@
         },
         {
           "command": "verilog.project.setInstanceByPathInternal",
+          "group": "navigation",
+          "when": "view == verilog.project"
+        },
+        {
+          "command": "verilog.project.setBuildFile",
           "group": "navigation",
           "when": "view == verilog.project"
         },

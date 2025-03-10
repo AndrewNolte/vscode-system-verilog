@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/definitions/Config",
+  "definitions": {
+    "Config": {
+      "type": "object",
+      "properties": {
+        "flags": {
+          "type": "string",
+          "description": "Flags to pass to slang"
+        },
+        "moduleGlobs": {
+          "type": "array",
+          "description": "Glob of what to index as modules",
+          "items": {
+            "type": "string"
+          }
+        },
+        "includeGlobs": {
+          "type": "array",
+          "description": "Glob of what to index for global symbols, typically svh files",
+          "items": {
+            "type": "string"
+          }
+        },
+        "buildGlobs": {
+          "type": "array",
+          "description": "Globs for build.f files",
+          "items": {
+            "type": "string"
+          }
+        },
+        "indexingThreads": {
+          "description": "Thread count to use for indexing",
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "build": {
+          "type": "string",
+          "description": "Build file"
+        },
+        "topName": {
+          "type": "string",
+          "description": "Top Name"
+        }
+      },
+      "required": [
+        "flags",
+        "moduleGlobs",
+        "includeGlobs",
+        "buildGlobs",
+        "indexingThreads",
+        "build",
+        "topName"
+      ]
+    }
+  }
+}
