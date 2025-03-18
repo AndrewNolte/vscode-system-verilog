@@ -246,10 +246,13 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
         return
       }
       await slang.setTopLevel(uri.fsPath)
-      const item = (await slang.getScope('')) as slang.FilledInstance[]
-      this.setTopModule(item[0])
     }
   )
+
+  async queryScope(): Promise<void> {
+    const item = (await slang.getScope('')) as slang.FilledInstance[]
+    this.setTopModule(item[0])
+  }
 
   // setInstanceByFile: EditorButton = new EditorButton(
   //   {

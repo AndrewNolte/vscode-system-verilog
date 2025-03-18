@@ -2,6 +2,7 @@ import * as vscode from 'vscode'
 import { LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient/node'
 import { CommandNode, ConfigObject, ExtensionComponent } from './lib/libconfig'
 import { anyVerilogSelector, systemverilogSelector } from './utils'
+import { ext } from './extension'
 
 export enum LanguageServers {
   Ctags = 'ctags',
@@ -63,10 +64,11 @@ export class LanguageServerComponent extends ExtensionComponent {
 
       if (this.client.isRunning()) {
         await this.client.restart()
+        await this.postSetup()
+        this.logger.info('"' + this.client.name + '" language server restarted')
       } else {
         await this.setupLanguageClient()
       }
-      this.logger.info('"' + this.client.name + '" language server started')
     }
   )
 
@@ -105,6 +107,14 @@ export class LanguageServerComponent extends ExtensionComponent {
 
     this.client = new LanguageClient(selection, selection, serverOptions, clientOptions)
     await this.client.start()
+    await this.postSetup()
     this.logger.info(`${selection} language server started`)
+  }
+
+  async postSetup(): Promise<void> {
+    if (this.server.getValue() !== LanguageServers.Slang) {
+      return
+    }
+    await ext.project.queryScope()
   }
 }
