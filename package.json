@@ -2,7 +2,7 @@
   "name": "vscode-system-verilog",
   "displayName": "Verilog/SystemVerilog Tools",
   "description": "Verilog and SystemVerilog support including linting from popular tools, completions, formatting, and project level analysis.",
-  "version": "25.3.0",
+  "version": "25.3.1",
   "publisher": "AndrewNolte",
   "keywords": [
     "verilog",
@@ -39,6 +39,9 @@
     "printWidth": 100,
     "semi": false
   },
+  "files": [
+    "vscode-system-verilog.vsix"
+  ],
   "eslintConfig": {
     "root": true,
     "parser": "@typescript-eslint/parser",
@@ -903,6 +906,7 @@
     "watch-tests": "tsc -p . -w --outDir out",
     "lint": "eslint src --ext ts",
     "vscode:prepublish": "npm run esbuild-base -- --minify",
+    "prepublishOnly": "pnpm run lint && pnpm run package -o vscode-system-verilog.vsix",
     "esbuild-base": "esbuild ./src/extension.ts --bundle --external:vscode --format=cjs --platform=node --outfile=dist/main.js",
     "esbuild": "npm run esbuild-base -- --sourcemap",
     "esbuild-watch": "npm run esbuild -- --watch",
