@@ -2,7 +2,7 @@
   "name": "vscode-system-verilog",
   "displayName": "Verilog/SystemVerilog Tools",
   "description": "Verilog and SystemVerilog support including linting from popular tools, completions, formatting, and project level analysis.",
-  "version": "25.3.1",
+  "version": "25.3.2",
   "publisher": "AndrewNolte",
   "keywords": [
     "verilog",
@@ -40,7 +40,8 @@
     "semi": false
   },
   "files": [
-    "vscode-system-verilog.vsix"
+    "vscode-system-verilog.vsix",
+    "images/icon.png"
   ],
   "eslintConfig": {
     "root": true,
