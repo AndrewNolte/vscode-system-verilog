@@ -11,6 +11,7 @@ import {
   ViewComponent,
 } from '../lib/libconfig'
 import { InstancesView, InstanceViewItem, ModuleItem } from './InstancesView'
+import path from 'path'
 
 export abstract class HierItem {
   getPath(): string {
@@ -103,6 +104,16 @@ export class InstanceItem extends ScopeItem {
     let item = await super.getTreeItem()
     item.contextValue = 'Module'
     item.iconPath = new vscode.ThemeIcon('chip')
+    if (this.definition) {
+      item.description = '(' + path.basename(this.definition.doc.fileName) + ')'
+    }
+    if (this.definition && this.hasChildren()) {
+      let instNum = this.definition.children.filter(
+        (child) => child.type === 'instance').length
+      if (instNum > 0){
+        item.description += ' (' + instNum + ')'
+      }
+    }
     return item
   }
 
