@@ -246,6 +246,7 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
         return
       }
       await slang.setTopLevel(uri.fsPath)
+      await this.queryScope()
     }
   )
 
