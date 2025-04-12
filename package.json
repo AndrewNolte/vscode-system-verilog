@@ -665,6 +665,16 @@
             "verible-verilog-format"
           ]
         },
+        "verilog.project.showFileName": {
+          "default": false,
+          "description": "Show the file name in which the module is declared in hierarchy view",
+          "type": "boolean"
+        },
+        "verilog.project.showChildCount": {
+          "default": false,
+          "description": "Show the count of child elements for each module in hierarchy view",
+          "type": "boolean"
+        },
         "verilog.languageServer.path": {
           "default": "",
           "description": "Path to the language server",

@@ -3,6 +3,7 @@ import { TreeDataProvider, TreeItem } from 'vscode'
 import { selectModule, selectModuleGlobal } from '../analysis/ModuleSelection'
 import { Symbol } from '../analysis/Symbol'
 import { ext } from '../extension'
+import { ConfigObject } from '../lib/libconfig'
 import {
   CommandNode,
   EditorButton,
@@ -104,10 +105,10 @@ export class InstanceItem extends ScopeItem {
     let item = await super.getTreeItem()
     item.contextValue = 'Module'
     item.iconPath = new vscode.ThemeIcon('chip')
-    if (this.definition) {
+    if (this.definition && ext.project.showFileName.getValue()) {
       item.description = '(' + path.basename(this.definition.doc.fileName) + ')'
     }
-    if (this.definition && this.hasChildren()) {
+    if (this.definition && this.hasChildren() && ext.project.showChildCount.getValue()) {
       let instNum = this.definition.children.filter(
         (child) => child.type === 'instance').length
       if (instNum > 0){
@@ -203,6 +204,19 @@ export class ProjectComponent
   // Hierarchy Tree
   private _onDidChangeTreeData: vscode.EventEmitter<void> = new vscode.EventEmitter<void>()
   readonly onDidChangeTreeData: vscode.Event<void> = this._onDidChangeTreeData.event
+
+  showFileName: ConfigObject<boolean> = new ConfigObject({
+    default: false,
+    description:
+      'Show the file name in which the module is declared in hierarchy view',
+  })
+
+  showChildCount: ConfigObject<boolean> = new ConfigObject({
+    default: false,
+    description:
+    'Show the count of child elements for each module in hierarchy view',
+  })
+
   treeView: vscode.TreeView<HierItem> | undefined
 
   // Instances Index
