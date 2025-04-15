@@ -76,7 +76,11 @@ function mapChildren(parent: HierItem, items: slang.Item[]): HierItem[] {
         res.push(new VarItem(parent, item as slang.Var))
         break
       case slang.SlangKind.Scope:
-        res.push(new ScopeItem(parent, item as slang.Scope))
+        if (item.instName.startsWith('[')) {
+          res.push(new ScopeArrayItem(parent, item as slang.Scope))
+        } else {
+          res.push(new ScopeItem(parent, item as slang.Scope))
+        }
         break
       default:
         vscode.window.showErrorMessage('Unknown item kind: ' + item.kind)
@@ -107,6 +111,12 @@ class ScopeItem extends HierItem {
     let item = new TreeItem(this.inst.instName)
     item.iconPath = new vscode.ThemeIcon('symbol-namespace')
     return item
+  }
+}
+
+class ScopeArrayItem extends ScopeItem {
+  getPath(): string {
+    return this.parent!.getPath() + this.inst.instName
   }
 }
 
