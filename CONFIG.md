@@ -396,6 +396,16 @@
     - istyle-format
     - verible-verilog-format
 
+- `verilog.project.showFileName`: boolean = false
+
+    Show the file name in which the module is declared in hierarchy view
+
+
+- `verilog.project.showChildCount`: boolean = false
+
+    Show the count of child elements for each module in hierarchy view
+
+
 - `verilog.languageServer.path`: string = ""
 
     Path to the language server

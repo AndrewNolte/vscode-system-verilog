@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Add file basename and count of children instances in hierarchy view
+
 ## [25.0.0]
 - Fix bug with lint results not showing correctly for multi-level directories when using verilator as linter. (Thanks @AdorableMiku1015)
 - Slang
