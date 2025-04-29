@@ -1,5 +1,7 @@
 import * as vscode from 'vscode'
 
+// eslint-disable-next-line unused-imports/no-unused-imports
+import { ConfigSchema } from './config.gen'
 // enum class SlangKind {
 //   InstanceKind,
 //   ScopeKind,
@@ -8,12 +10,16 @@ import * as vscode from 'vscode'
 //   WireKind,
 // };
 
+export { ConfigSchema as Config }
+
 export enum SlangKind {
   Instance = 'Instance',
   Scope = 'Scope',
+  ScopeArray = 'ScopeArray',
   Param = 'Param',
   Logic = 'Logic',
   Port = 'Port',
+  InstanceArray = 'InstanceArray',
 }
 
 /// Can't parse URIs

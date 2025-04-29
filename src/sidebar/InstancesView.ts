@@ -1,7 +1,7 @@
 import * as vscode from 'vscode'
 
 import { TreeItemButton, ViewComponent } from '../lib/libconfig'
-import * as slang from './SlangInterface'
+import * as slang from '../SlangInterface'
 
 export class InstanceViewItem {
   data: slang.QualifiedInstance
@@ -174,7 +174,12 @@ export class InstancesView
 
   async getChildren(element?: undefined | InstanceTreeItem): Promise<InstanceTreeItem[]> {
     if (element === undefined) {
-      return Array.from(this.modules.values())
+      return Array.from(this.modules.values()).sort((a, b) => {
+        if (a.data.instCount === b.data.instCount && a.data.inst && b.data.inst) {
+          return a.data.inst.instPath < b.data.inst.instPath ? -1 : 1
+        }
+        return a.data.instCount > b.data.instCount ? 1 : -1
+      })
     }
     return await element.getChildren()
   }

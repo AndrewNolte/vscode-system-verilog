@@ -339,11 +339,6 @@
     - istyle-format
     - verible-verilog-format
 
-- `slang.buildfGlob`: string = ""
-
-    Glob for finding build.f files
-
-
 - `slang.path`: path
 
   Platform Defaults:

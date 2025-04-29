@@ -4,6 +4,7 @@ import * as vscode from 'vscode'
 import { glob } from 'glob'
 import path from 'path'
 import { promisify } from 'util'
+import * as vscodelc from 'vscode-languageclient/node'
 import { LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient/node'
 import { SystemVerilogFormatProvider, VerilogFormatProvider } from './FormatProvider'
 import { IncludeConfig } from './IncludeConfig'
@@ -19,6 +20,7 @@ import {
 import LintManager from './linter/LintManager'
 import { ProjectComponent } from './sidebar/ProjectComponent'
 import { getWorkspaceFolder, systemverilogSelector } from './utils'
+import * as slang from './SlangInterface'
 const asyncGlob = promisify(glob)
 
 export var ext: VerilogExtension
@@ -90,11 +92,6 @@ export class VerilogExtension extends ActivityBarComponent {
   /// top level commands and configs
   ////////////////////////////////////////////////
 
-  buildfGlob: ConfigObject<string> = new ConfigObject({
-    default: '',
-    description: 'Glob for finding build.f files',
-  })
-
   expandMacros: ExternalEditorButton = new ExternalEditorButton({
     title: 'Expand Macros',
     shortTitle: 'Expand macros',
@@ -125,6 +122,8 @@ export class VerilogExtension extends ActivityBarComponent {
     description: 'Arguments to pass to slang-server when debugging',
   })
 
+  slangConfig: slang.Config = {}
+
   async setupLanguageClient(): Promise<void> {
     this.logger.info('starting language server')
     const slangServerPath = await this.path.getValueAsync()
@@ -138,6 +137,17 @@ export class VerilogExtension extends ActivityBarComponent {
     }
 
     this.client = new LanguageClient('slang-server', serverOptions, clientOptions)
+    this.context.subscriptions.push(
+      this.client.onDidChangeState(({ newState }) => {
+        if (newState === vscodelc.State.Running) {
+          // clangd starts or restarts after crash.
+          this.client!.onNotification('slang/setConfig', (config: slang.Config) => {
+            this.slangConfig = config
+          })
+        }
+      })
+    )
+
     await this.client.start()
     this.logger.info('language server started')
     await this.project.onStart()

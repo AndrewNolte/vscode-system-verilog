@@ -9,9 +9,13 @@ import {
   ViewComponent,
 } from '../lib/libconfig'
 import { InstancesView } from './InstancesView'
-import * as slang from './SlangInterface'
+import * as slang from '../SlangInterface'
 
-const STRUCTURE_SYMS = [slang.SlangKind.Instance, slang.SlangKind.Scope]
+const STRUCTURE_SYMS = [
+  slang.SlangKind.Instance,
+  slang.SlangKind.InstanceArray,
+  slang.SlangKind.Scope,
+]
 
 interface HasChildren {
   getChildren(): Promise<HierItem[]>
@@ -23,7 +27,11 @@ export abstract class HierItem implements HasChildren {
     if (this.path !== undefined) {
       return this.path
     }
-    return this.parent!.getPath() + '.' + this.inst.instName
+    return this.parent!.getChildPath(this.inst.instName)
+  }
+
+  getChildPath(name: string): string {
+    return this.getPath() + '.' + name
   }
   // the symbol to get children from
   path: string | undefined
@@ -89,17 +97,19 @@ function mapChildren(parent: HierItem, items: slang.Item[]): HierItem[] {
       case slang.SlangKind.Instance:
         res.push(new InstanceItem(parent, item as slang.Instance))
         break
+      case slang.SlangKind.InstanceArray:
+        res.push(new InstanceArrayItem(parent, item as slang.Instance))
+        break
       case slang.SlangKind.Param:
       case slang.SlangKind.Port:
       case slang.SlangKind.Logic:
         res.push(new VarItem(parent, item as slang.Var))
         break
+      case slang.SlangKind.ScopeArray:
+        res.push(new ScopeArrayItem(parent, item as slang.Scope))
+        break
       case slang.SlangKind.Scope:
-        if (item.instName.startsWith('[')) {
-          res.push(new ScopeArrayItem(parent, item as slang.Scope))
-        } else {
-          res.push(new ScopeItem(parent, item as slang.Scope))
-        }
+        res.push(new ScopeItem(parent, item as slang.Scope))
         break
       default:
         vscode.window.showErrorMessage('Unknown item kind: ' + item.kind)
@@ -134,8 +144,8 @@ class ScopeItem extends HierItem {
 }
 
 class ScopeArrayItem extends ScopeItem {
-  getPath(): string {
-    return this.parent!.getPath() + this.inst.instName
+  getChildPath(name: string): string {
+    return this.getPath() + name
   }
 }
 
@@ -161,8 +171,23 @@ export class InstanceItem extends HierItem {
   }
 
   async hasChildren(): Promise<boolean> {
-    // TODO: filter these based on port/param etc filters
     return (await this.getChildren()).length > 0
+  }
+}
+
+class InstanceArrayItem extends InstanceItem {
+  children: InstanceItem[] | undefined
+
+  async _fetchChildren(): Promise<HierItem[]> {
+    return mapChildren(this, this.inst.children)
+  }
+
+  async hasChildren(): Promise<boolean> {
+    return true
+  }
+
+  getChildPath(name: string): string {
+    return this.getPath() + name
   }
 }
 
@@ -246,7 +271,7 @@ class VarItem extends HierItem {
     }
     // if has value, show value
     if (this.inst.type) {
-      item.description += ': ' + this.inst.type + ' '
+      item.description += this.inst.type + ' '
     }
     if (this.inst.value) {
       item.description += '= ' + this.inst.value
@@ -592,25 +617,32 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
 
   buildfile: string | undefined = undefined
 
-  setBuildFile: ViewButton = new ViewButton(
+  selectBuildFile: ViewButton = new ViewButton(
     {
-      title: 'Set build file',
+      title: 'Select build file',
       icon: '$(file-code)',
+      shown: true,
     },
     async () => {
       // quick pick from the glob
-      const glob = ext.buildfGlob.getValue()
-      if (glob.length === 0) {
-        vscode.window.showErrorMessage('No build file glob set at `slang.buildfGlob`')
+      const glob = ext.slangConfig.buildPattern
+      if (!glob) {
+        vscode.window.showErrorMessage('No buildPattern set in any .slang-server.json')
         return
       }
       // can't use workspace findfiles bc the build.f files are probably generated and not in repo
-      const files = await ext.findFiles([glob], true)
+      const files = await ext.findFiles([glob.replace('{}', '*')], true)
       if (files.length === 0) {
         vscode.window.showErrorMessage('No build files found')
         return
       }
-      let items = files.map((f) => f.fsPath)
+
+      // trim off common prefixes
+      const globPre = glob.substring(0, glob.indexOf('{}'))
+      const commonPrefixLen = files[0].fsPath.indexOf(globPre) + globPre.length
+      const commonPrefix = files[0].fsPath.substring(0, commonPrefixLen)
+
+      let items = files.map((f) => f.fsPath.replace(commonPrefix, ''))
       let selection = await vscode.window.showQuickPick(items, {
         placeHolder: 'Select a build file',
       })
@@ -618,8 +650,8 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
         return
       }
 
-      this.buildfile = selection
-      await slang.setBuildFile(selection)
+      this.buildfile = commonPrefix + selection
+      await slang.setBuildFile(this.buildfile)
 
       await this.setTopModule()
     }

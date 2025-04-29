@@ -93,7 +93,7 @@
           ".slang-server.json",
           ".slang-server.local.json"
         ],
-        "url": "./src/config.json"
+        "url": "./src/config.schema.json"
       }
     ],
     "languages": [
@@ -625,11 +625,6 @@
             "verible-verilog-format"
           ]
         },
-        "slang.buildfGlob": {
-          "default": "",
-          "description": "Glob for finding build.f files",
-          "type": "string"
-        },
         "slang.path": {
           "description": "Path to the slang-server (not slang)",
           "default": "",
@@ -682,13 +677,14 @@
       },
       {
         "command": "slang.project.setInstance",
-        "title": "Set Instance from Instance View",
+        "title": "Slang: Set Instance from Instance View",
         "hidden": true
       },
       {
-        "command": "slang.project.setBuildFile",
-        "title": "Set build file",
-        "icon": "$(file-code)"
+        "command": "slang.project.selectBuildFile",
+        "title": "Slang: Select build file",
+        "icon": "$(file-code)",
+        "shown": true
       },
       {
         "command": "slang.project.toggleParams",
@@ -784,7 +780,7 @@
           "when": "view == slang.project"
         },
         {
-          "command": "slang.project.setBuildFile",
+          "command": "slang.project.selectBuildFile",
           "group": "navigation",
           "when": "view == slang.project"
         },
@@ -851,7 +847,8 @@
     "compile": "tsc -p ./",
     "package": "vsce package",
     "watch": "tsc -w -p ./",
-    "syntax": "js-yaml ./languages/sv/systemverilog.tmLanguage.yaml >./languages/sv/systemverilog.tmLanguage.json",
+    "syntax": "js-yaml ./languages/sv/systemverilog.tmLanguage.yaml > ./languages/sv/systemverilog.tmLanguage.json",
+    "genconfig": "slang-server --config-schema > src/config.schema.json && npx json2ts -i src/config.schema.json -o src/config.gen.ts",
     "pretest": "npm run compile-tests && npm run compile && npm run lint"
   },
   "dependencies": {
@@ -882,6 +879,7 @@
     "eslint-plugin-promise": "6.1.1",
     "eslint-plugin-unused-imports": "^3.1.0",
     "glob": "^7.1.1",
+    "json-schema-to-typescript": "^15.0.4",
     "mocha": "^10.3.0",
     "ts-loader": "^9.5.1",
     "ts-node": "^10.9.2",

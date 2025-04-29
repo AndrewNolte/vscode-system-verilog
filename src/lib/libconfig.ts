@@ -319,17 +319,14 @@ interface CommandConfigSpec {
   title: string
   shortTitle?: string
   icon?: iconType
-  // Vscode CLAIMS that enablement: false will only disable menu/keybindings, but allow other extensions to not run a command.
-  // It does not in fact allow running via the executeCommand api
-  // This just doesn't tack on the extension's Category
-  hidden?: boolean
-
   // From vscode api
   category?: string
   enablement?: string
 }
 interface ContextCommandSpec extends CommandConfigSpec {
   when?: string
+  // Since context commands are from buttons, they typically won't be labeled with the extension name
+  shown?: boolean
 }
 
 interface EditorButtonSpec extends ContextCommandSpec {
@@ -343,7 +340,7 @@ interface TreeItemButtonSpec extends ContextCommandSpec {
   inlineContext?: string[]
 }
 export class CommandNode<
-  Spec extends ContextCommandSpec = CommandConfigSpec
+  Spec extends ContextCommandSpec = CommandConfigSpec,
 > extends ExtensionNode {
   obj: Spec
   func: (...args: any[]) => any
@@ -359,7 +356,7 @@ export class CommandNode<
     context.subscriptions.push(
       vscode.commands.registerCommand(this.configPath!, this.func, this.thisArg)
     )
-    if (this._parentNode !== undefined && !this.obj.hidden) {
+    if (this._parentNode !== undefined) {
       this.obj.title = this._parentNode.getRoot().title + ': ' + this.obj.title
     }
   }
@@ -374,9 +371,13 @@ interface ButtonSpec {
 class ButtonNode<Spec extends ContextCommandSpec> extends CommandNode<Spec> {
   async activate(context: vscode.ExtensionContext): Promise<void> {
     // same thing, but don't add the extension title; it's implied
-    context.subscriptions.push(
-      vscode.commands.registerCommand(this.configPath!, this.func, this.thisArg)
-    )
+    if (this.obj.shown) {
+      await super.activate(context)
+    } else {
+      context.subscriptions.push(
+        vscode.commands.registerCommand(this.configPath!, this.func, this.thisArg)
+      )
+    }
   }
 }
 export class ViewButton extends ButtonNode<ViewButtonSpec> {
