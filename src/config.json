@@ -6,29 +6,57 @@
       "type": "object",
       "properties": {
         "flags": {
-          "type": "string",
-          "description": "Flags to pass to slang"
+          "description": "Flags to pass to slang",
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
-        "moduleGlobs": {
-          "type": "array",
-          "description": "Glob of what to index as modules",
-          "items": {
-            "type": "string"
-          }
+        "indexGlobs": {
+          "description": "Globs of what to index",
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
-        "includeGlobs": {
-          "type": "array",
-          "description": "Glob of what to index for global symbols, typically svh files",
-          "items": {
-            "type": "string"
-          }
+        "excludeDirs": {
+          "description": "Directories to exclude",
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "buildGlobs": {
-          "type": "array",
           "description": "Globs for build.f files",
-          "items": {
-            "type": "string"
-          }
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "indexingThreads": {
           "description": "Thread count to use for indexing",
@@ -41,24 +69,63 @@
             }
           ]
         },
+        "parsingThreads": {
+          "description": "Thread count to use for parsing",
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "build": {
-          "type": "string",
-          "description": "Build file"
+          "description": "Build file",
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "topName": {
-          "type": "string",
-          "description": "Top Name"
+          "description": "Top module name",
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "waveToBuild": {
+          "description": "Waveform to build file pattern",
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "wcpCommand": {
+          "description": "Waveform viewer command ({} will be replaced with the WCP port)",
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
-      "required": [
-        "flags",
-        "moduleGlobs",
-        "includeGlobs",
-        "buildGlobs",
-        "indexingThreads",
-        "build",
-        "topName"
-      ]
+      "required": []
     }
   }
 }

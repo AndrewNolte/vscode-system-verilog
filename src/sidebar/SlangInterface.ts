@@ -16,23 +16,6 @@ export enum SlangKind {
   Port = 'Port',
 }
 
-export function fromInt(kind: number): SlangKind {
-  switch (kind) {
-    case 0:
-      return SlangKind.Instance
-    case 1:
-      return SlangKind.Port
-    case 2:
-      return SlangKind.Param
-    case 3:
-      return SlangKind.Logic
-    case 4:
-      return SlangKind.Scope
-    default:
-      return SlangKind.Instance
-  }
-}
-
 /// Can't parse URIs
 export interface Location {
   /**
@@ -65,23 +48,46 @@ export interface Scope extends Item {
 export interface Instance extends Item {
   declName: string
   declLoc: Location
+  // May or may not be filled
+  children: Item[]
 }
 
-// queried on an instance
-export interface FilledInstance extends Scope, Instance {}
+////////////////////////////////////////////////////////////
+// Instances View
+////////////////////////////////////////////////////////////
 
+// std::string declName;
+// lsp::Location declLoc;
+// size_t instanceCount;
+// // Will be filled if there's only one
+// std::optional<QualifiedInstance> instance;
+export interface Module {
+  declName: string
+  declLoc: Location
+  inst?: QualifiedInstance
+  instCount: number
+}
+
+// When buttons are pressed on these, we call getScopes() to get relevant data
+export interface QualifiedInstance {
+  instPath: string
+  instLoc: Location
+}
+
+////////////////////////////////////////////////////////////
 /// client -> server
+////////////////////////////////////////////////////////////
 
 /// Can be used by right clicking on a module or with button
 /// Slang should automatically choose the module with no references
 export async function setTopLevel(uri: string) {
-  return await vscode.commands.executeCommand('slang.setTopLevel', uri)
+  return await vscode.commands.executeCommand('slang.setTopLevelInternal', uri)
 }
 
 /// May need to ask to select top level from the available modules
 /// Or we can force the user to select the top level first, then specify the build file
 export async function setBuildFile(uri: string) {
-  return await vscode.commands.executeCommand('slang.setBuildFile', uri)
+  return await vscode.commands.executeCommand('slang.setBuildFileInternal', uri)
 }
 
 /// Get children at this path. Will return FilledInstance for the root
@@ -94,12 +100,29 @@ export async function getScope(hierPath: string): Promise<Item[]> {
   return children
 }
 
-/// Query a list of scopes going down to this instance. FilledInstance ... Item
-export async function getScopes(hierPath: string): Promise<Item[]> {
-  return await vscode.commands.executeCommand('slang.getScopes', hierPath)
+export async function getTop(): Promise<Instance[]> {
+  const children = (await getScope('')) as Instance[]
+  return children
 }
 
 /// Module -> scopes for instances view
-export async function getScopesByModule(): Promise<Map<string, string[]>> {
-  return await vscode.commands.executeCommand('slang.getScopesByModule')
+export async function getScopesByModule(): Promise<Module[]> {
+  const children: Module[] = await vscode.commands.executeCommand('slang.getScopesByModule')
+  if (children === undefined) {
+    vscode.window.showErrorMessage('Failed to get modules ')
+    return []
+  }
+  return children
 }
+
+/// Query a list of scopes going down to this instance. FilledInstance ... Item
+export async function getScopes(hierPath: string): Promise<Instance[]> {
+  return await vscode.commands.executeCommand('slang.getScopes', hierPath)
+}
+
+export async function getInstancesOfModule(declName: string): Promise<QualifiedInstance[]> {
+  return await vscode.commands.executeCommand('slang.getInstancesOfModule', declName)
+}
+////////////////////////////////////////////////////////////
+/// server -> client is in commands in the project component
+////////////////////////////////////////////////////////////

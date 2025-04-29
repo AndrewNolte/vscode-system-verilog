@@ -1,54 +1,33 @@
 ## Configuration Settings
 
-- `verilog.index.enableSymlinks`: boolean = true
+- `slang.index.enableSymlinks`: boolean = true
 
     Enable creating file symlinks in .sv_cache/files for the -y flag that most tools have. Created in a per-workspace exteneral directory that vscode provides
 
 
-- `verilog.index.indexAllIncludes`: boolean = false
+- `slang.index.indexAllIncludes`: boolean = false
 
     Whether to index all .svh files
 
 
-- `verilog.ctags.path`: path
-
-  Platform Defaults:
-
-    linux:   `ctags-universal`
-
-    mac:     `ctags`
-
-    windows: `ctags.exe`
-
-
-- `verilog.ctags.indexAllIncludes`: boolean = false
-
-    (Deprecated) Use `verilog.index.IndexAllIncludes` instead
-
-
-- `verilog.includes`: array = []
+- `slang.includes`: array = []
 
     Include paths to pass as -I to tools
 
 
-- `verilog.moduleGlobs`: array = []
+- `slang.moduleGlobs`: array = []
 
     Globs for finding verilog modules, interfaces, and packages for use with the common -y flag
 
 
-- `verilog.includeGlobs`: array = []
-
-    Globs for finding verilog include files (typically svh), used for definition providing. If set to [], it will source from verilog.includes
-
-
-- `verilog.excludeGlob`: string = ""
+- `slang.excludeGlob`: string = ""
 
     Globs to exclude files
 
 
-- `verilog.svStandard`: string = "SystemVerilog-2017"
+- `slang.svStandard`: string = "SystemVerilog-2017"
 
-    System Verilog standard to use
+    System Verilog standard to use for external linters
 
     Options:
     - SystemVerilog-2005
@@ -56,72 +35,36 @@
     - SystemVerilog-2012
     - SystemVerilog-2017
 
-- `verilog.verilogStandard`: string = "Verilog-2005"
+- `slang.verilogStandard`: string = "Verilog-2005"
 
-    System Verilog standard to use
+    Verilog standard to use for external linters
 
     Options:
     - Verilog-95
     - Verilog-2001
     - Verilog-2005
 
-- `verilog.formatDirs`: array = []
+- `slang.formatDirs`: array = []
 
     Directories to format
 
 
-- `verilog.expandMacroScript`: string = ""
+- `slang.expandMacroScript`: string = ""
 
     Script to expand macros. Takes the file as an argument, expects output on stdout
 
 
-- `verilog.lint.slang.runAtFileLocation`: boolean = false
+- `slang.lint.modelsim.runAtFileLocation`: boolean = false
 
     Run at file location
 
 
-- `verilog.lint.slang.args`: string = ""
+- `slang.lint.modelsim.args`: string = ""
 
     Arguments to pass to the tool
 
 
-- `verilog.lint.slang.path`: path
-
-  Platform Defaults:
-
-    linux:   `slang`
-
-    mac:     `slang`
-
-    windows: `slang.exe`
-
-
-- `verilog.lint.slang.projectEnabled`: boolean = false
-
-    Enable this linter only when the project is selected
-
-
-- `verilog.lint.slang.includes`: array = []
-
-    Include Path Overrides. Use `${includes} to include default includes
-
-
-- `verilog.lint.slang.enabled`: boolean = true
-
-    Enable this lint tool
-
-
-- `verilog.lint.modelsim.runAtFileLocation`: boolean = false
-
-    Run at file location
-
-
-- `verilog.lint.modelsim.args`: string = ""
-
-    Arguments to pass to the tool
-
-
-- `verilog.lint.modelsim.path`: path
+- `slang.lint.modelsim.path`: path
 
   Platform Defaults:
 
@@ -132,37 +75,37 @@
     windows: `modelsim.exe`
 
 
-- `verilog.lint.modelsim.projectEnabled`: boolean = false
+- `slang.lint.modelsim.projectEnabled`: boolean = false
 
     Enable this linter only when the project is selected
 
 
-- `verilog.lint.modelsim.includes`: array = []
+- `slang.lint.modelsim.includes`: array = []
 
     Include Path Overrides. Use `${includes} to include default includes
 
 
-- `verilog.lint.modelsim.enabled`: boolean = false
+- `slang.lint.modelsim.enabled`: boolean = false
 
     Enable this lint tool
 
 
-- `verilog.lint.modelsim.work`: string = "work"
+- `slang.lint.modelsim.work`: string = "work"
 
     Modelsim work library
 
 
-- `verilog.lint.iverilog.runAtFileLocation`: boolean = false
+- `slang.lint.iverilog.runAtFileLocation`: boolean = false
 
     Run at file location
 
 
-- `verilog.lint.iverilog.args`: string = ""
+- `slang.lint.iverilog.args`: string = ""
 
     Arguments to pass to the tool
 
 
-- `verilog.lint.iverilog.path`: path
+- `slang.lint.iverilog.path`: path
 
   Platform Defaults:
 
@@ -173,32 +116,32 @@
     windows: `iverilog.exe`
 
 
-- `verilog.lint.iverilog.projectEnabled`: boolean = false
+- `slang.lint.iverilog.projectEnabled`: boolean = false
 
     Enable this linter only when the project is selected
 
 
-- `verilog.lint.iverilog.includes`: array = []
+- `slang.lint.iverilog.includes`: array = []
 
     Include Path Overrides. Use `${includes} to include default includes
 
 
-- `verilog.lint.iverilog.enabled`: boolean = false
+- `slang.lint.iverilog.enabled`: boolean = false
 
     Enable this lint tool
 
 
-- `verilog.lint.verilator.runAtFileLocation`: boolean = false
+- `slang.lint.verilator.runAtFileLocation`: boolean = false
 
     Run at file location
 
 
-- `verilog.lint.verilator.args`: string = ""
+- `slang.lint.verilator.args`: string = ""
 
     Arguments to pass to the tool
 
 
-- `verilog.lint.verilator.path`: path
+- `slang.lint.verilator.path`: path
 
   Platform Defaults:
 
@@ -209,32 +152,32 @@
     windows: `verilator.exe`
 
 
-- `verilog.lint.verilator.projectEnabled`: boolean = false
+- `slang.lint.verilator.projectEnabled`: boolean = false
 
     Enable this linter only when the project is selected
 
 
-- `verilog.lint.verilator.includes`: array = []
+- `slang.lint.verilator.includes`: array = []
 
     Include Path Overrides. Use `${includes} to include default includes
 
 
-- `verilog.lint.verilator.enabled`: boolean = false
+- `slang.lint.verilator.enabled`: boolean = false
 
     Enable this lint tool
 
 
-- `verilog.lint.xvlog.runAtFileLocation`: boolean = false
+- `slang.lint.xvlog.runAtFileLocation`: boolean = false
 
     Run at file location
 
 
-- `verilog.lint.xvlog.args`: string = ""
+- `slang.lint.xvlog.args`: string = ""
 
     Arguments to pass to the tool
 
 
-- `verilog.lint.xvlog.path`: path
+- `slang.lint.xvlog.path`: path
 
   Platform Defaults:
 
@@ -245,32 +188,32 @@
     windows: `xvlog.exe`
 
 
-- `verilog.lint.xvlog.projectEnabled`: boolean = false
+- `slang.lint.xvlog.projectEnabled`: boolean = false
 
     Enable this linter only when the project is selected
 
 
-- `verilog.lint.xvlog.includes`: array = []
+- `slang.lint.xvlog.includes`: array = []
 
     Include Path Overrides. Use `${includes} to include default includes
 
 
-- `verilog.lint.xvlog.enabled`: boolean = false
+- `slang.lint.xvlog.enabled`: boolean = false
 
     Enable this lint tool
 
 
-- `verilog.lint.xcelium.runAtFileLocation`: boolean = false
+- `slang.lint.xcelium.runAtFileLocation`: boolean = false
 
     Run at file location
 
 
-- `verilog.lint.xcelium.args`: string = ""
+- `slang.lint.xcelium.args`: string = ""
 
     Arguments to pass to the tool
 
 
-- `verilog.lint.xcelium.path`: path
+- `slang.lint.xcelium.path`: path
 
   Platform Defaults:
 
@@ -281,32 +224,32 @@
     windows: `xrun.exe`
 
 
-- `verilog.lint.xcelium.projectEnabled`: boolean = false
+- `slang.lint.xcelium.projectEnabled`: boolean = false
 
     Enable this linter only when the project is selected
 
 
-- `verilog.lint.xcelium.includes`: array = []
+- `slang.lint.xcelium.includes`: array = []
 
     Include Path Overrides. Use `${includes} to include default includes
 
 
-- `verilog.lint.xcelium.enabled`: boolean = false
+- `slang.lint.xcelium.enabled`: boolean = false
 
     Enable this lint tool
 
 
-- `verilog.svFormat.verible.runAtFileLocation`: boolean = false
+- `slang.svFormat.verible.runAtFileLocation`: boolean = false
 
     Run at file location
 
 
-- `verilog.svFormat.verible.args`: string = ""
+- `slang.svFormat.verible.args`: string = ""
 
     Arguments to pass to the tool
 
 
-- `verilog.svFormat.verible.path`: path
+- `slang.svFormat.verible.path`: path
 
   Platform Defaults:
 
@@ -317,24 +260,24 @@
     windows: `verible-verilog-format.exe`
 
 
-- `verilog.svFormat.formatter`: string = ""
+- `slang.svFormat.formatter`: string = ""
 
     Formatter Selection
 
     Options:
     - verible-verilog-format
 
-- `verilog.verilogFormat.verilogFormatter.runAtFileLocation`: boolean = false
+- `slang.verilogFormat.verilogFormatter.runAtFileLocation`: boolean = false
 
     Run at file location
 
 
-- `verilog.verilogFormat.verilogFormatter.args`: string = ""
+- `slang.verilogFormat.verilogFormatter.args`: string = ""
 
     Arguments to pass to the tool
 
 
-- `verilog.verilogFormat.verilogFormatter.path`: path
+- `slang.verilogFormat.verilogFormatter.path`: path
 
   Platform Defaults:
 
@@ -345,17 +288,17 @@
     windows: `verilogFormat.exe`
 
 
-- `verilog.verilogFormat.iStyleFormatter.runAtFileLocation`: boolean = false
+- `slang.verilogFormat.iStyleFormatter.runAtFileLocation`: boolean = false
 
     Run at file location
 
 
-- `verilog.verilogFormat.iStyleFormatter.args`: string = ""
+- `slang.verilogFormat.iStyleFormatter.args`: string = ""
 
     Arguments to pass to the tool
 
 
-- `verilog.verilogFormat.iStyleFormatter.path`: path
+- `slang.verilogFormat.iStyleFormatter.path`: path
 
   Platform Defaults:
 
@@ -366,17 +309,17 @@
     windows: `istyleFormat.exe`
 
 
-- `verilog.verilogFormat.veribleFormatter.runAtFileLocation`: boolean = false
+- `slang.verilogFormat.veribleFormatter.runAtFileLocation`: boolean = false
 
     Run at file location
 
 
-- `verilog.verilogFormat.veribleFormatter.args`: string = ""
+- `slang.verilogFormat.veribleFormatter.args`: string = ""
 
     Arguments to pass to the tool
 
 
-- `verilog.verilogFormat.veribleFormatter.path`: path
+- `slang.verilogFormat.veribleFormatter.path`: path
 
   Platform Defaults:
 
@@ -387,7 +330,7 @@
     windows: `verible.exe`
 
 
-- `verilog.verilogFormat.formatter`: string = ""
+- `slang.verilogFormat.formatter`: string = ""
 
     Formatter Selection
 
@@ -396,51 +339,29 @@
     - istyle-format
     - verible-verilog-format
 
-- `verilog.languageServer.path`: string = ""
-
-    Path to the language server
-
-
-- `verilog.languageServer.server`: string = "ctags"
-
-    Selected Language server
-
-    Options:
-    - ctags
-    - slang-server
-    - svls
-    - veridian
-    - verible-verilog-ls
-
-- `verilog.languageServer.args`: array = []
-
-    Arguments to pass to the server
-
-
-- `verilog.languageServer.debugArgs`: array = []
-
-    Arguments to pass to the server when debugging
-
-
-- `verilog.inlayHints.wildcardPorts`: string = "on"
-
-    Show wildcard port hints (.*: port1, port2, etc.) in module instantiation
-
-    Options:
-    - on
-    - off
-
-- `verilog.inlayHints.ports`: string = "off"
-
-    Show port type hints in module instantiation
-
-    Options:
-    - on
-    - hover
-    - off
-
-- `verilog.buildfGlob`: string = ""
+- `slang.buildfGlob`: string = ""
 
     Glob for finding build.f files
+
+
+- `slang.path`: path
+
+  Platform Defaults:
+
+    linux:   `slang-server`
+
+    mac:     `slang-server`
+
+    windows: `slang-server.exe`
+
+
+- `slang.args`: array = []
+
+    Arguments to pass to the slang-server
+
+
+- `slang.debugArgs`: array = []
+
+    Arguments to pass to slang-server when debugging
 
 

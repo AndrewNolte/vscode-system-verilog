@@ -73,7 +73,6 @@ export default abstract class BaseLinter extends ToolConfig {
 
     this.args.getValue()
     this.runAtFileLocation.getValue()
-    this.indexDir = ext.index.cacheDir
     await this.path.getValueAsync()
   }
 
@@ -238,7 +237,7 @@ export default abstract class BaseLinter extends ToolConfig {
   }
 
   protected getTarget(currentUri: vscode.Uri): vscode.Uri {
-    return ext.project.top ? ext.project.top.definition!.doc.uri : currentUri
+    return ext.project.top ? vscode.Uri.parse(ext.project.top.inst.declLoc.uri) : currentUri
   }
 
   protected formatIncludes(includes: string[]): string[] {

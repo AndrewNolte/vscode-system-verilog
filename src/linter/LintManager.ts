@@ -4,14 +4,12 @@ import { ExtensionComponent } from '../lib/libconfig'
 import BaseLinter from './BaseLinter'
 import IcarusLinter from './IcarusLinter'
 import ModelsimLinter from './ModelsimLinter'
-import SlangLinter from './SlangLinter'
 import VerilatorLinter from './VerilatorLinter'
 import XvlogLinter from './XvlogLinter'
 import { isAnyVerilog } from '../utils'
 import XceliumLinter from './XceliumLinter'
 
 enum Linter {
-  Slang = 'slang',
   Verilator = 'verilator',
   Iverilog = 'iverilog',
   Xvlog = 'xvlog', // Xilinx/Vivado
@@ -23,7 +21,6 @@ enum Linter {
 export default class LintManager extends ExtensionComponent {
   private linters: Map<string, BaseLinter> = new Map()
 
-  slang: SlangLinter = new SlangLinter(Linter.Slang, true)
   modelsim: ModelsimLinter = new ModelsimLinter(Linter.Modelsim)
   iverilog: IcarusLinter = new IcarusLinter(Linter.Iverilog)
   verilator: VerilatorLinter = new VerilatorLinter(Linter.Verilator)
@@ -32,7 +29,6 @@ export default class LintManager extends ExtensionComponent {
 
   constructor() {
     super()
-    this.linters.set(Linter.Slang, this.slang)
     this.linters.set(Linter.Verilator, this.verilator)
     this.linters.set(Linter.Iverilog, this.iverilog)
     this.linters.set(Linter.Xvlog, this.xvlog)

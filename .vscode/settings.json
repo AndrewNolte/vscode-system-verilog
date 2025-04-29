@@ -13,5 +13,5 @@
   "typescript.tsc.autoDetect": "off",
   "[typescript]": {
     "editor.formatOnSave": true
-  }
+  },
 }

@@ -1,7 +1,7 @@
 {
-  "name": "vscode-system-verilog",
-  "displayName": "Verilog/SystemVerilog Tools",
-  "description": "Verilog and SystemVerilog support including linting from popular tools, completions, formatting, and project level analysis.",
+  "name": "vscode-slang",
+  "displayName": "Slang Verilog/SystemVerilog Server",
+  "description": "Verilog and SystemVerilog support via the slang language server, plus linting from popular tools.",
   "version": "25.3.2",
   "publisher": "AndrewNolte",
   "keywords": [
@@ -90,7 +90,8 @@
     "jsonValidation": [
       {
         "fileMatch": [
-          ".slang-server.json"
+          ".slang-server.json",
+          ".slang-server.local.json"
         ],
         "url": "./src/config.json"
       }
@@ -309,27 +310,17 @@
     "configuration": {
       "title": "verilog configuration",
       "properties": {
-        "verilog.index.enableSymlinks": {
+        "slang.index.enableSymlinks": {
           "default": true,
           "description": "Enable creating file symlinks in .sv_cache/files for the -y flag that most tools have. Created in a per-workspace exteneral directory that vscode provides",
           "type": "boolean"
         },
-        "verilog.index.indexAllIncludes": {
+        "slang.index.indexAllIncludes": {
           "default": false,
           "description": "Whether to index all .svh files",
           "type": "boolean"
         },
-        "verilog.ctags.path": {
-          "description": "Path to ctags universal executable",
-          "default": "",
-          "type": "string"
-        },
-        "verilog.ctags.indexAllIncludes": {
-          "default": false,
-          "description": "(Deprecated) Use `verilog.index.IndexAllIncludes` instead",
-          "type": "boolean"
-        },
-        "verilog.includes": {
+        "slang.includes": {
           "default": [],
           "description": "Include paths to pass as -I to tools",
           "type": "array",
@@ -337,7 +328,7 @@
             "type": "string"
           }
         },
-        "verilog.moduleGlobs": {
+        "slang.moduleGlobs": {
           "default": [
             "**/*.{sv,v}"
           ],
@@ -347,24 +338,14 @@
             "type": "string"
           }
         },
-        "verilog.includeGlobs": {
-          "default": [
-            "**/*.{svh}"
-          ],
-          "description": "Globs for finding verilog include files (typically svh), used for definition providing. If set to [], it will source from verilog.includes",
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "verilog.excludeGlob": {
+        "slang.excludeGlob": {
           "default": "",
           "description": "Globs to exclude files",
           "type": "string"
         },
-        "verilog.svStandard": {
+        "slang.svStandard": {
           "default": "SystemVerilog-2017",
-          "description": "System Verilog standard to use",
+          "description": "System Verilog standard to use for external linters",
           "enum": [
             "SystemVerilog-2005",
             "SystemVerilog-2009",
@@ -373,9 +354,9 @@
           ],
           "type": "string"
         },
-        "verilog.verilogStandard": {
+        "slang.verilogStandard": {
           "default": "Verilog-2005",
-          "description": "System Verilog standard to use",
+          "description": "Verilog standard to use for external linters",
           "enum": [
             "Verilog-95",
             "Verilog-2001",
@@ -383,7 +364,7 @@
           ],
           "type": "string"
         },
-        "verilog.formatDirs": {
+        "slang.formatDirs": {
           "default": [],
           "description": "Directories to format",
           "type": "array",
@@ -391,32 +372,32 @@
             "type": "string"
           }
         },
-        "verilog.expandMacroScript": {
+        "slang.expandMacroScript": {
           "default": "",
           "description": "Script to expand macros. Takes the file as an argument, expects output on stdout",
           "type": "string"
         },
-        "verilog.lint.slang.runAtFileLocation": {
+        "slang.lint.modelsim.runAtFileLocation": {
           "default": false,
           "description": "Run at file location",
           "type": "boolean"
         },
-        "verilog.lint.slang.args": {
+        "slang.lint.modelsim.args": {
           "default": "",
           "description": "Arguments to pass to the tool",
           "type": "string"
         },
-        "verilog.lint.slang.path": {
+        "slang.lint.modelsim.path": {
           "description": "Path to the tool",
           "default": "",
           "type": "string"
         },
-        "verilog.lint.slang.projectEnabled": {
+        "slang.lint.modelsim.projectEnabled": {
           "default": false,
           "description": "Enable this linter only when the project is selected",
           "type": "boolean"
         },
-        "verilog.lint.slang.includes": {
+        "slang.lint.modelsim.includes": {
           "default": [],
           "description": "Include Path Overrides. Use `${includes} to include default includes",
           "type": "array",
@@ -424,70 +405,37 @@
             "type": "string"
           }
         },
-        "verilog.lint.slang.enabled": {
-          "default": true,
-          "description": "Enable this lint tool",
-          "type": "boolean"
-        },
-        "verilog.lint.modelsim.runAtFileLocation": {
-          "default": false,
-          "description": "Run at file location",
-          "type": "boolean"
-        },
-        "verilog.lint.modelsim.args": {
-          "default": "",
-          "description": "Arguments to pass to the tool",
-          "type": "string"
-        },
-        "verilog.lint.modelsim.path": {
-          "description": "Path to the tool",
-          "default": "",
-          "type": "string"
-        },
-        "verilog.lint.modelsim.projectEnabled": {
-          "default": false,
-          "description": "Enable this linter only when the project is selected",
-          "type": "boolean"
-        },
-        "verilog.lint.modelsim.includes": {
-          "default": [],
-          "description": "Include Path Overrides. Use `${includes} to include default includes",
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "verilog.lint.modelsim.enabled": {
+        "slang.lint.modelsim.enabled": {
           "default": false,
           "description": "Enable this lint tool",
           "type": "boolean"
         },
-        "verilog.lint.modelsim.work": {
+        "slang.lint.modelsim.work": {
           "default": "work",
           "description": "Modelsim work library",
           "type": "string"
         },
-        "verilog.lint.iverilog.runAtFileLocation": {
+        "slang.lint.iverilog.runAtFileLocation": {
           "default": false,
           "description": "Run at file location",
           "type": "boolean"
         },
-        "verilog.lint.iverilog.args": {
+        "slang.lint.iverilog.args": {
           "default": "",
           "description": "Arguments to pass to the tool",
           "type": "string"
         },
-        "verilog.lint.iverilog.path": {
+        "slang.lint.iverilog.path": {
           "description": "Path to the tool",
           "default": "",
           "type": "string"
         },
-        "verilog.lint.iverilog.projectEnabled": {
+        "slang.lint.iverilog.projectEnabled": {
           "default": false,
           "description": "Enable this linter only when the project is selected",
           "type": "boolean"
         },
-        "verilog.lint.iverilog.includes": {
+        "slang.lint.iverilog.includes": {
           "default": [],
           "description": "Include Path Overrides. Use `${includes} to include default includes",
           "type": "array",
@@ -495,32 +443,32 @@
             "type": "string"
           }
         },
-        "verilog.lint.iverilog.enabled": {
+        "slang.lint.iverilog.enabled": {
           "default": false,
           "description": "Enable this lint tool",
           "type": "boolean"
         },
-        "verilog.lint.verilator.runAtFileLocation": {
+        "slang.lint.verilator.runAtFileLocation": {
           "default": false,
           "description": "Run at file location",
           "type": "boolean"
         },
-        "verilog.lint.verilator.args": {
+        "slang.lint.verilator.args": {
           "default": "",
           "description": "Arguments to pass to the tool",
           "type": "string"
         },
-        "verilog.lint.verilator.path": {
+        "slang.lint.verilator.path": {
           "description": "Path to the tool",
           "default": "",
           "type": "string"
         },
-        "verilog.lint.verilator.projectEnabled": {
+        "slang.lint.verilator.projectEnabled": {
           "default": false,
           "description": "Enable this linter only when the project is selected",
           "type": "boolean"
         },
-        "verilog.lint.verilator.includes": {
+        "slang.lint.verilator.includes": {
           "default": [],
           "description": "Include Path Overrides. Use `${includes} to include default includes",
           "type": "array",
@@ -528,32 +476,32 @@
             "type": "string"
           }
         },
-        "verilog.lint.verilator.enabled": {
+        "slang.lint.verilator.enabled": {
           "default": false,
           "description": "Enable this lint tool",
           "type": "boolean"
         },
-        "verilog.lint.xvlog.runAtFileLocation": {
+        "slang.lint.xvlog.runAtFileLocation": {
           "default": false,
           "description": "Run at file location",
           "type": "boolean"
         },
-        "verilog.lint.xvlog.args": {
+        "slang.lint.xvlog.args": {
           "default": "",
           "description": "Arguments to pass to the tool",
           "type": "string"
         },
-        "verilog.lint.xvlog.path": {
+        "slang.lint.xvlog.path": {
           "description": "Path to the tool",
           "default": "",
           "type": "string"
         },
-        "verilog.lint.xvlog.projectEnabled": {
+        "slang.lint.xvlog.projectEnabled": {
           "default": false,
           "description": "Enable this linter only when the project is selected",
           "type": "boolean"
         },
-        "verilog.lint.xvlog.includes": {
+        "slang.lint.xvlog.includes": {
           "default": [],
           "description": "Include Path Overrides. Use `${includes} to include default includes",
           "type": "array",
@@ -561,32 +509,32 @@
             "type": "string"
           }
         },
-        "verilog.lint.xvlog.enabled": {
+        "slang.lint.xvlog.enabled": {
           "default": false,
           "description": "Enable this lint tool",
           "type": "boolean"
         },
-        "verilog.lint.xcelium.runAtFileLocation": {
+        "slang.lint.xcelium.runAtFileLocation": {
           "default": false,
           "description": "Run at file location",
           "type": "boolean"
         },
-        "verilog.lint.xcelium.args": {
+        "slang.lint.xcelium.args": {
           "default": "",
           "description": "Arguments to pass to the tool",
           "type": "string"
         },
-        "verilog.lint.xcelium.path": {
+        "slang.lint.xcelium.path": {
           "description": "Path to the tool",
           "default": "",
           "type": "string"
         },
-        "verilog.lint.xcelium.projectEnabled": {
+        "slang.lint.xcelium.projectEnabled": {
           "default": false,
           "description": "Enable this linter only when the project is selected",
           "type": "boolean"
         },
-        "verilog.lint.xcelium.includes": {
+        "slang.lint.xcelium.includes": {
           "default": [],
           "description": "Include Path Overrides. Use `${includes} to include default includes",
           "type": "array",
@@ -594,27 +542,27 @@
             "type": "string"
           }
         },
-        "verilog.lint.xcelium.enabled": {
+        "slang.lint.xcelium.enabled": {
           "default": false,
           "description": "Enable this lint tool",
           "type": "boolean"
         },
-        "verilog.svFormat.verible.runAtFileLocation": {
+        "slang.svFormat.verible.runAtFileLocation": {
           "default": false,
           "description": "Run at file location",
           "type": "boolean"
         },
-        "verilog.svFormat.verible.args": {
+        "slang.svFormat.verible.args": {
           "default": "",
           "description": "Arguments to pass to the tool",
           "type": "string"
         },
-        "verilog.svFormat.verible.path": {
+        "slang.svFormat.verible.path": {
           "description": "Path to the tool",
           "default": "",
           "type": "string"
         },
-        "verilog.svFormat.formatter": {
+        "slang.svFormat.formatter": {
           "description": "Formatter Selection",
           "default": "",
           "type": "string",
@@ -622,52 +570,52 @@
             "verible-verilog-format"
           ]
         },
-        "verilog.verilogFormat.verilogFormatter.runAtFileLocation": {
+        "slang.verilogFormat.verilogFormatter.runAtFileLocation": {
           "default": false,
           "description": "Run at file location",
           "type": "boolean"
         },
-        "verilog.verilogFormat.verilogFormatter.args": {
+        "slang.verilogFormat.verilogFormatter.args": {
           "default": "",
           "description": "Arguments to pass to the tool",
           "type": "string"
         },
-        "verilog.verilogFormat.verilogFormatter.path": {
+        "slang.verilogFormat.verilogFormatter.path": {
           "description": "Path to the tool",
           "default": "",
           "type": "string"
         },
-        "verilog.verilogFormat.iStyleFormatter.runAtFileLocation": {
+        "slang.verilogFormat.iStyleFormatter.runAtFileLocation": {
           "default": false,
           "description": "Run at file location",
           "type": "boolean"
         },
-        "verilog.verilogFormat.iStyleFormatter.args": {
+        "slang.verilogFormat.iStyleFormatter.args": {
           "default": "",
           "description": "Arguments to pass to the tool",
           "type": "string"
         },
-        "verilog.verilogFormat.iStyleFormatter.path": {
+        "slang.verilogFormat.iStyleFormatter.path": {
           "description": "Path to the tool",
           "default": "",
           "type": "string"
         },
-        "verilog.verilogFormat.veribleFormatter.runAtFileLocation": {
+        "slang.verilogFormat.veribleFormatter.runAtFileLocation": {
           "default": false,
           "description": "Run at file location",
           "type": "boolean"
         },
-        "verilog.verilogFormat.veribleFormatter.args": {
+        "slang.verilogFormat.veribleFormatter.args": {
           "default": "",
           "description": "Arguments to pass to the tool",
           "type": "string"
         },
-        "verilog.verilogFormat.veribleFormatter.path": {
+        "slang.verilogFormat.veribleFormatter.path": {
           "description": "Path to the tool",
           "default": "",
           "type": "string"
         },
-        "verilog.verilogFormat.formatter": {
+        "slang.verilogFormat.formatter": {
           "description": "Formatter Selection",
           "default": "",
           "type": "string",
@@ -677,68 +625,48 @@
             "verible-verilog-format"
           ]
         },
-        "verilog.languageServer.path": {
-          "default": "",
-          "description": "Path to the language server",
-          "type": "string"
-        },
-        "verilog.languageServer.server": {
-          "enum": [
-            "ctags",
-            "slang-server",
-            "svls",
-            "veridian",
-            "verible-verilog-ls"
-          ],
-          "default": "ctags",
-          "description": "Selected Language server",
-          "type": "string"
-        },
-        "verilog.languageServer.args": {
-          "default": [],
-          "description": "Arguments to pass to the server",
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "verilog.languageServer.debugArgs": {
-          "default": [],
-          "description": "Arguments to pass to the server when debugging",
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "verilog.inlayHints.wildcardPorts": {
-          "default": "on",
-          "description": "Show wildcard port hints (.*: port1, port2, etc.) in module instantiation",
-          "enum": [
-            "on",
-            "off"
-          ],
-          "type": "string"
-        },
-        "verilog.inlayHints.ports": {
-          "default": "off",
-          "description": "Show port type hints in module instantiation",
-          "enum": [
-            "on",
-            "hover",
-            "off"
-          ],
-          "type": "string"
-        },
-        "verilog.buildfGlob": {
+        "slang.buildfGlob": {
           "default": "",
           "description": "Glob for finding build.f files",
           "type": "string"
+        },
+        "slang.path": {
+          "description": "Path to the slang-server (not slang)",
+          "default": "",
+          "type": "string"
+        },
+        "slang.args": {
+          "default": [],
+          "description": "Arguments to pass to the slang-server",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "slang.debugArgs": {
+          "default": [],
+          "description": "Arguments to pass to slang-server when debugging",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       }
     },
     "commands": [
       {
-        "command": "verilog.project.setTopLevel",
+        "command": "slang.project.instancesView.copyHierarchyPath",
+        "title": "Copy Path",
+        "inlineContext": [
+          "Instance"
+        ],
+        "icon": {
+          "light": "./resources/light/files.svg",
+          "dark": "./resources/dark/files.svg"
+        }
+      },
+      {
+        "command": "slang.project.setTopLevel",
         "title": "Set Top Level",
         "shortTitle": "Set Top",
         "languages": [
@@ -748,37 +676,37 @@
         "icon": "$(chip)"
       },
       {
-        "command": "verilog.project.clearTopLevel",
+        "command": "slang.project.clearTopLevel",
         "title": "Clear Top Level",
         "icon": "$(panel-close)"
       },
       {
-        "command": "verilog.project.setInstance",
+        "command": "slang.project.setInstance",
         "title": "Set Instance from Instance View",
         "hidden": true
       },
       {
-        "command": "verilog.project.setBuildFile",
+        "command": "slang.project.setBuildFile",
         "title": "Set build file",
         "icon": "$(file-code)"
       },
       {
-        "command": "verilog.project.toggleParams",
+        "command": "slang.project.toggleParams",
         "title": "Toggle Params",
         "icon": "$(symbol-type-parameter)"
       },
       {
-        "command": "verilog.project.toggleData",
+        "command": "slang.project.toggleData",
         "title": "Toggle Data",
         "icon": "$(symbol-variable)"
       },
       {
-        "command": "verilog.project.toggleHidden",
+        "command": "slang.project.toggleHidden",
         "title": "Toggle Hidden",
         "icon": "$(eye)"
       },
       {
-        "command": "verilog.project.showSourceFile",
+        "command": "slang.project.showSourceFile",
         "title": "Show Module",
         "inlineContext": [
           "Module"
@@ -789,7 +717,7 @@
         }
       },
       {
-        "command": "verilog.project.copyHierarchyPath",
+        "command": "slang.project.copyHierarchyPath",
         "title": "Copy Path",
         "inlineContext": [],
         "icon": {
@@ -798,19 +726,7 @@
         }
       },
       {
-        "command": "verilog.languageServer.restartLanguageServer",
-        "title": "Verilog: Restart Language Server"
-      },
-      {
-        "command": "verilog.reindex",
-        "title": "Verilog: Reindex"
-      },
-      {
-        "command": "verilog.fixModules",
-        "title": "Verilog: Fix file names to match module names"
-      },
-      {
-        "command": "verilog.expandMacros",
+        "command": "slang.expandMacros",
         "title": "Expand Macros",
         "shortTitle": "Expand macros",
         "languages": [
@@ -820,6 +736,10 @@
         "icon": "$(open-preview)"
       },
       {
+        "command": "slang.restartLanguageServer",
+        "title": "Slang: Restart Language Server"
+      },
+      {
         "command": "extdev.updateConfig",
         "title": "Extdev: update config (package.json and CONFIG.md)"
       }
@@ -827,75 +747,88 @@
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "verilog",
-          "title": "Verilog",
+          "id": "slang",
+          "title": "Slang",
           "icon": "$(chip)"
         }
       ],
       "panel": []
     },
     "views": {
-      "verilog": [
+      "slang": [
         {
-          "id": "verilog.project",
+          "id": "slang.project",
           "name": "Hierarchy"
+        },
+        {
+          "id": "slang.project.instancesView",
+          "name": "Instances"
         }
       ]
     },
     "viewsWelcome": [
       {
-        "view": "verilog.project",
-        "contents": "[Select top level](command:verilog.project.selectTopLevel)"
+        "view": "slang.project",
+        "contents": "[Select top level](command:slang.project.selectTopLevel)"
+      },
+      {
+        "view": "slang.project.instancesView",
+        "contents": "[Select top level](command:slang.project.selectTopLevel)"
       }
     ],
     "menus": {
       "view/title": [
         {
-          "command": "verilog.project.clearTopLevel",
+          "command": "slang.project.clearTopLevel",
           "group": "navigation",
-          "when": "view == verilog.project"
+          "when": "view == slang.project"
         },
         {
-          "command": "verilog.project.setBuildFile",
+          "command": "slang.project.setBuildFile",
           "group": "navigation",
-          "when": "view == verilog.project"
+          "when": "view == slang.project"
         },
         {
-          "command": "verilog.project.toggleParams",
+          "command": "slang.project.toggleParams",
           "group": "navigation",
-          "when": "view == verilog.project"
+          "when": "view == slang.project"
         },
         {
-          "command": "verilog.project.toggleData",
+          "command": "slang.project.toggleData",
           "group": "navigation",
-          "when": "view == verilog.project"
+          "when": "view == slang.project"
         },
         {
-          "command": "verilog.project.toggleHidden",
+          "command": "slang.project.toggleHidden",
           "group": "navigation",
-          "when": "view == verilog.project"
+          "when": "view == slang.project"
         }
       ],
       "view/item/context": [
         {
-          "command": "verilog.project.showSourceFile",
+          "command": "slang.project.showSourceFile",
           "group": "inline",
-          "when": "view == verilog.project && viewItem == Module"
+          "when": "view == slang.project && viewItem == Module"
         },
         {
-          "command": "verilog.project.copyHierarchyPath",
+          "command": "slang.project.copyHierarchyPath",
           "group": "inline",
-          "when": "view == verilog.project"
+          "when": "view == slang.project"
+        },
+        {
+          "command": "slang.project.instancesView.copyHierarchyPath",
+          "group": "inline",
+          "when": "view == slang.project.instancesView && viewItem == Instance"
         }
       ],
       "editor/title": [
         {
-          "command": "verilog.project.setTopLevel",
+          "command": "slang.project.setTopLevel",
           "when": "resourceLangId == verilog || resourceLangId == systemverilog",
           "group": "navigation"
         },
         {
-          "command": "verilog.expandMacros",
+          "command": "slang.expandMacros",
           "when": "resourceLangId == verilog || resourceLangId == systemverilog",
           "group": "navigation"
         }
@@ -907,7 +840,7 @@
     "watch-tests": "tsc -p . -w --outDir out",
     "lint": "eslint src --ext ts",
     "vscode:prepublish": "npm run esbuild-base -- --minify",
-    "prepublishOnly": "pnpm run lint && pnpm run package -o vscode-system-verilog.vsix",
+    "prepublishOnly": "pnpm run lint && pnpm run package -o vscode-slang.vsix",
     "esbuild-base": "esbuild ./src/extension.ts --bundle --external:vscode --format=cjs --platform=node --outfile=dist/main.js",
     "esbuild": "npm run esbuild-base -- --sourcemap",
     "esbuild-watch": "npm run esbuild -- --watch",
@@ -922,10 +855,10 @@
     "pretest": "npm run compile-tests && npm run compile && npm run lint"
   },
   "dependencies": {
+    "@types/deep-diff": "^1.0.5",
     "js-yaml": "^4.1.0",
     "semver": "^7.6.0",
     "vscode-languageclient": "^9.0.1",
-    "@types/deep-diff": "^1.0.5",
     "which": "^4.0.0"
   },
   "devDependencies": {

@@ -1,6 +1,5 @@
 import * as vscode from 'vscode'
 import { TreeDataProvider, TreeItem } from 'vscode'
-import { selectModule } from '../analysis/ModuleSelection'
 import { ext } from '../extension'
 import {
   CommandNode,
@@ -9,11 +8,17 @@ import {
   ViewButton,
   ViewComponent,
 } from '../lib/libconfig'
-// import { InstancesView, InstanceViewItem, ModuleItem } from './InstancesView'
+import { InstancesView } from './InstancesView'
 import * as slang from './SlangInterface'
 
 const STRUCTURE_SYMS = [slang.SlangKind.Instance, slang.SlangKind.Scope]
-export abstract class HierItem {
+
+interface HasChildren {
+  getChildren(): Promise<HierItem[]>
+  getChild(name: string): Promise<HierItem | undefined>
+  getPath(): string
+}
+export abstract class HierItem implements HasChildren {
   getPath(): string {
     if (this.path !== undefined) {
       return this.path
@@ -27,6 +32,7 @@ export abstract class HierItem {
 
   parent: HierItem | undefined
   children: HierItem[] | undefined
+  childrenByName: Map<string, HierItem> = new Map()
 
   constructor(parent: HierItem | undefined, item: slang.Item) {
     this.parent = parent
@@ -39,6 +45,19 @@ export abstract class HierItem {
       this.children = await this._fetchChildren()
     }
     return this.children
+  }
+
+  async getChild(name: string): Promise<HierItem | undefined> {
+    if (this.children === undefined) {
+      this.children = await this._fetchChildren()
+    }
+    if (this.childrenByName.size === 0) {
+      for (let child of this.children) {
+        this.childrenByName.set(child.inst.instName, child)
+      }
+    }
+
+    return this.childrenByName.get(name)
   }
 
   async _fetchChildren(): Promise<HierItem[]> {
@@ -133,7 +152,7 @@ export class InstanceItem extends HierItem {
     let item = await super.getTreeItem()
     item.contextValue = 'Module'
     item.iconPath = new vscode.ThemeIcon('chip')
-    item.description = ': ' + this.inst.declName
+    item.description = this.inst.declName
     return item
   }
 
@@ -148,7 +167,7 @@ export class InstanceItem extends HierItem {
 }
 
 export class RootItem extends InstanceItem {
-  constructor(instance: slang.FilledInstance) {
+  constructor(instance: slang.Instance) {
     super(undefined, instance)
     this.children = mapChildren(this, instance.children)
   }
@@ -157,6 +176,47 @@ export class RootItem extends InstanceItem {
     return this.inst.instName
   }
   preOrderTraversal = HierItem.prototype.preOrderTraversal
+}
+
+export class UnitItem implements HasChildren {
+  children: RootItem[]
+  childMap: Map<string, RootItem> = new Map()
+  constructor(children: RootItem[]) {
+    this.children = children
+    for (let child of children) {
+      this.childMap.set(child.inst.instName, child)
+    }
+  }
+
+  async getChildren(): Promise<HierItem[]> {
+    return this.children
+  }
+
+  async getChild(name: string): Promise<HierItem | undefined> {
+    return this.childMap.get(name)
+  }
+
+  getPath(): string {
+    return '$unit'
+  }
+}
+
+function splitScope(path: string): string[] {
+  const parts = path.split('.')
+  const partsWithBrackets = []
+  // remove brackets from parts
+  for (const part of parts) {
+    if (part.includes('[')) {
+      const bracketSplit = part.split('[')
+      partsWithBrackets.push(bracketSplit[0])
+      for (const index of bracketSplit.slice(1)) {
+        partsWithBrackets.push('[' + index)
+      }
+    } else {
+      partsWithBrackets.push(part)
+    }
+  }
+  return partsWithBrackets
 }
 
 class VarItem extends HierItem {
@@ -222,6 +282,10 @@ class VarItem extends HierItem {
 // }
 
 export class ProjectComponent extends ViewComponent implements TreeDataProvider<HierItem> {
+  // Top $unit, has top level + packages
+  unit: UnitItem | undefined = undefined
+
+  // Top level module, first in unit
   top: RootItem | undefined = undefined
 
   // Hierarchy Tree
@@ -231,7 +295,7 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
 
   // Instances Index
   // TODO
-  // instancesView: InstancesView = new InstancesView()
+  instancesView: InstancesView = new InstancesView()
 
   //////////////////////////////////////////////////////////////////
   // Editor Buttons
@@ -250,19 +314,13 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
         return
       }
       // should also be active text editor
-      const doc = await vscode.workspace.openTextDocument(uri)
-      const module = await selectModule(doc)
-      if (module === undefined) {
-        return
-      }
       await slang.setTopLevel(uri.fsPath)
-      await this.queryScope()
+      await this.setTopModule()
     }
   )
 
-  async queryScope(): Promise<void> {
-    const item = (await slang.getScope('')) as slang.FilledInstance[]
-    this.setTopModule(item[0])
+  async onStart(): Promise<void> {
+    this.setTopModule()
   }
 
   // setInstanceByFile: EditorButton = new EditorButton(
@@ -453,7 +511,7 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
       hidden: true,
     },
     async (
-      instance: HierItem | undefined,
+      instance: HierItem | string | undefined,
       {
         revealHierarchy,
         revealFile,
@@ -468,31 +526,64 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
         vscode.window.showErrorMessage('setInstance: Instance is undefined')
         return
       }
-      // if (revealHierarchy) {
-      //   if (instance instanceof VarItem && !this.symFilter.has(instance.instance.type)) {
-      //     if (instance instanceof ParamItem) {
-      //       await this.toggleParams.func()
-      //     } else if (instance instanceof DataItem) {
-      //       await this.toggleData.func()
-      //     }
-      //   }
-      //   await this.treeView?.reveal(instance, { select: true, focus: true, expand: true })
-      // }
+
+      // resolve instances if hierarchy path
+      if (typeof instance === 'string') {
+        // const scopes = await slang.getScopes(instance)
+        const scopes = splitScope(instance)
+        // Go through hierarchy, revealing each level
+        let current: HasChildren = this.unit!
+        for (let scope of scopes) {
+          let child = await current.getChild(scope)
+
+          if (child === undefined) {
+            this.logger.warn(`Could not find instance ${scope} in ${current.getPath()}`)
+            break
+          }
+
+          current = child
+        }
+
+        if (!(current instanceof HierItem)) {
+          vscode.window.showErrorMessage('Invalid instance type: ' + typeof current)
+          return
+        }
+        instance = current
+      }
+
+      if (revealHierarchy) {
+        if (instance.isVirtualLoc && !this.includeHidden) {
+          this.toggleHidden.func()
+        }
+        if (!this.symFilter.has(instance.inst.kind)) {
+          switch (instance.inst.kind) {
+            case slang.SlangKind.Param:
+              await this.toggleParams.func()
+              break
+            case slang.SlangKind.Logic:
+              await this.toggleData.func()
+              break
+          }
+        }
+        await this.treeView?.reveal(instance, { select: true, focus: true, expand: true })
+      }
+
       if (revealFile) {
         vscode.window.showTextDocument(vscode.Uri.parse(instance.inst.instLoc.uri), {
           selection: instance.inst.instLoc.range,
         })
       }
-      // if (revealInstance) {
-      //   // select the most recent module
-      //   while (!(instance instanceof InstanceItem)) {
-      //     instance = instance.parent
-      //     if (instance === undefined) {
-      //       return
-      //     }
-      //   }
-      //   this.instancesView.revealPath(instance.definition!, instance.getPath())
-      // }
+
+      if (revealInstance) {
+        // select the most recent module
+        while (!(instance instanceof InstanceItem)) {
+          instance = instance.parent
+          if (instance === undefined) {
+            return
+          }
+        }
+        this.instancesView.revealPath(instance.inst.declName, instance.getPath())
+      }
     }
   )
 
@@ -507,7 +598,7 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
       // quick pick from the glob
       const glob = ext.buildfGlob.getValue()
       if (glob.length === 0) {
-        vscode.window.showErrorMessage('No build file glob set at `verilog.buildfGlob`')
+        vscode.window.showErrorMessage('No build file glob set at `slang.buildfGlob`')
         return
       }
       // can't use workspace findfiles bc the build.f files are probably generated and not in repo
@@ -527,7 +618,7 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
       this.buildfile = selection
       await slang.setBuildFile(selection)
 
-      this.top = new RootItem((await slang.getScope(''))[0] as slang.FilledInstance)
+      await this.setTopModule()
     }
   )
 
@@ -635,7 +726,7 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
     super({
       name: 'Hierarchy',
       welcome: {
-        contents: '[Select top level](command:verilog.project.selectTopLevel)',
+        contents: '[Select top level](command:slang.project.selectTopLevel)',
       },
     })
   }
@@ -662,7 +753,7 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
   //   this.setInstanceByPathInternal.func(undefined, link.path)
   // }
 
-  async activate(context: vscode.ExtensionContext): Promise<void> {
+  async activate(_context: vscode.ExtensionContext): Promise<void> {
     vscode.window.createTreeView
     this.treeView = vscode.window.createTreeView(this.configPath!, {
       treeDataProvider: this,
@@ -677,13 +768,17 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
     // context.subscriptions.push(vscode.window.registerTerminalLinkProvider(this))
   }
 
-  async setTopModule(top: slang.FilledInstance) {
-    this.top = new RootItem(top)
+  async setTopModule() {
+    const unit = await slang.getTop()
+    // this.top = new RootItem(top)
+    this.unit = new UnitItem(unit.map((item) => new RootItem(item)))
+    this.top = this.unit.children[0]
+
     if (this.top !== undefined && this.treeView !== undefined) {
       this.treeView.reveal(this.top, { select: true, focus: true })
       this._onDidChangeTreeData.fire()
     }
-    // this.instancesView.indexTop(this.top)
+    this.instancesView.updateModules()
   }
 
   async getTreeItem(element: HierItem): Promise<TreeItem> {
@@ -703,10 +798,10 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
 
   async getChildren(element?: HierItem | undefined): Promise<HierItem[]> {
     if (element === undefined) {
-      if (this.top === undefined) {
+      if (this.unit === undefined) {
         return []
       }
-      return [this.top]
+      return this.unit.getChildren()
     }
     const children = await element.getChildren()
     const filtered = children.filter((child) => this.symFilter.has(child.inst.kind))
@@ -729,7 +824,7 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
     // item.tooltip = element.instName
     item.command = {
       title: 'Go to definition',
-      command: 'verilog.project.setInstance',
+      command: 'slang.project.setInstance',
       arguments: [element, { revealHierarchy: false, revealFile: true, revealInstance: true }],
     }
 

@@ -1,33 +1,36 @@
 import * as vscode from 'vscode'
-import { Symbol } from '../analysis/Symbol'
+
 import { TreeItemButton, ViewComponent } from '../lib/libconfig'
-import { DefaultMap } from '../utils'
-import { HierItem, InstanceItem, RootItem } from './ProjectComponent'
+import * as slang from './SlangInterface'
 
 export class InstanceViewItem {
+  data: slang.QualifiedInstance
   parent: ModuleItem
-  inst: InstanceItem
-  constructor(parent: ModuleItem, inst: InstanceItem) {
+
+  constructor(parent: ModuleItem, inst: slang.QualifiedInstance) {
     this.parent = parent
-    this.inst = inst
+    this.data = inst
   }
   getParent(): ModuleItem {
     return this.parent
   }
 
   getTreeItem(): vscode.TreeItem {
-    const item = new vscode.TreeItem(this.inst.getPath(), vscode.TreeItemCollapsibleState.None)
+    const item = new vscode.TreeItem(this.data.instPath, vscode.TreeItemCollapsibleState.None)
     item.iconPath = new vscode.ThemeIcon('chip')
     item.contextValue = 'Instance'
     return item
   }
 
   resolveTreeItem(item: vscode.TreeItem, _token: vscode.CancellationToken): vscode.TreeItem {
-    item.tooltip = this.inst.getPath()
+    item.tooltip = this.data.instPath
     item.command = {
       title: 'Open Instance',
-      command: 'verilog.project.setInstance',
-      arguments: [this.inst, { revealInstance: false, revealFile: true, revealHierarchy: true }],
+      command: 'slang.project.setInstance',
+      arguments: [
+        this.data.instPath,
+        { revealInstance: false, revealFile: true, revealHierarchy: true },
+      ],
     }
     return item
   }
@@ -38,43 +41,49 @@ export class InstanceViewItem {
 }
 
 export class ModuleItem {
-  definition: Symbol
+  data: slang.Module
   instances: Map<string, InstanceViewItem> = new Map()
 
-  constructor(definition: Symbol) {
-    this.definition = definition
-  }
-
-  addInstance(item: InstanceItem) {
-    this.instances.set(item.getPath(), new InstanceViewItem(this, item))
+  constructor(data: slang.Module) {
+    this.data = data
   }
 
   getTreeItem(): vscode.TreeItem {
     const item = new vscode.TreeItem(
-      this.definition.name,
+      this.data.declName + ` (${this.data.instCount})`,
       vscode.TreeItemCollapsibleState.Collapsed
     )
     item.iconPath = new vscode.ThemeIcon('file')
-    if (this.instances.size === 1) {
+    if (this.data.inst) {
       item.collapsibleState = vscode.TreeItemCollapsibleState.Expanded
     }
     return item
   }
 
   resolveTreeItem(item: vscode.TreeItem, _token: vscode.CancellationToken): vscode.TreeItem {
-    item.tooltip = this.definition.name
+    item.tooltip = this.data.declName
     item.command = {
       title: 'Open Module',
       command: 'vscode.open',
-      arguments: [this.definition.doc.uri, { selection: this.definition.getIdRange() }],
+      arguments: [vscode.Uri.parse(this.data.declLoc.uri), { selection: this.data.declLoc.range }],
     }
     return item
   }
 
-  getChildren(): InstanceTreeItem[] {
-    return Array.from(this.instances.values()).map((item) => {
-      return item
-    })
+  async getChildren(): Promise<InstanceTreeItem[]> {
+    return Array.from((await this.getInstances()).values())
+  }
+
+  async getInstances(): Promise<Map<string, InstanceViewItem>> {
+    if (this.instances.size === 0) {
+      const insts = await slang.getInstancesOfModule(this.data.declName)
+      this.instances = new Map()
+      for (const inst of insts) {
+        const item = new InstanceViewItem(this, inst)
+        this.instances.set(inst.instPath, item)
+      }
+    }
+    return this.instances
   }
 }
 
@@ -93,44 +102,24 @@ export class InstancesView
       },
     },
     async (item: InstanceViewItem) => {
-      vscode.env.clipboard.writeText(item.inst.getPath())
+      vscode.env.clipboard.writeText(item.data.instPath)
     }
   )
 
-  modules: DefaultMap<Symbol, ModuleItem> = new DefaultMap((sym: Symbol) => new ModuleItem(sym))
-  async indexTop(top: RootItem) {
-    this.modules.clear()
-    await vscode.window.withProgress(
-      {
-        location: {
-          viewId: this.configPath!,
-        },
-        title: 'Indexing Hierarchy',
-        cancellable: false,
-      },
+  modules: Map<string, ModuleItem> = new Map()
+  async updateModules() {
+    const modules = await slang.getScopesByModule()
+    this.modules = new Map()
+    for (const mod of modules) {
+      const item = new ModuleItem(mod)
+      this.modules.set(mod.declName, item)
+    }
 
-      async (progress) => {
-        progress.report({ increment: 0, message: 'Starting...' })
-        let pct = 0.0
-        let lastReport = 0
-        await top.preOrderTraversal((item: HierItem) => {
-          if (item instanceof InstanceItem && item.definition) {
-            this.modules.get(item.definition).addInstance(item)
-            pct += (95.0 - pct) * 0.001
-            const fl = Math.floor(pct)
-            if (fl > lastReport) {
-              progress.report({ increment: fl - lastReport })
-              lastReport = fl
-            }
-          }
-        })
+    console.log('Got n modules', this.modules.size)
 
-        progress.report({ increment: 100, message: 'Done' })
-      }
-    )
     this._onDidChangeTreeData.fire()
   }
-  revealPath(module: Symbol, path: string) {
+  revealPath(module: string, path: string) {
     const moduleItem = this.modules.get(module)
     if (moduleItem === undefined) {
       return
@@ -148,7 +137,7 @@ export class InstancesView
     super({
       name: 'Instances',
       welcome: {
-        contents: '[Select top level](command:verilog.project.selectTopLevel)',
+        contents: '[Select top level](command:slang.project.selectTopLevel)',
       },
     })
   }
@@ -166,17 +155,25 @@ export class InstancesView
   }
 
   getTreeItem(element: InstanceTreeItem): vscode.TreeItem {
-    return element.getTreeItem()
+    // check if element has gettreeitem
+    if (element instanceof ModuleItem) {
+      return element.getTreeItem()
+    }
+    if (element instanceof InstanceViewItem) {
+      return element.getTreeItem()
+    }
+
+    return new vscode.TreeItem('undefined')
   }
 
-  getChildren(element?: undefined | InstanceTreeItem): vscode.ProviderResult<InstanceTreeItem[]> {
+  async getChildren(element?: undefined | InstanceTreeItem): Promise<InstanceTreeItem[]> {
     if (element === undefined) {
       return Array.from(this.modules.values())
     }
-    return element.getChildren()
+    return await element.getChildren()
   }
 
-  getParent(element: InstanceTreeItem): vscode.ProviderResult<InstanceTreeItem> {
+  getParent(element: InstanceTreeItem): InstanceTreeItem | undefined {
     if (element instanceof ModuleItem) {
       return undefined
     }

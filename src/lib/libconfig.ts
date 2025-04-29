@@ -7,6 +7,8 @@ import * as vscode from 'vscode'
 import { JSONSchemaType } from './jsonSchema'
 import { Logger, StubLogger, createLogger } from './logger'
 import { IConfigurationPropertySchema } from './vscodeConfigs'
+import which from 'which'
+
 const execFilePromise = promisify(child_process.execFile)
 
 class ExtensionNode {
@@ -377,7 +379,6 @@ class ButtonNode<Spec extends ContextCommandSpec> extends CommandNode<Spec> {
     )
   }
 }
-
 export class ViewButton extends ButtonNode<ViewButtonSpec> {
   getWhen() {
     return {
@@ -413,6 +414,14 @@ export class EditorButton extends ButtonNode<EditorButtonSpec> {
       group: 'navigation',
     }
   }
+}
+
+export class ExternalEditorButton extends EditorButton {
+  constructor(spec: EditorButtonSpec) {
+    super(spec, async () => {})
+  }
+
+  async activate() {}
 }
 
 ////////////////////////////////////////////////////
@@ -551,11 +560,10 @@ export class PathConfigObject extends ConfigObject<string> {
 
   compile(nodeName: string, parentNode?: ExtensionComponent | undefined): void {
     super.compile(nodeName, parentNode)
-    this.getValueAsync()
   }
 
   getValue(): string {
-    let toolpath = vscode.workspace.getConfiguration().get(this.configPath!, this.default!)
+    let toolpath = vscode.workspace.getConfiguration().get(this.configPath!, '')
     if (toolpath === '') {
       return this.platformDefaults[getPlatform()]
     }
@@ -563,7 +571,7 @@ export class PathConfigObject extends ConfigObject<string> {
   }
 
   async getValueAsync(): Promise<string> {
-    let toolpath = vscode.workspace.getConfiguration().get(this.configPath!, this.default!)
+    let toolpath = vscode.workspace.getConfiguration().get(this.configPath!, '')
 
     // if we already performed which, use that
     if (toolpath === '' && path.isAbsolute(this.cachedValue)) {
@@ -575,7 +583,13 @@ export class PathConfigObject extends ConfigObject<string> {
       toolpath = this.platformDefaults[getPlatform()]
 
       if (!path.isAbsolute(toolpath)) {
-        toolpath = await this.which(toolpath)
+        const whichResult = await which(toolpath, { nothrow: true })
+        if (whichResult === '' || whichResult === null) {
+          console.error(`which ${toolpath} failed`)
+        } else {
+          console.error(`which ${toolpath} found ${whichResult}`)
+          toolpath = whichResult
+        }
       }
     }
 
