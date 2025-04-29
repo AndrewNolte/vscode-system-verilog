@@ -119,6 +119,12 @@ export class InstancesView
 
     this._onDidChangeTreeData.fire()
   }
+
+  async clearModules() {
+    this.modules = new Map()
+    this._onDidChangeTreeData.fire()
+  }
+
   revealPath(module: string, path: string) {
     const moduleItem = this.modules.get(module)
     if (moduleItem === undefined) {

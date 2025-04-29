@@ -394,8 +394,11 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
       icon: '$(panel-close)',
     },
     async () => {
+      await slang.setBuildFile('')
       this.top = undefined
       this.buildfile = undefined
+      this.unit = undefined
+      await this.instancesView.clearModules()
       this._onDidChangeTreeData.fire()
     }
   )

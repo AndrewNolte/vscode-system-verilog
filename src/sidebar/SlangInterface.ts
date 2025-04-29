@@ -109,7 +109,7 @@ export async function getTop(): Promise<Instance[]> {
 export async function getScopesByModule(): Promise<Module[]> {
   const children: Module[] = await vscode.commands.executeCommand('slang.getScopesByModule')
   if (children === undefined) {
-    vscode.window.showErrorMessage('Failed to get modules ')
+    vscode.window.showErrorMessage('Failed to get modules')
     return []
   }
   return children
