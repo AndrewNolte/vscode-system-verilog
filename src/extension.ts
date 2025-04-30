@@ -50,15 +50,6 @@ export class VerilogExtension extends ActivityBarComponent {
     description: 'Include paths to pass as -I to tools',
   })
 
-  moduleGlobs: ConfigObject<string[]> = new ConfigObject({
-    default: ['**/*.{sv,v}'],
-    description:
-      'Globs for finding verilog modules, interfaces, and packages for use with the common -y flag',
-  })
-  excludeGlob: ConfigObject<string> = new ConfigObject({
-    default: '',
-    description: 'Globs to exclude files',
-  })
   svStandard: ConfigObject<SvStandard> = new ConfigObject({
     default: SvStandard.SV2017,
     description: 'System Verilog standard to use for external linters',
@@ -74,10 +65,6 @@ export class VerilogExtension extends ActivityBarComponent {
     description: 'Directories to format',
   })
 
-  expandMacroScript: ConfigObject<string> = new ConfigObject({
-    default: '',
-    description: 'Script to expand macros. Takes the file as an argument, expects output on stdout',
-  })
   ////////////////////////////////////////////////
   /// extension subcomponents
   ////////////////////////////////////////////////
@@ -221,7 +208,8 @@ export class VerilogExtension extends ActivityBarComponent {
     if (ws === undefined) {
       return []
     }
-    const exclude: string = this.excludeGlob.getValue()
+
+    // TODO: maybe use this.slangConfig.exclude.excludeDirs
 
     const find = async (str: string): Promise<vscode.Uri[]> => {
       let ret: vscode.Uri[]
@@ -230,7 +218,7 @@ export class VerilogExtension extends ActivityBarComponent {
       } else if (useGlob) {
         ret = (await asyncGlob(path.join(ws, str))).map((p) => vscode.Uri.file(p))
       } else {
-        ret = await vscode.workspace.findFiles(new vscode.RelativePattern(ws, str), exclude)
+        ret = await vscode.workspace.findFiles(new vscode.RelativePattern(ws, str))
       }
       return ret
     }
@@ -240,7 +228,10 @@ export class VerilogExtension extends ActivityBarComponent {
   }
 
   public async findModules(): Promise<vscode.Uri[]> {
-    return await this.findFiles(this.moduleGlobs.getValue())
+    if (!this.slangConfig.indexGlobs) {
+      return []
+    }
+    return await this.findFiles(this.slangConfig.indexGlobs)
   }
 }
 
