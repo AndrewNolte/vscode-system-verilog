@@ -20,6 +20,7 @@ export enum SlangKind {
   Logic = 'Logic',
   Port = 'Port',
   InstanceArray = 'InstanceArray',
+  Package = 'Package',
 }
 
 /// Can't parse URIs
@@ -106,7 +107,7 @@ export async function getScope(hierPath: string): Promise<Item[]> {
   return children
 }
 
-export async function getTop(): Promise<Instance[]> {
+export async function getUnit(): Promise<Instance[]> {
   const children = (await getScope('')) as Instance[]
   return children
 }

@@ -192,16 +192,31 @@ class InstanceArrayItem extends InstanceItem {
 }
 
 export class RootItem extends InstanceItem {
-  constructor(instance: slang.Instance) {
-    super(undefined, instance)
-    this.children = mapChildren(this, instance.children)
-  }
-
   getPath(): string {
     return this.inst.instName
   }
   preOrderTraversal = HierItem.prototype.preOrderTraversal
 }
+
+export class TopItem extends RootItem {
+  constructor(instance: slang.Instance) {
+    super(undefined, instance)
+    this.children = mapChildren(this, instance.children)
+  }
+}
+
+export class PkgItem extends RootItem {
+  constructor(instance: slang.Instance) {
+    super(undefined, instance)
+  }
+
+  async getTreeItem(): Promise<vscode.TreeItem> {
+    let item = await super.getTreeItem()
+    item.iconPath = new vscode.ThemeIcon('package')
+    return item
+  }
+}
+// Packages don't have children loaded
 
 export class UnitItem implements HasChildren {
   children: RootItem[]
@@ -420,7 +435,6 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
     },
     async () => {
       await slang.setBuildFile('')
-      this.top = undefined
       this.buildfile = undefined
       this.unit = undefined
       await this.instancesView.clearModules()
@@ -804,26 +818,36 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
   }
 
   async setTopModule() {
-    const unit = await slang.getTop()
-    // this.top = new RootItem(top)
-    this.unit = new UnitItem(unit.map((item) => new RootItem(item)))
-    this.top = this.unit.children[0]
+    const unit = await slang.getUnit()
+    this.unit = new UnitItem(
+      unit.map((item) =>
+        item.kind === slang.SlangKind.Instance ? new TopItem(item) : new PkgItem(item)
+      )
+    )
 
-    if (this.top !== undefined && this.treeView !== undefined) {
-      this.treeView.reveal(this.top, { select: true, focus: true })
+    const tops = this.unit.children.filter((item) => item.inst.kind === slang.SlangKind.Instance)
+
+    if (tops.length === 1 && this.treeView !== undefined) {
+      this.treeView.reveal(tops[0], { select: true, focus: true })
       this._onDidChangeTreeData.fire()
     }
     this.instancesView.updateModules()
   }
 
   async getTreeItem(element: HierItem): Promise<TreeItem> {
+    if (element.inst.kind === slang.SlangKind.Package) {
+      const treeItem = await element.getTreeItem()
+      treeItem.collapsibleState = vscode.TreeItemCollapsibleState.Collapsed
+      return treeItem
+    }
+
     const [treeItem, children] = await Promise.all([
       element.getTreeItem(),
       this.getChildren(element),
     ])
     if (children.length === 0) {
       treeItem.collapsibleState = vscode.TreeItemCollapsibleState.None
-    } else if (element instanceof RootItem) {
+    } else if (element instanceof RootItem && element.inst.kind === slang.SlangKind.Instance) {
       treeItem.collapsibleState = vscode.TreeItemCollapsibleState.Expanded
     } else {
       treeItem.collapsibleState = vscode.TreeItemCollapsibleState.Collapsed
@@ -839,6 +863,10 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
       return this.unit.getChildren()
     }
     const children = await element.getChildren()
+    if (element.inst.kind === slang.SlangKind.Package) {
+      // Packages don't have children loaded, but should always have something
+      return children
+    }
     const filtered = children.filter((child) => this.symFilter.has(child.inst.kind))
     if (this.includeHidden) {
       return filtered
