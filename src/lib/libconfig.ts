@@ -525,7 +525,11 @@ export class ConfigObject<T extends JSONSchemaType> extends ExtensionNode {
     if (cfgjson.type === 'string') {
       out += `"${this.default}"\n\n`
     } else if (cfgjson.type === 'array') {
-      out += `[]\n\n`
+      if (this.default instanceof Array && this.default.length > 0) {
+        out += `["${this.default.join('", "')}"]\n\n`
+      } else {
+        out += `[]\n\n`
+      }
     } else {
       out += `${this.default}\n\n`
     }
