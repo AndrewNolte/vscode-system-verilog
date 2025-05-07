@@ -328,21 +328,6 @@
             "type": "string"
           }
         },
-        "slang.moduleGlobs": {
-          "default": [
-            "**/*.{sv,v}"
-          ],
-          "description": "Globs for finding verilog modules, interfaces, and packages for use with the common -y flag",
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "slang.excludeGlob": {
-          "default": "",
-          "description": "Globs to exclude files",
-          "type": "string"
-        },
         "slang.svStandard": {
           "default": "SystemVerilog-2017",
           "description": "System Verilog standard to use for external linters",
@@ -371,11 +356,6 @@
           "items": {
             "type": "string"
           }
-        },
-        "slang.expandMacroScript": {
-          "default": "",
-          "description": "Script to expand macros. Takes the file as an argument, expects output on stdout",
-          "type": "string"
         },
         "slang.lint.modelsim.runAtFileLocation": {
           "default": false,

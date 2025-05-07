@@ -300,7 +300,7 @@ export abstract class ExtensionComponent extends ExtensionNode {
   }
 
   getConfigMd(): string {
-    let out = '## Configuration Settings\n\n'
+    let out = '# Configuration Settings\n\n'
     this.preOrderConfigTraverse((obj: ConfigObject<any>) => {
       out += obj.getMarkdownString()
     })
@@ -529,14 +529,13 @@ export class ConfigObject<T extends JSONSchemaType> extends ExtensionNode {
     } else {
       out += `${this.default}\n\n`
     }
-    out += `    ${cfgjson.description}\n\n`
+    out += `  ${cfgjson.description}\n\n`
     if ('enum' in cfgjson) {
-      out += `    Options:\n`
+      out += `  Options:\n`
       for (let option of cfgjson.enum) {
-        out += `    - ${option}\n`
+        out += `  - ${option}\n`
       }
     }
-    out += '\n'
     return out
   }
 }
@@ -638,7 +637,6 @@ export class PathConfigObject extends ConfigObject<string> {
     out += `    linux:   \`${this.platformDefaults.linux}\`\n\n`
     out += `    mac:     \`${this.platformDefaults.mac}\`\n\n`
     out += `    windows: \`${this.platformDefaults.windows}\`\n\n`
-    out += '\n'
     return out
   }
 }
