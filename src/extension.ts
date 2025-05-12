@@ -145,12 +145,24 @@ export class VerilogExtension extends ActivityBarComponent {
       title: 'Restart Language Server',
     },
     async () => {
+      await this.project.clearTopLevel.func()
       if (this.client !== undefined && this.client.isRunning()) {
         await this.client.restart()
         await this.project.onStart()
         this.logger.info('"' + this.client.name + '" language server restarted')
       } else {
         await this.setupLanguageClient()
+      }
+    }
+  )
+
+  showOutput: CommandNode = new CommandNode(
+    {
+      title: 'Show Output',
+    },
+    async () => {
+      if (this.client !== undefined) {
+        this.client.outputChannel.show()
       }
     }
   )

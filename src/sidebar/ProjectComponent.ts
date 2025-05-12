@@ -775,7 +775,7 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
     super({
       name: 'Hierarchy',
       welcome: {
-        contents: '[Select top level](command:slang.project.selectTopLevel)',
+        contents: '[Select Build File](command:slang.project.selectBuildFile)',
       },
     })
   }
@@ -828,10 +828,14 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
     const tops = this.unit.children.filter((item) => item.inst.kind === slang.SlangKind.Instance)
 
     if (tops.length === 1 && this.treeView !== undefined) {
-      this.treeView.reveal(tops[0], { select: true, focus: true })
-      this._onDidChangeTreeData.fire()
+      this.setInstance.func(tops[0], {
+        revealHierarchy: true,
+        revealFile: true,
+        revealInstance: false,
+      })
     }
-    this.instancesView.updateModules()
+    // TODO: maybe setInstance() regardless of how many tops there are
+    await this.instancesView.updateModules()
   }
 
   async getTreeItem(element: HierItem): Promise<TreeItem> {

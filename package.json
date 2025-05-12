@@ -716,6 +716,10 @@
         "title": "Slang: Restart Language Server"
       },
       {
+        "command": "slang.showOutput",
+        "title": "Slang: Show Output"
+      },
+      {
         "command": "extdev.updateConfig",
         "title": "Extdev: update config (package.json and CONFIG.md)"
       }
@@ -745,7 +749,7 @@
     "viewsWelcome": [
       {
         "view": "slang.project",
-        "contents": "[Select top level](command:slang.project.selectTopLevel)"
+        "contents": "[Select Build File](command:slang.project.selectBuildFile)"
       },
       {
         "view": "slang.project.instancesView",
