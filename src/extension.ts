@@ -130,6 +130,7 @@ export class VerilogExtension extends ActivityBarComponent {
           // clangd starts or restarts after crash.
           this.client!.onNotification('slang/setConfig', (config: slang.Config) => {
             this.slangConfig = config
+            this.findModules()
           })
         }
       })
@@ -153,6 +154,7 @@ export class VerilogExtension extends ActivityBarComponent {
       } else {
         await this.setupLanguageClient()
       }
+      await this.showOutput.func()
     }
   )
 
@@ -241,8 +243,10 @@ export class VerilogExtension extends ActivityBarComponent {
 
   public async findModules(): Promise<vscode.Uri[]> {
     if (!this.slangConfig.indexGlobs) {
+      this.logger.warn('No index globs found in config')
       return []
     }
+    this.logger.warn('Indexing with slang globs ' + this.slangConfig.indexGlobs)
     return await this.findFiles(this.slangConfig.indexGlobs)
   }
 }

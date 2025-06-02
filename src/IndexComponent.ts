@@ -30,6 +30,7 @@ export class IndexComponent extends ExtensionComponent {
 
     if (context.storageUri !== undefined) {
       this.cacheDir = vscode.Uri.joinPath(context.storageUri, '.sv_cache', 'files')
+      this.logger.info('Cache dir: ' + this.cacheDir.fsPath)
     }
 
     // file save, rename, delete mgmt

@@ -88,16 +88,16 @@ export interface QualifiedInstance {
 /// Can be used by right clicking on a module or with button
 /// Slang should automatically choose the module with no references
 export async function setTopLevel(uri: string) {
-  return await vscode.commands.executeCommand('slang.setTopLevelInternal', uri)
+  return await vscode.commands.executeCommand('slang.setTopLevel', uri)
 }
 
 /// May need to ask to select top level from the available modules
 /// Or we can force the user to select the top level first, then specify the build file
 export async function setBuildFile(uri: string) {
-  return await vscode.commands.executeCommand('slang.setBuildFileInternal', uri)
+  return await vscode.commands.executeCommand('slang.setBuildFile', uri)
 }
 
-/// Get children at this path. Will return FilledInstance for the root
+/// Get children at this path. Will return filled Instances for the unit level
 export async function getScope(hierPath: string): Promise<Item[]> {
   const children: Item[] = await vscode.commands.executeCommand('slang.getScope', hierPath)
   if (children === undefined) {

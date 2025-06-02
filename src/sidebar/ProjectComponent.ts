@@ -608,6 +608,7 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
           }
         }
         await this.treeView?.reveal(instance, { select: true, focus: true, expand: true })
+        this._onDidChangeTreeData.fire()
       }
 
       if (revealFile) {
@@ -819,6 +820,7 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
 
   async setTopModule() {
     const unit = await slang.getUnit()
+    this.logger.info('Unit: ' + unit.map((item) => item.instName).join(', '))
     this.unit = new UnitItem(
       unit.map((item) =>
         item.kind === slang.SlangKind.Instance ? new TopItem(item) : new PkgItem(item)
@@ -834,6 +836,7 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
         revealInstance: false,
       })
     }
+    this._onDidChangeTreeData.fire()
     // TODO: maybe setInstance() regardless of how many tops there are
     await this.instancesView.updateModules()
   }
