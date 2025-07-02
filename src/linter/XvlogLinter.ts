@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 import * as vscode from 'vscode'
-import BaseLinter from './BaseLinter'
 import { FileDiagnostic, isSystemVerilog } from '../utils'
+import BaseLinter from './BaseLinter'
 
 export default class XvlogLinter extends BaseLinter {
   protected toolArgs(doc: vscode.TextDocument): string[] {

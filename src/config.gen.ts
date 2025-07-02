@@ -9,38 +9,38 @@ export interface ConfigSchema {
   /**
    * Flags to pass to slang
    */
-  flags?: string | null;
+  flags?: string | null
   /**
    * Globs of what to index
    */
-  indexGlobs?: string[] | null;
+  indexGlobs?: string[] | null
   /**
    * Directories to exclude
    */
-  excludeDirs?: string[] | null;
+  excludeDirs?: string[] | null
   /**
    * Globs for build.f files
    */
-  buildGlobs?: string[] | null;
+  buildGlobs?: string[] | null
   /**
    * Thread count to use for indexing
    */
-  indexingThreads?: number | null;
+  indexingThreads?: number | null
   /**
    * Thread count to use for parsing
    */
-  parsingThreads?: number | null;
+  parsingThreads?: number | null
   /**
    * Build file
    */
-  build?: string | null;
+  build?: string | null
   /**
    * Waveform to build file pattern
    */
-  buildPattern?: string | null;
+  buildPattern?: string | null
   /**
    * Waveform viewer command ({} will be replaced with the WCP port)
    */
-  wcpCommand?: string | null;
-  [k: string]: unknown;
+  wcpCommand?: string | null
+  [k: string]: unknown
 }

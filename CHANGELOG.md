@@ -1,24 +1,28 @@
 # Changelog
 
 ## [25.0.0]
+
 - Fix bug with lint results not showing correctly for multi-level directories when using verilator as linter. (Thanks @AdorableMiku1015)
 - Slang
   - Unused variable warnings so that they can be marked by the editor. Note if these are marked as errors they will stay errors. (Thanks @rskvprd)
   - 'note' diagnostics are now parsed properly into the related content field, meaning the orignal lint location will now point to the note locations, and vice versa.
 
   - Add option for slang-server (unreleased)
+
 - Language Servers
   - Remove support for multiple language servers. If there's major pushback on this I'll revert, but I think most people that use this extension use the built in language server. Note that multiple linters are still allowed and will always be allowed, as this is extremely useful if you need multiple simulators to parse your code.
   - Add command to restart the language server. This is super useful when developing one of the language servers.
 
-
 ## [24.11.2]
+
 - Use +incdir+ for passing includes, as all tools support that format
 
 ## [24.11.1]
+
 - Fix xcelium linter paths
 
 ## [24.11.0]
+
 - Prevent file base names from being recognized as a hierarchical path.
 - Improved completions:
   - improved context for completions- type info is on every entry now
@@ -27,12 +31,14 @@
 - Remove included surfer, https://marketplace.visualstudio.com/items?itemName=surfer-project.surfer supports FST now and is more up to date
 
 ## [24.10.1]
+
 - Add Terminal Links for hierarchical paths. Clicking on one does a best effort of following the path, meaning if it can't find one symbol in the path, it'll stop at the latest one. It'll open that symbol in the editor, hierachical view, and instances view.
 - Add timeout to formatter
 - typing 'module' in comments no longer autocloses (https://github.com/AndrewNolte/vscode-system-verilog/issues/12)
 - remove instantiate module command- this is redundant because of the completion support
 
 ## [24.10.0]
+
 - Switch to calendar versioning scheme (Y/M/PATCH)
 - Project View
   - Hierarchy view- rename, and add toggles for viewing elaboration params as well as one for ports/regs
@@ -45,6 +51,7 @@
   - Cons: You can't run "format document" on an random file- it has to be in formatDirs that config was provided
 
 ## [0.9.17] - 2024-08-26
+
 - Slang lint
   - parse instance paths
   - improve ranges to include up to first ~ underline rather than ^
@@ -54,7 +61,8 @@
 - Formatting: Use stdout instead of tempfile for verible formatter, avoiding tempfile issues that would sometimes come up
 
 ## [0.9.16] - 2024-08-12
-- New feature: inlay hints for wildcard ports (.*) and general ports
+
+- New feature: inlay hints for wildcard ports (.\*) and general ports
 - New linter: Xcelium
   - It's recommended to only enable this at the project level
   - Xcelium terminal link provider, since Xcelium's error msgs have a very odd line/col scheme
@@ -66,10 +74,12 @@
   - fix infinite loop with macros that would sometimes prevent file symbol building
 
 ## [0.9.15] - 2024-06-24
+
 - fix icarus parsing on windows
 - absolute path globs- enables adding files outside the repo like pyuvm
 
 ## [0.9.14] - 2024-06-02
+
 - formatting off by default, formatter must be specified
 - file icons, with colors matching .cpp/.h colors
 - expand-macros command + script config
@@ -79,15 +89,18 @@
 - lint resolved symlinks if tool doesn't already do so
 
 ## [0.9.13] - 2024-05-28
+
 - Fix bug where the tool paths weren't being found
 
 ## [0.9.12] - 2024-05-27
+
 - Publish on OpenVSX
 - minor project UI tweaks
 - Remove path defaults in json schema, show them in CONFIG.md instead
 - fix repeat files in project view
 
 ## [0.9.11] - 2024-05-20
+
 - Remove HDL support, rename title, refine focus on systemverilog/verilog
 - Fix icarus lint parser
 - Fix windows and wsl code, removes need for "useWSL" config
@@ -95,6 +108,7 @@
 - Fix initial include file indexing, needed some retries
 
 ## [0.9.10] - 2024-05-14
+
 - side panel to select top level
 - lint whole project using top level context
 - FST, VCD, GHW support from surfer (Pull request for FST support on theirs was not getting merged, so I merged it here)
@@ -104,10 +118,12 @@
 - warn on invalid linter path
 
 ## [0.9.9] - 2024-05-01
+
 - Fix builtins
 - Add space in args for macro autocomplete
 
 ## [0.9.8] - 2024-04-29
+
 - Rewrite document symbol provider
   - Leverage parent pointers from ctags
   - Provide better icons, particularly for instances
@@ -148,9 +164,11 @@
   - Type safe config management library
 
 ## [0.9.5] - 2024-04-12
+
 - Fix linting issue from 9.4
 
 ## [0.9.4] - 2024-04-11 - Initial Release
+
 - remove BSV code
 - module and interface autocomplete
 - index include paths, macros

@@ -2,6 +2,6 @@ sudo: false
 compiler: iverilog
 addons:
   apt_packages:
-  - iverilog
+    - iverilog
 script:
   - sh make_test.sh

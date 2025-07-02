@@ -19,8 +19,8 @@ import {
 } from './lib/libconfig'
 import LintManager from './linter/LintManager'
 import { ProjectComponent } from './sidebar/ProjectComponent'
-import { getWorkspaceFolder, systemverilogSelector } from './utils'
 import * as slang from './SlangInterface'
+import { getWorkspaceFolder, systemverilogSelector } from './utils'
 const asyncGlob = promisify(glob)
 
 export var ext: VerilogExtension

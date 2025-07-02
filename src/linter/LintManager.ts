@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 import * as vscode from 'vscode'
 import { ExtensionComponent } from '../lib/libconfig'
+import { isAnyVerilog } from '../utils'
 import BaseLinter from './BaseLinter'
 import IcarusLinter from './IcarusLinter'
 import ModelsimLinter from './ModelsimLinter'
 import VerilatorLinter from './VerilatorLinter'
-import XvlogLinter from './XvlogLinter'
-import { isAnyVerilog } from '../utils'
 import XceliumLinter from './XceliumLinter'
+import XvlogLinter from './XvlogLinter'
 
 enum Linter {
   Verilator = 'verilator',

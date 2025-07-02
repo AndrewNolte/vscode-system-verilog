@@ -110,13 +110,13 @@ export interface IJSONSchemaSnippet {
 export type SchemaToType<T> = T extends { type: 'string' }
   ? string
   : T extends { type: 'number' }
-  ? number
-  : T extends { type: 'boolean' }
-  ? boolean
-  : T extends { type: 'null' }
-  ? null
-  : T extends { type: 'object'; properties: infer P }
-  ? { [K in keyof P]: SchemaToType<P[K]> }
-  : T extends { type: 'array'; items: infer I }
-  ? Array<SchemaToType<I>>
-  : never
+    ? number
+    : T extends { type: 'boolean' }
+      ? boolean
+      : T extends { type: 'null' }
+        ? null
+        : T extends { type: 'object'; properties: infer P }
+          ? { [K in keyof P]: SchemaToType<P[K]> }
+          : T extends { type: 'array'; items: infer I }
+            ? Array<SchemaToType<I>>
+            : never

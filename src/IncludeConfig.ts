@@ -1,8 +1,8 @@
 import path from 'path'
+import * as vscode from 'vscode'
 import { ConfigObject } from './lib/libconfig'
 import { getWorkspaceFolder } from './utils'
 import fs = require('fs')
-import * as vscode from 'vscode'
 
 async function fileExists(filePath: string): Promise<boolean> {
   try {

@@ -3,6 +3,7 @@
 Underlined features show what was available in the project this was based on: https://github.com/mshr-h/vscode-verilog-hdl-support
 
 ### Code complete
+
 - <u>Symbols in the current file</u>
 - ModuleName #
 - PackageName::
@@ -11,6 +12,7 @@ Underlined features show what was available in the project this was based on: ht
 - Macros and more
 
 ### Goto Defs
+
 - <u>Symbols in current file</u>
 - <u>Modules/Packages in the form ModuleName.sv</u>
 - Module Ports/Params
@@ -20,10 +22,12 @@ Underlined features show what was available in the project this was based on: ht
 - jump to file on include directives
 
 ### Formatting
+
 - <u>Verilog formatting provider</u>
 - Format on save for specific directories
 
 ### Linting
+
 - <u>Slang and Verilator linting</u>
 - Managed symlink index in vscode storage, allowing tools to use -y on the index
 - `verilog.includes` passed to all tools
@@ -33,6 +37,7 @@ Underlined features show what was available in the project this was based on: ht
 - Xcelium Lint, terminal links for Xcelium's file/lineno format
 
 ### Top level context
+
 - Lint an entire project with multiple linters
 - Hierarchy View
   - Set top module
@@ -43,6 +48,7 @@ Underlined features show what was available in the project this was based on: ht
 - Terminal links for hierarchical paths- opens paths in views and editor
 
 ### Analysis / Aesthetics
+
 - Split view macro expansion
 - Improvements to syntax highlighting
 - Improve symbol tree generation and icon choice
@@ -52,11 +58,13 @@ Underlined features show what was available in the project this was based on: ht
 # Future plans
 
 ### General
+
 - Expand macros on hover
 - Slang language server / Slang json parsing instead of ctags
 - Improved codecomplete/defs for OOP/UVM
 
 ### Top level context
+
 - Specify build.f file (defines, includes), not just top level
 - Commmand to generate build.f file
 - param inlay hints for selected instance
@@ -65,4 +73,5 @@ Underlined features show what was available in the project this was based on: ht
 - Open waveform viewer from instance signal
 
 ### Lint
+
 - VCS Lint

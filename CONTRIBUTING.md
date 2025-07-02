@@ -14,11 +14,10 @@ Any other contribution is also welcome! (fixing typo, refactoring, documentation
 4. Make your changes
 5. Add your changes to **CHANGELOG** under "Unreleased"
 6. Edit the **README**
-
-    - List of Configuration Settings
-    - Table of Compatability
-    - Add References/Thanks
-    - anything else...
+   - List of Configuration Settings
+   - Table of Compatability
+   - Add References/Thanks
+   - anything else...
 
 7. Commit your changes
 8. Push to the branch
@@ -33,12 +32,12 @@ For those of who using VSCode, install [ESLint](https://marketplace.visualstudio
 
 ```json
 {
-    "[typescript]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode"
-    },
-    "editor.formatOnSave": true,
-    "editor.codeActionsOnSave": {
-        "source.fixAll.eslint": true
-    }
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  }
 }
 ```

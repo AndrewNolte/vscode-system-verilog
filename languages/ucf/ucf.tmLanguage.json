@@ -1,8 +1,5 @@
 {
-  "fileTypes": [
-    "ucf",
-    "UCF"
-  ],
+  "fileTypes": ["ucf", "UCF"],
   "name": "ucfconstraints",
   "patterns": [
     {

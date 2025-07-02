@@ -8,8 +8,8 @@ import {
   ViewButton,
   ViewComponent,
 } from '../lib/libconfig'
-import { InstancesView } from './InstancesView'
 import * as slang from '../SlangInterface'
+import { InstancesView } from './InstancesView'
 
 const STRUCTURE_SYMS = [
   slang.SlangKind.Instance,

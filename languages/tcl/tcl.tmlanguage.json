@@ -1,9 +1,5 @@
 {
-  "fileTypes": [
-    "tcl",
-    "tm",
-    "tk"
-  ],
+  "fileTypes": ["tcl", "tm", "tk"],
   "scopeName": "source.tcl",
   "firstLineMatch": "^#!/.*\\b(tclsh|wish)\\b([8-9]|[8-9]\\.\\d+)?",
   "foldingStartMarker": "([{(\\[])",

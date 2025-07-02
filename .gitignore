@@ -7,3 +7,4 @@
 **/.hdl_checker/*
 svls.log
 .sv_cache
+.claude

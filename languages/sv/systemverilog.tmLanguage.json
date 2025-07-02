@@ -1,12 +1,7 @@
 {
   "name": "SystemVerilog",
   "scopeName": "source.systemverilog",
-  "fileTypes": [
-    "v",
-    "vh",
-    "sv",
-    "svh"
-  ],
+  "fileTypes": ["v", "vh", "sv", "svh"],
   "patterns": [
     {
       "include": "#comments"

@@ -27,9 +27,10 @@ testbench/  test suites
 ```
 
 ## Port declaration
-| Port name | IO     | Description               |
-| :-------  | :----: | :-----------------------  |
-| rst\_n    | input  | low active reset          |
+
+| Port name |   IO   | Description               |
+| :-------- | :----: | :------------------------ |
+| rst_n     | input  | low active reset          |
 | clk       | input  | clock signal              |
 | req       | input  | request for handshake     |
 | n         | input  | N'th fibonacci number     |
@@ -38,7 +39,7 @@ testbench/  test suites
 
 ## Parameters
 
-| Name   | Description                |
-| :----- | :------------------------  |
-| N\_IN  | bit width of input number  |
-| N\_OUT | bit width of output number |
+| Name  | Description                |
+| :---- | :------------------------- |
+| N_IN  | bit width of input number  |
+| N_OUT | bit width of output number |

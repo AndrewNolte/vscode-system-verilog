@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 import * as assert from 'assert'
+import Diff from 'deep-diff'
 import * as fs from 'fs'
 import * as path from 'path'
 import * as vscode from 'vscode'
-import Diff from 'deep-diff'
 
 suite('Extension Test Suite', () => {
   vscode.window.showInformationMessage('Start all tests.')
