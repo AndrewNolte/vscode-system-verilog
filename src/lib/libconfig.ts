@@ -77,7 +77,8 @@ export abstract class ExtensionComponent extends ExtensionNode {
     })
 
     if (context.extensionMode !== vscode.ExtensionMode.Production) {
-      vscode.commands.registerCommand('extdev.updateConfig', async () => {
+      const updateCommand = `${nodeName}.updateConfig`
+      vscode.commands.registerCommand(updateCommand, async () => {
         // update package.json
         {
           let filePath = context.extensionPath + '/package.json'
@@ -85,7 +86,7 @@ export abstract class ExtensionComponent extends ExtensionNode {
           let json = JSON.parse(data)
 
           // update config properties
-          this.updateJson(json)
+          this.updateJson(json, updateCommand)
 
           const updatedJson = JSON.stringify(json, null, 2) + '\n'
           await writeFile(filePath, updatedJson, { encoding: 'utf-8' })
@@ -201,7 +202,7 @@ export abstract class ExtensionComponent extends ExtensionNode {
     return this.children.filter((child) => child instanceof CommandNode) as CommandNode[]
   }
 
-  updateJson(json: any): void {
+  updateJson(json: any, updateCommand: string): void {
     /// Update package.json from compiled values
     {
       // config
@@ -292,7 +293,7 @@ export abstract class ExtensionComponent extends ExtensionNode {
 
       // TODO: maybe remove this for production?
       commands.push({
-        command: 'extdev.updateConfig',
+        command: updateCommand,
         title: 'Extdev: update config (package.json and CONFIG.md)',
       })
       json.contributes.commands = commands

@@ -820,7 +820,6 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
 
   async setTopModule() {
     const unit = await slang.getUnit()
-    this.logger.info('Unit: ' + unit.map((item) => item.instName).join(', '))
     this.unit = new UnitItem(
       unit.map((item) =>
         item.kind === slang.SlangKind.Instance ? new TopItem(item) : new PkgItem(item)

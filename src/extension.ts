@@ -7,8 +7,6 @@ import { promisify } from 'util'
 import * as vscodelc from 'vscode-languageclient/node'
 import { LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient/node'
 import { SystemVerilogFormatProvider, VerilogFormatProvider } from './FormatProvider'
-import { IncludeConfig } from './IncludeConfig'
-import { IndexComponent } from './IndexComponent'
 import {
   ActivityBarComponent,
   CommandNode,
@@ -17,7 +15,6 @@ import {
   PathConfigObject,
   ViewContainerSpec,
 } from './lib/libconfig'
-import LintManager from './linter/LintManager'
 import { ProjectComponent } from './sidebar/ProjectComponent'
 import * as slang from './SlangInterface'
 import { getWorkspaceFolder, systemverilogSelector } from './utils'
@@ -41,14 +38,9 @@ export enum VerilogStandard {
 }
 
 export class VerilogExtension extends ActivityBarComponent {
-  index: IndexComponent = new IndexComponent()
   ////////////////////////////////////////////////
   /// top level configs
   ////////////////////////////////////////////////
-  includes: IncludeConfig = new IncludeConfig({
-    default: [],
-    description: 'Include paths to pass as -I to tools',
-  })
 
   svStandard: ConfigObject<SvStandard> = new ConfigObject({
     default: SvStandard.SV2017,
@@ -68,11 +60,11 @@ export class VerilogExtension extends ActivityBarComponent {
   ////////////////////////////////////////////////
   /// extension subcomponents
   ////////////////////////////////////////////////
-  lint: LintManager = new LintManager()
 
   svFormat: SystemVerilogFormatProvider = new SystemVerilogFormatProvider()
   verilogFormat: VerilogFormatProvider = new VerilogFormatProvider()
 
+  // Side bar
   project: ProjectComponent = new ProjectComponent()
 
   ////////////////////////////////////////////////
@@ -194,11 +186,6 @@ export class VerilogExtension extends ActivityBarComponent {
     )
     await this.setupLanguageClient()
 
-    // Lets do this quickly
-    vscode.window.visibleTextEditors.forEach((editor) => {
-      this.lint.lint(editor.document)
-    })
-
     /////////////////////////////////////////////
     // Configure Format on save
     /////////////////////////////////////////////
@@ -263,7 +250,7 @@ export async function activate(context: vscode.ExtensionContext) {
     icon: '$(chip)',
   })
   await ext.activateExtension('slang', 'Slang', context, [
-    // 'andrewnolte.vscode-system-verilog',
+    'AndrewNolte.vscode-system-verilog',
     'mshr-h.veriloghdl',
     'eirikpre.systemverilog',
     'IMCTradingBV.svlangserver',
