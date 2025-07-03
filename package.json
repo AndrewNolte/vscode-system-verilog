@@ -29,7 +29,7 @@
     "Formatters"
   ],
   "icon": "images/icon.png",
-  "main": "./dist/main.js",
+  "main": "./dist/extension.js",
   "activationEvents": [
     "workspaceContains:**/*.{v,sv,vh,svh}"
   ],
@@ -310,24 +310,6 @@
     "configuration": {
       "title": "verilog configuration",
       "properties": {
-        "slang.index.enableSymlinks": {
-          "default": true,
-          "description": "Enable creating file symlinks in .sv_cache/files for the -y flag that most tools have. Created in a per-workspace exteneral directory that vscode provides",
-          "type": "boolean"
-        },
-        "slang.index.indexAllIncludes": {
-          "default": false,
-          "description": "Whether to index all .svh files",
-          "type": "boolean"
-        },
-        "slang.includes": {
-          "default": [],
-          "description": "Include paths to pass as -I to tools",
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
         "slang.svStandard": {
           "default": "SystemVerilog-2017",
           "description": "System Verilog standard to use for external linters",
@@ -356,176 +338,6 @@
           "items": {
             "type": "string"
           }
-        },
-        "slang.lint.modelsim.runAtFileLocation": {
-          "default": false,
-          "description": "Run at file location",
-          "type": "boolean"
-        },
-        "slang.lint.modelsim.args": {
-          "default": "",
-          "description": "Arguments to pass to the tool",
-          "type": "string"
-        },
-        "slang.lint.modelsim.path": {
-          "description": "Path to the tool",
-          "default": "",
-          "type": "string"
-        },
-        "slang.lint.modelsim.projectEnabled": {
-          "default": false,
-          "description": "Enable this linter only when the project is selected",
-          "type": "boolean"
-        },
-        "slang.lint.modelsim.includes": {
-          "default": [],
-          "description": "Include Path Overrides. Use `${includes} to include default includes",
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "slang.lint.modelsim.enabled": {
-          "default": false,
-          "description": "Enable this lint tool",
-          "type": "boolean"
-        },
-        "slang.lint.modelsim.work": {
-          "default": "work",
-          "description": "Modelsim work library",
-          "type": "string"
-        },
-        "slang.lint.iverilog.runAtFileLocation": {
-          "default": false,
-          "description": "Run at file location",
-          "type": "boolean"
-        },
-        "slang.lint.iverilog.args": {
-          "default": "",
-          "description": "Arguments to pass to the tool",
-          "type": "string"
-        },
-        "slang.lint.iverilog.path": {
-          "description": "Path to the tool",
-          "default": "",
-          "type": "string"
-        },
-        "slang.lint.iverilog.projectEnabled": {
-          "default": false,
-          "description": "Enable this linter only when the project is selected",
-          "type": "boolean"
-        },
-        "slang.lint.iverilog.includes": {
-          "default": [],
-          "description": "Include Path Overrides. Use `${includes} to include default includes",
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "slang.lint.iverilog.enabled": {
-          "default": false,
-          "description": "Enable this lint tool",
-          "type": "boolean"
-        },
-        "slang.lint.verilator.runAtFileLocation": {
-          "default": false,
-          "description": "Run at file location",
-          "type": "boolean"
-        },
-        "slang.lint.verilator.args": {
-          "default": "",
-          "description": "Arguments to pass to the tool",
-          "type": "string"
-        },
-        "slang.lint.verilator.path": {
-          "description": "Path to the tool",
-          "default": "",
-          "type": "string"
-        },
-        "slang.lint.verilator.projectEnabled": {
-          "default": false,
-          "description": "Enable this linter only when the project is selected",
-          "type": "boolean"
-        },
-        "slang.lint.verilator.includes": {
-          "default": [],
-          "description": "Include Path Overrides. Use `${includes} to include default includes",
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "slang.lint.verilator.enabled": {
-          "default": false,
-          "description": "Enable this lint tool",
-          "type": "boolean"
-        },
-        "slang.lint.xvlog.runAtFileLocation": {
-          "default": false,
-          "description": "Run at file location",
-          "type": "boolean"
-        },
-        "slang.lint.xvlog.args": {
-          "default": "",
-          "description": "Arguments to pass to the tool",
-          "type": "string"
-        },
-        "slang.lint.xvlog.path": {
-          "description": "Path to the tool",
-          "default": "",
-          "type": "string"
-        },
-        "slang.lint.xvlog.projectEnabled": {
-          "default": false,
-          "description": "Enable this linter only when the project is selected",
-          "type": "boolean"
-        },
-        "slang.lint.xvlog.includes": {
-          "default": [],
-          "description": "Include Path Overrides. Use `${includes} to include default includes",
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "slang.lint.xvlog.enabled": {
-          "default": false,
-          "description": "Enable this lint tool",
-          "type": "boolean"
-        },
-        "slang.lint.xcelium.runAtFileLocation": {
-          "default": false,
-          "description": "Run at file location",
-          "type": "boolean"
-        },
-        "slang.lint.xcelium.args": {
-          "default": "",
-          "description": "Arguments to pass to the tool",
-          "type": "string"
-        },
-        "slang.lint.xcelium.path": {
-          "description": "Path to the tool",
-          "default": "",
-          "type": "string"
-        },
-        "slang.lint.xcelium.projectEnabled": {
-          "default": false,
-          "description": "Enable this linter only when the project is selected",
-          "type": "boolean"
-        },
-        "slang.lint.xcelium.includes": {
-          "default": [],
-          "description": "Include Path Overrides. Use `${includes} to include default includes",
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "slang.lint.xcelium.enabled": {
-          "default": false,
-          "description": "Enable this lint tool",
-          "type": "boolean"
         },
         "slang.svFormat.verible.runAtFileLocation": {
           "default": false,
@@ -720,7 +532,7 @@
         "title": "Slang: Show Output"
       },
       {
-        "command": "extdev.updateConfig",
+        "command": "slang.updateConfig",
         "title": "Extdev: update config (package.json and CONFIG.md)"
       }
     ],
