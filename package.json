@@ -16,6 +16,9 @@
     "type": "git",
     "url": "https://github.com/AndrewNolte/vscode-verilog.git"
   },
+  "publishConfig": {
+      "registry": "https://verdaccio-vscode.hudson-trading.com/"
+  },
   "bugs": {
     "url": "https://github.com/AndrewNolte/vscode-verilog/issues"
   },
