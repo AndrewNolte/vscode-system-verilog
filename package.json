@@ -2,7 +2,7 @@
   "name": "vscode-slang",
   "displayName": "Slang Server for Verilog/SystemVerilog",
   "description": "Verilog and SystemVerilog support via the slang language server.",
-  "version": "25.7.1",
+  "version": "25.7.2",
   "publisher": "AndrewNolte",
   "keywords": [
     "verilog",
@@ -43,7 +43,7 @@
     "semi": false
   },
   "files": [
-    "vscode-system-verilog.vsix",
+    "vscode-slang.vsix",
     "images/icon.png"
   ],
   "eslintConfig": {

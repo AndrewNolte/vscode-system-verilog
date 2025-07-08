@@ -36,7 +36,6 @@ Generic langauge server setup in `.slang-server.json`
 ```json
 // these get passed to linters and other tools with -I, or the correct format for that tool
 {
-  "includes": ["hdl/lib", "hdl/includes"],
   "flags": "-Wno-sign-conversion"
 }
 ```
