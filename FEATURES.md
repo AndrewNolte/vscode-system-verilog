@@ -25,7 +25,7 @@
 
 - Snappy slang linting
 - Parse-level lints on change (while typing), deeper lints ran on save
-- TODO: 
+- TODO:
   - Run other linters through generated or given filelist
 
 ### Top level context
@@ -41,7 +41,6 @@
 - TODO:
   - Terminal links for hierarchical paths- opens paths in views and editor
   - Context aware hovers/inlays for selected instance of modules
-  - Open instance/file from waveform viewer 
+  - Open instance/file from waveform viewer
   - Open waveform viewer from instance signal
   - Commmand to generate build.f file given top level
-

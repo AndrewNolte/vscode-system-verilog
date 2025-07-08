@@ -2,7 +2,7 @@
   "name": "vscode-slang",
   "displayName": "Slang Server for Verilog/SystemVerilog",
   "description": "Verilog and SystemVerilog support via the slang language server.",
-  "version": "25.7.0",
+  "version": "25.7.1",
   "publisher": "AndrewNolte",
   "keywords": [
     "verilog",
@@ -17,7 +17,7 @@
     "url": "https://github.com/AndrewNolte/vscode-verilog.git"
   },
   "publishConfig": {
-      "registry": "https://verdaccio-vscode.hudson-trading.com/"
+    "registry": "https://verdaccio-vscode.hudson-trading.com/"
   },
   "bugs": {
     "url": "https://github.com/AndrewNolte/vscode-verilog/issues"

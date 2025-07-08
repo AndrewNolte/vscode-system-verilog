@@ -41,10 +41,9 @@ Generic langauge server setup in `.slang-server.json`
 }
 ```
 
-For user configuation, you can add configs at `~/.slang-server.json` 
+For user configuation, you can add configs at `~/.slang-server.json`
 
 Shared language server repo configuration is at `.slang-server.local.json`
-
 
 ### See all vscode-specfic config options in [CONFIG.md](CONFIG.md)
 
