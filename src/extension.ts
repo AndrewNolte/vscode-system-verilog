@@ -7,11 +7,12 @@ import { promisify } from 'util'
 import * as vscodelc from 'vscode-languageclient/node'
 import { LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient/node'
 import { SystemVerilogFormatProvider, VerilogFormatProvider } from './FormatProvider'
+import * as child_process from 'child_process'
 import {
   ActivityBarComponent,
   CommandNode,
   ConfigObject,
-  ExternalEditorButton,
+  EditorButton,
   PathConfigObject,
   ViewContainerSpec,
 } from './lib/libconfig'
@@ -70,13 +71,46 @@ export class VerilogExtension extends ActivityBarComponent {
   ////////////////////////////////////////////////
   /// top level commands and configs
   ////////////////////////////////////////////////
-
-  expandMacros: ExternalEditorButton = new ExternalEditorButton({
-    title: 'Expand Macros',
-    shortTitle: 'Expand macros',
-    languages: ['verilog', 'systemverilog'],
-    icon: '$(open-preview)',
+  expandDir: vscode.Uri | undefined = undefined
+  rewriterPath: ConfigObject<string> = new ConfigObject({
+    default: '',
+    description:
+      'Path to the rewriter script (typically slang rewriter binary with --expand-macros flag)',
   })
+
+  rewrite: EditorButton = new EditorButton(
+    {
+      title: 'Expand Macros',
+      shortTitle: 'Expand macros',
+      languages: ['verilog', 'systemverilog'],
+      icon: '$(open-preview)',
+    },
+    async () => {
+      let doc = vscode.window.activeTextEditor?.document
+      if (doc === undefined) {
+        vscode.window.showErrorMessage('Open a verilog document to expand macros')
+        return
+      }
+
+      if (ext.rewriterPath.getValue() === '') {
+        vscode.window.showErrorMessage('`slang.rewriter` not provided in settings.json')
+        return
+      }
+      let expDir = this.expandDir
+      if (expDir === undefined) {
+        return
+      }
+
+      let expanded = child_process.execSync(ext.rewriterPath.getValue() + ' ' + doc.uri.fsPath, {
+        cwd: getWorkspaceFolder(),
+      })
+
+      let uri: vscode.Uri = vscode.Uri.joinPath(expDir, doc.uri.path.split('/').pop()!)
+      await vscode.workspace.fs.writeFile(uri, expanded)
+      await vscode.workspace.openTextDocument(uri)
+      await vscode.commands.executeCommand('vscode.diff', uri, doc.uri)
+    }
+  )
 
   client: LanguageClient | undefined
 
@@ -185,6 +219,10 @@ export class VerilogExtension extends ActivityBarComponent {
       })
     )
     await this.setupLanguageClient()
+
+    if (context.storageUri !== undefined) {
+      this.expandDir = vscode.Uri.joinPath(context.storageUri, '.sv_cache', 'expanded')
+    }
 
     /////////////////////////////////////////////
     // Configure Format on save

@@ -420,6 +420,11 @@
             "verible-verilog-format"
           ]
         },
+        "slang.rewriterPath": {
+          "default": "",
+          "description": "Path to the rewriter script (typically slang rewriter binary with --expand-macros flag)",
+          "type": "string"
+        },
         "slang.path": {
           "description": "Path to the slang-server (not slang)",
           "default": "",
@@ -517,7 +522,7 @@
         }
       },
       {
-        "command": "slang.expandMacros",
+        "command": "slang.rewrite",
         "title": "Expand Macros",
         "shortTitle": "Expand macros",
         "languages": [
@@ -623,7 +628,7 @@
           "group": "navigation"
         },
         {
-          "command": "slang.expandMacros",
+          "command": "slang.rewrite",
           "when": "resourceLangId == verilog || resourceLangId == systemverilog",
           "group": "navigation"
         }
