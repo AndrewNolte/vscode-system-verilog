@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 import * as vscode from 'vscode'
 
+import * as child_process from 'child_process'
 import { glob } from 'glob'
 import path from 'path'
 import { promisify } from 'util'
 import * as vscodelc from 'vscode-languageclient/node'
 import { LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient/node'
 import { SystemVerilogFormatProvider, VerilogFormatProvider } from './FormatProvider'
-import * as child_process from 'child_process'
 import {
   ActivityBarComponent,
   CommandNode,

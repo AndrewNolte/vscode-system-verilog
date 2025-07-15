@@ -2,7 +2,7 @@
   "name": "vscode-slang",
   "displayName": "Slang Server for Verilog/SystemVerilog",
   "description": "Verilog and SystemVerilog support via the slang language server.",
-  "version": "25.7.3",
+  "version": "25.7.4",
   "publisher": "AndrewNolte",
   "keywords": [
     "verilog",
@@ -96,7 +96,7 @@
           ".slang-server.json",
           ".slang-server.local.json"
         ],
-        "url": "./src/config.schema.json"
+        "url": "./resources/config.schema.json"
       }
     ],
     "languages": [
