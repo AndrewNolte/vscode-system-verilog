@@ -2,7 +2,7 @@
   "name": "vscode-slang",
   "displayName": "Slang Server for Verilog/SystemVerilog",
   "description": "Verilog and SystemVerilog support via the slang language server.",
-  "version": "25.7.4",
+  "version": "25.7.5",
   "publisher": "AndrewNolte",
   "keywords": [
     "verilog",
