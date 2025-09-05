@@ -530,7 +530,7 @@ export class ProjectComponent
 
       this.focused = instance
       if (revealHierarchy) {
-        if (instance.isVirtualLoc && !this.includeHidden) {
+        if (instance.isVirtualLoc && !this.includeMacroDefined) {
           this.toggleHidden.func()
         }
         if (!this.symFilter.has(instance.inst.kind)) {
@@ -618,7 +618,7 @@ export class ProjectComponent
   includeData: boolean = false
 
   // symbols hidden behind macros
-  includeHidden: boolean = false
+  includeMacroDefined: boolean = false
 
   toggleParams: ViewButton = new ViewButton(
     {
@@ -662,11 +662,11 @@ export class ProjectComponent
 
   toggleHidden: ViewButton = new ViewButton(
     {
-      title: 'Toggle Hidden',
+      title: 'Toggle Macro Defined',
       icon: '$(eye)',
     },
     async () => {
-      this.includeHidden = !this.includeHidden
+      this.includeMacroDefined = !this.includeMacroDefined
       await this.reveal()
     }
   )
@@ -835,7 +835,7 @@ export class ProjectComponent
       return children
     }
     const filtered = children.filter((child) => this.symFilter.has(child.inst.kind))
-    if (this.includeHidden) {
+    if (this.includeMacroDefined) {
       return filtered
     }
     return filtered.filter((child) => !child.isVirtualLoc)
