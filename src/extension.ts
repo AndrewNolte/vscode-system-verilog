@@ -21,38 +21,13 @@ import * as slang from './SlangInterface'
 import { getWorkspaceFolder, systemverilogSelector } from './utils'
 const asyncGlob = promisify(glob)
 
-export var ext: VerilogExtension
+export var ext: SlangExtension
 
-export enum SvStandard {
-  SV2005 = 'SystemVerilog-2005',
-  SV2009 = 'SystemVerilog-2009',
-  SV2012 = 'SystemVerilog-2012',
-  SV2017 = 'SystemVerilog-2017',
-  //   sv2023 = 'SystemVerilog2023',
-}
-
-// eslint-disable-next-line @typescript-eslint/naming-convention
-export enum VerilogStandard {
-  V1995 = 'Verilog-95',
-  V2001 = 'Verilog-2001',
-  V2005 = 'Verilog-2005',
-}
-
-export class VerilogExtension extends ActivityBarComponent {
+export class SlangExtension extends ActivityBarComponent {
   ////////////////////////////////////////////////
   /// top level configs
   ////////////////////////////////////////////////
 
-  svStandard: ConfigObject<SvStandard> = new ConfigObject({
-    default: SvStandard.SV2017,
-    description: 'System Verilog standard to use for external linters',
-    enum: Object.values(SvStandard),
-  })
-  verilogStandard: ConfigObject<VerilogStandard> = new ConfigObject({
-    default: VerilogStandard.V2005,
-    description: 'Verilog standard to use for external linters',
-    enum: Object.values(VerilogStandard),
-  })
   formatDirs: ConfigObject<string[]> = new ConfigObject({
     default: [],
     description: 'Directories to format',
@@ -113,6 +88,7 @@ export class VerilogExtension extends ActivityBarComponent {
   )
 
   client: LanguageClient | undefined
+  private isRestarting: boolean = false
 
   path: PathConfigObject = new PathConfigObject(
     {
@@ -135,6 +111,7 @@ export class VerilogExtension extends ActivityBarComponent {
     description: 'Arguments to pass to slang-server when debugging',
   })
 
+  /// The final config from slang-server json files
   slangConfig: slang.Config = {}
 
   async setupLanguageClient(): Promise<void> {
@@ -151,12 +128,28 @@ export class VerilogExtension extends ActivityBarComponent {
 
     this.client = new LanguageClient('slang-server', serverOptions, clientOptions)
     this.context.subscriptions.push(
-      this.client.onDidChangeState(({ newState }) => {
+      this.client.onDidChangeState(({ oldState, newState }) => {
         if (newState === vscodelc.State.Running) {
           // clangd starts or restarts after crash.
           this.client!.onNotification('slang/setConfig', (config: slang.Config) => {
+            // Set after initialization
             this.slangConfig = config
           })
+        } else if (
+          oldState === vscodelc.State.Running &&
+          newState === vscodelc.State.Stopped &&
+          !this.isRestarting
+        ) {
+          vscode.window
+            .showErrorMessage(
+              'Slang language server has crashed. You can restart it using the "Restart Language Server" command.',
+              'Restart Now'
+            )
+            .then((selection) => {
+              if (selection === 'Restart Now') {
+                this.restartLanguageServer.func()
+              }
+            })
         }
       })
     )
@@ -171,15 +164,21 @@ export class VerilogExtension extends ActivityBarComponent {
       title: 'Restart Language Server',
     },
     async () => {
-      await this.project.clearTopLevel.func()
-      if (this.client !== undefined && this.client.isRunning()) {
-        await this.client.restart()
-        await this.project.onStart()
-        this.logger.info('"' + this.client.name + '" language server restarted')
-      } else {
-        await this.setupLanguageClient()
+      this.isRestarting = true
+      try {
+        if (this.client !== undefined && this.client.isRunning()) {
+          await this.client.restart()
+          await this.project.onStart()
+          this.logger.info('"' + this.client.name + '" language server restarted')
+        } else {
+          await this.setupLanguageClient()
+        }
+        // This needs to be after to ensure that the server is up
+        await this.project.clearTopLevel.func()
+        await this.showOutput.func()
+      } finally {
+        this.isRestarting = false
       }
-      await this.showOutput.func()
     }
   )
 
@@ -211,10 +210,15 @@ export class VerilogExtension extends ActivityBarComponent {
   async activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
       this.onConfigUpdated(async () => {
-        if (this.client !== undefined) {
-          await this.client.stop()
+        this.isRestarting = true
+        try {
+          if (this.client !== undefined) {
+            await this.client.stop()
+          }
+          await this.setupLanguageClient()
+        } finally {
+          this.isRestarting = false
         }
-        await this.setupLanguageClient()
       })
     )
     await this.setupLanguageClient()
@@ -272,7 +276,7 @@ export async function deactivate(): Promise<void> {
 }
 
 export async function activate(context: vscode.ExtensionContext) {
-  ext = new VerilogExtension(context, {
+  ext = new SlangExtension(context, {
     id: 'slang',
     title: 'Slang',
     icon: '$(chip)',

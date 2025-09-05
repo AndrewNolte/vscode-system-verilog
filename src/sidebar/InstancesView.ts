@@ -35,7 +35,7 @@ export class InstanceViewItem {
     return item
   }
 
-  getChildren(): InstanceTreeItem[] {
+  getChildren(): [] {
     return []
   }
 }
@@ -70,7 +70,7 @@ export class ModuleItem {
     return item
   }
 
-  async getChildren(): Promise<InstanceTreeItem[]> {
+  async getChildren(): Promise<InstanceViewItem[]> {
     return Array.from((await this.getInstances()).values())
   }
 
@@ -115,8 +115,6 @@ export class InstancesView
       this.modules.set(mod.declName, item)
     }
 
-    console.log('Got n modules', this.modules.size)
-
     this._onDidChangeTreeData.fire()
   }
 
@@ -141,10 +139,7 @@ export class InstancesView
 
   constructor() {
     super({
-      name: 'Instances',
-      welcome: {
-        contents: '[Select top level](command:slang.project.selectTopLevel)',
-      },
+      name: 'Modules',
     })
   }
 

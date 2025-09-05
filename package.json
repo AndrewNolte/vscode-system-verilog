@@ -313,27 +313,6 @@
     "configuration": {
       "title": "verilog configuration",
       "properties": {
-        "slang.svStandard": {
-          "default": "SystemVerilog-2017",
-          "description": "System Verilog standard to use for external linters",
-          "enum": [
-            "SystemVerilog-2005",
-            "SystemVerilog-2009",
-            "SystemVerilog-2012",
-            "SystemVerilog-2017"
-          ],
-          "type": "string"
-        },
-        "slang.verilogStandard": {
-          "default": "Verilog-2005",
-          "description": "Verilog standard to use for external linters",
-          "enum": [
-            "Verilog-95",
-            "Verilog-2001",
-            "Verilog-2005"
-          ],
-          "type": "string"
-        },
         "slang.formatDirs": {
           "default": [],
           "description": "Directories to format",
@@ -477,8 +456,7 @@
       },
       {
         "command": "slang.project.setInstance",
-        "title": "Slang: Set Instance from Instance View",
-        "hidden": true
+        "title": "Slang: Select Instance"
       },
       {
         "command": "slang.project.selectBuildFile",
@@ -562,18 +540,15 @@
         },
         {
           "id": "slang.project.instancesView",
-          "name": "Instances"
+          "name": "Modules",
+          "icon": "$(chip)"
         }
       ]
     },
     "viewsWelcome": [
       {
         "view": "slang.project",
-        "contents": "[Select Build File](command:slang.project.selectBuildFile)"
-      },
-      {
-        "view": "slang.project.instancesView",
-        "contents": "[Select top level](command:slang.project.selectTopLevel)"
+        "contents": "[Select Build File](command:slang.project.selectBuildFile)\n[Select Top Level](command:slang.project.selectTopLevel)"
       }
     ],
     "menus": {

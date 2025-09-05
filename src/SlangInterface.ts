@@ -130,6 +130,10 @@ export async function getScopes(hierPath: string): Promise<Instance[]> {
 export async function getInstancesOfModule(declName: string): Promise<QualifiedInstance[]> {
   return await vscode.commands.executeCommand('slang.getInstancesOfModule', declName)
 }
+
+export async function getFilesContainingModule(moduleName: string): Promise<string[]> {
+  return await vscode.commands.executeCommand('slang.getFilesContainingModule', moduleName)
+}
 ////////////////////////////////////////////////////////////
 /// server -> client is in commands in the project component
 ////////////////////////////////////////////////////////////

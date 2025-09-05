@@ -15,6 +15,7 @@ const STRUCTURE_SYMS = [
   slang.SlangKind.Instance,
   slang.SlangKind.InstanceArray,
   slang.SlangKind.Scope,
+  slang.SlangKind.ScopeArray,
 ]
 
 interface HasChildren {
@@ -35,6 +36,8 @@ export abstract class HierItem implements HasChildren {
   }
   // the symbol to get children from
   path: string | undefined
+
+  // Behind a macro
   isVirtualLoc: boolean
   inst: slang.Item
 
@@ -295,38 +298,23 @@ class VarItem extends HierItem {
   }
 }
 
-// class InternalScopeItem extends ScopeItem {
-//   constructor(parent: HierItem | undefined, scope: slang.Scope) {
-//     super(parent, scope)
-//   }
-//   async _fetchChildren(): Promise<HierItem[]> {
-//     return this.getChildrenFromSymbol(this.instance)
-//   }
-//   async preOrderTraversal(fn: (item: HierItem) => void) {
-//     /// Guard against recursive modules
-//     fn(this)
-//     for (let child of await this.getChildren()) {
-//       if (child.instance !== this.parent!.instance) {
-//         await child.preOrderTraversal(fn)
-//       }
-//     }
-//   }
-// }k
+class InstanceLink extends vscode.TerminalLink {
+  path: string
+  // If the path's top already matches the top, files will be empty
+  files: string[] = []
+  constructor(path: string, files: string[], startIndex: number, length: number) {
+    super(startIndex, length, 'Open in Hierarhcy View')
+    this.path = path
+    this.files = files
+  }
+}
 
-// class InstanceLink extends vscode.TerminalLink {
-//   path: string
-//   constructor(path: string, startIndex: number, length: number) {
-//     super(startIndex, length, 'Open in Hierarhcy View')
-//     this.path = path
-//   }
-// }
-
-export class ProjectComponent extends ViewComponent implements TreeDataProvider<HierItem> {
-  // Top $unit, has top level + packages
+export class ProjectComponent
+  extends ViewComponent
+  implements TreeDataProvider<HierItem>, vscode.TerminalLinkProvider<InstanceLink>
+{
+  // Top $unit, has top level(s) + packages
   unit: UnitItem | undefined = undefined
-
-  // Top level module, first in unit
-  top: RootItem | undefined = undefined
 
   // Hierarchy Tree
   private _onDidChangeTreeData: vscode.EventEmitter<void> = new vscode.EventEmitter<void>()
@@ -362,6 +350,9 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
   async onStart(): Promise<void> {
     this.setTopModule()
   }
+
+  // TODO: this should only apply to files with one module,
+  // else it should be an action/prompt on the module decl
 
   // setInstanceByFile: EditorButton = new EditorButton(
   //   {
@@ -442,115 +433,13 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
     }
   )
 
-  // selectTopLevel: ViewButton = new ViewButton(
-  //   {
-  //     title: 'Select Top Level',
-  //     icon: '$(folder-opened)',
-  //   },
-  //   async (): Promise<boolean> => {
-  //     const newtop = await selectModuleGlobal()
-  //     if (newtop === undefined) {
-  //       return false
-  //     }
-  //     await this.setTopModule(newtop)
-  //     return true
-  //   }
-  // )
-
-  // setInstanceByPathInternal: ViewButton = new ViewButton(
-  //   {
-  //     title: 'Set Instance',
-  //     icon: '$(inspect)',
-  //   },
-  //   async (rootItem: RootItem | undefined, instPath: string | undefined) => {
-  //     if (instPath === undefined) {
-  //       instPath = await vscode.window.showInputBox({
-  //         prompt: 'Enter instance path',
-  //       })
-  //       if (instPath === undefined) {
-  //         return
-  //       }
-  //     }
-  //     // instance is a string path, maybe containing brackets from elaboration, so strip those
-  //     const regex = /\[\d+\]/g
-  //     let cleaned = instPath.replace(regex, '')
-  //     let parts = cleaned.split('.')
-
-  //     // try to get top module from path if root not set
-  //     const topStr = parts[0]
-  //     if (rootItem === undefined && !(this.top?.inst.instName === topStr)) {
-  //       if (ext.index.moduleMap.has(topStr)) {
-  //         const topUri = ext.index.moduleMap.get(topStr)
-  //         if (topUri !== undefined) {
-  //           const topDoc = await vscode.workspace.openTextDocument(topUri)
-  //           const topModule = await selectModule(topDoc)
-  //           if (topModule !== undefined) {
-  //             await this.setTopModule(topModule)
-  //           }
-  //         }
-  //       }
-  //     }
-  //     // root Item is already top, no need to do anything with the value
-
-  //     // have user select top if that didn't work
-  //     if (this.top === undefined) {
-  //       await this.selectTopLevel.func()
-  //       if (this.top === undefined) {
-  //         return
-  //       }
-  //     }
-
-  //     // go through hierarchy
-  //     let current: HierItem | undefined = undefined
-  //     for (let part of parts) {
-  //       let children: HierItem[]
-  //       if (current === undefined) {
-  //         children = await this.getChildren(current)
-  //       } else {
-  //         children = await current.getChildren()
-  //       }
-  //       let child: HierItem | undefined = children.find((child) => child.instance.name === part)
-  //       if (child === undefined) {
-  //         vscode.window.showErrorMessage(
-  //           `Could not find instance ${part} in ${current?.instance.name ?? 'top level'}: ${
-  //             current?.instance.typeRef
-  //           }`
-  //         )
-  //         await this.setInstance.func(current, {
-  //           revealHierarchy: true,
-  //           revealFile: false,
-  //           revealInstance: true,
-  //         })
-  //         if (current instanceof InstanceItem && current.definition !== undefined) {
-  //           await vscode.window.showTextDocument(current.definition.doc)
-  //         } else if (current) {
-  //           await vscode.window.showTextDocument(current.instance.doc)
-  //         }
-
-  //         return
-  //       }
-  //       current = child
-  //     }
-  //     if (current === undefined) {
-  //       return
-  //     }
-  //     await this.setInstance.func(current)
-  //   }
-  // )
-
-  // setInstanceByPath: CommandNode = new CommandNode(
-  //   {
-  //     title: 'Set Instance',
-  //   },
-  //   async (inst: string) => {
-  //     this.setInstanceByPathInternal.func(undefined, inst)
-  //   }
-  // )
-
+  // Set instance given one of:
+  // - a path (from internal calls)
+  // - a hierarchy item (from hierarchy or modules view)
+  // - undefined (let user select from compilation)
   setInstance: CommandNode = new CommandNode(
     {
-      title: 'Set Instance from Instance View',
-      hidden: true,
+      title: 'Select Instance',
     },
     async (
       instance: HierItem | string | undefined,
@@ -565,8 +454,29 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
       }
     ) => {
       if (instance === undefined) {
-        vscode.window.showErrorMessage('setInstance: Instance is undefined')
-        return
+        if (this.unit === undefined) {
+          // TODO: have one flow that this leads to- setting top, then specfiying build spec / params
+          await vscode.window.showInformationMessage('Please set top level or build file first')
+        }
+
+        let options: vscode.QuickPickItem[] = []
+        await Promise.all(
+          Array.from(this.instancesView.modules.values()).map(async (mod) => {
+            const children = await mod.getChildren()
+            for (const child of children) {
+              options.push({ label: child.data.instPath, description: mod.data.declName })
+            }
+          })
+        )
+        const selectedInst = await vscode.window.showQuickPick(options, {
+          placeHolder: 'Enter instance path',
+        })
+
+        if (selectedInst === undefined) {
+          return
+        }
+        instance = selectedInst.label
+        this.logger.info('Selected instance: ' + instance)
       }
 
       // resolve instances if hierarchy path
@@ -587,7 +497,9 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
         }
 
         if (!(current instanceof HierItem)) {
-          vscode.window.showErrorMessage('Invalid instance type: ' + typeof current)
+          vscode.window.showErrorMessage(
+            'Invalid instance type: ' + typeof current + ' = ' + current
+          )
           return
         }
         instance = current
@@ -776,34 +688,60 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
     super({
       name: 'Hierarchy',
       welcome: {
-        contents: '[Select Build File](command:slang.project.selectBuildFile)',
+        contents:
+          '[Select Build File](command:slang.project.selectBuildFile)\n[Select Top Level](command:slang.project.selectTopLevel)',
       },
     })
   }
 
   static RE_INSTANCE_PATHS = /(?<!\/)[\w$]+(\[\d+\])?(\.[\w$]+(\[\d+\])?)+/g
 
-  // provideTerminalLinks(
-  //   context: vscode.TerminalLinkContext,
-  //   _token: vscode.CancellationToken
-  // ): vscode.ProviderResult<InstanceLink[]> {
-  //   let links = []
-  //   for (let match of context.line.matchAll(ProjectComponent.RE_INSTANCE_PATHS)) {
-  //     const line = context.line
-  //     const startIndex = line.indexOf(match[0])
-  //     const path = match[0]
-  //     const topModule = path.split('.')[0]
-  //     if (this.top?.instance.name === topModule || ext.index.moduleMap.has(topModule)) {
-  //       links.push(new InstanceLink(path, startIndex, path.length))
-  //     }
-  //   }
-  //   return links
-  // }
-  // handleTerminalLink(link: InstanceLink): vscode.ProviderResult<void> {
-  //   this.setInstanceByPathInternal.func(undefined, link.path)
-  // }
+  async provideTerminalLinks(
+    context: vscode.TerminalLinkContext,
+    _token: vscode.CancellationToken
+  ): Promise<InstanceLink[]> {
+    let links = []
+    for (let match of context.line.matchAll(ProjectComponent.RE_INSTANCE_PATHS)) {
+      const line = context.line
+      const startIndex = line.indexOf(match[0])
+      const path = match[0]
+      const topModule = path.split('.')[0]
 
-  async activate(_context: vscode.ExtensionContext): Promise<void> {
+      if (this.unit?.childMap.has(topModule)) {
+        links.push(new InstanceLink(path, [], startIndex, path.length))
+      } else {
+        const topFiles = await slang.getFilesContainingModule(topModule)
+        if (topFiles.length > 0) {
+          links.push(new InstanceLink(path, topFiles, startIndex, path.length))
+        }
+      }
+    }
+    return links
+  }
+
+  async handleTerminalLink(link: InstanceLink): Promise<void> {
+    if (link.files.length > 0) {
+      let file: string = link.files[0]
+      if (link.files.length > 1) {
+        // Get relative paths
+        const selection = await vscode.window.showQuickPick(
+          link.files.map((f) => vscode.workspace.asRelativePath(f)),
+          {
+            placeHolder: 'Select Top Level File',
+          }
+        )
+        if (selection === undefined) {
+          return
+        }
+        // Set top level from the file
+        file = vscode.Uri.joinPath(vscode.workspace.workspaceFolders![0].uri, selection).fsPath
+      }
+      await this.setTopLevel.func(vscode.Uri.file(file))
+    }
+    await this.setInstance.func(link.path)
+  }
+
+  async activate(context: vscode.ExtensionContext): Promise<void> {
     vscode.window.createTreeView
     this.treeView = vscode.window.createTreeView(this.configPath!, {
       treeDataProvider: this,
@@ -815,7 +753,7 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
     // If you actually register it, you don't get the collapsible state button :/ Thanks Microsoft
     // context.subscriptions.push(vscode.window.registerTreeDataProvider(this.configPath!, this))
 
-    // context.subscriptions.push(vscode.window.registerTerminalLinkProvider(this))
+    context.subscriptions.push(vscode.window.registerTerminalLinkProvider(this))
   }
 
   async setTopModule() {
@@ -890,7 +828,7 @@ export class ProjectComponent extends ViewComponent implements TreeDataProvider<
     _token: vscode.CancellationToken
   ): Promise<TreeItem> {
     /// Triggered on hover
-    // item.tooltip = element.instName
+    item.tooltip = element.getPath()
     item.command = {
       title: 'Go to definition',
       command: 'slang.project.setInstance',

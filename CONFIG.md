@@ -1,24 +1,5 @@
 # Configuration Settings
 
-- `slang.svStandard`: string = "SystemVerilog-2017"
-
-  System Verilog standard to use for external linters
-
-  Options:
-  - SystemVerilog-2005
-  - SystemVerilog-2009
-  - SystemVerilog-2012
-  - SystemVerilog-2017
-
-- `slang.verilogStandard`: string = "Verilog-2005"
-
-  Verilog standard to use for external linters
-
-  Options:
-  - Verilog-95
-  - Verilog-2001
-  - Verilog-2005
-
 - `slang.formatDirs`: array = []
 
   Directories to format
@@ -35,11 +16,11 @@
 
   Platform Defaults:
 
-  linux: `verible-verilog-format`
+    linux:   `verible-verilog-format`
 
-  mac: `verible-verilog-format`
+    mac:     `verible-verilog-format`
 
-  windows: `verible-verilog-format.exe`
+    windows: `verible-verilog-format.exe`
 
 - `slang.svFormat.formatter`: string = ""
 
@@ -47,7 +28,6 @@
 
   Options:
   - verible-verilog-format
-
 - `slang.verilogFormat.verilogFormatter.runAtFileLocation`: boolean = false
 
   Run at file location
@@ -60,11 +40,11 @@
 
   Platform Defaults:
 
-  linux: `verilogFormat`
+    linux:   `verilogFormat`
 
-  mac: `verilogFormat`
+    mac:     `verilogFormat`
 
-  windows: `verilogFormat.exe`
+    windows: `verilogFormat.exe`
 
 - `slang.verilogFormat.iStyleFormatter.runAtFileLocation`: boolean = false
 
@@ -78,11 +58,11 @@
 
   Platform Defaults:
 
-  linux: `istyleFormat`
+    linux:   `istyleFormat`
 
-  mac: `istyleFormat`
+    mac:     `istyleFormat`
 
-  windows: `istyleFormat.exe`
+    windows: `istyleFormat.exe`
 
 - `slang.verilogFormat.veribleFormatter.runAtFileLocation`: boolean = false
 
@@ -96,11 +76,11 @@
 
   Platform Defaults:
 
-  linux: `verible`
+    linux:   `verible`
 
-  mac: `verible`
+    mac:     `verible`
 
-  windows: `verible.exe`
+    windows: `verible.exe`
 
 - `slang.verilogFormat.formatter`: string = ""
 
@@ -110,7 +90,6 @@
   - verilog-format
   - istyle-format
   - verible-verilog-format
-
 - `slang.rewriterPath`: string = ""
 
   Path to the rewriter script (typically slang rewriter binary with --expand-macros flag)
@@ -119,11 +98,11 @@
 
   Platform Defaults:
 
-  linux: `slang-server`
+    linux:   `slang-server`
 
-  mac: `slang-server`
+    mac:     `slang-server`
 
-  windows: `slang-server.exe`
+    windows: `slang-server.exe`
 
 - `slang.args`: array = []
 
@@ -132,3 +111,4 @@
 - `slang.debugArgs`: array = []
 
   Arguments to pass to slang-server when debugging
+
