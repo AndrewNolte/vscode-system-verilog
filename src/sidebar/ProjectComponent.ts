@@ -315,6 +315,7 @@ export class ProjectComponent
 {
   // Top $unit, has top level(s) + packages
   unit: UnitItem | undefined = undefined
+  focused: HierItem | undefined = undefined
 
   // Hierarchy Tree
   private _onDidChangeTreeData: vscode.EventEmitter<void> = new vscode.EventEmitter<void>()
@@ -322,7 +323,6 @@ export class ProjectComponent
   treeView: vscode.TreeView<HierItem> | undefined
 
   // Instances Index
-  // TODO
   instancesView: InstancesView = new InstancesView()
 
   //////////////////////////////////////////////////////////////////
@@ -425,13 +425,36 @@ export class ProjectComponent
       icon: '$(panel-close)',
     },
     async () => {
-      await slang.setBuildFile('')
       this.buildfile = undefined
       this.unit = undefined
       await this.instancesView.clearModules()
       this._onDidChangeTreeData.fire()
+      await slang.setBuildFile('')
     }
   )
+
+  async reveal(item: HierItem | undefined = undefined) {
+    if (item === undefined) {
+      if (this.focused === undefined) {
+        this._onDidChangeTreeData.fire()
+        return
+      }
+      // We may have toggled params off for example, in which case our item is no longer visible
+      if (!this.symFilter.has(this.focused.inst.kind)) {
+        this.focused = this.focused.parent
+      }
+      item = this.focused
+    }
+    this._onDidChangeTreeData.fire()
+    if (item !== undefined) {
+      await this.treeView?.reveal(item, { select: true, focus: true, expand: true })
+      this.logger.info('Revealing in hierarchy: ' + item.getPath())
+    }
+    // if (item !== undefined) {
+    //   this.logger.info('Revealing in hierarchy: ' + item.getPath())
+    //   await this.treeView?.reveal(item, { select: true, focus: true, expand: true })
+    // }
+  }
 
   // Set instance given one of:
   // - a path (from internal calls)
@@ -505,6 +528,7 @@ export class ProjectComponent
         instance = current
       }
 
+      this.focused = instance
       if (revealHierarchy) {
         if (instance.isVirtualLoc && !this.includeHidden) {
           this.toggleHidden.func()
@@ -519,8 +543,7 @@ export class ProjectComponent
               break
           }
         }
-        await this.treeView?.reveal(instance, { select: true, focus: true, expand: true })
-        this._onDidChangeTreeData.fire()
+        await this.reveal(instance)
       }
 
       if (revealFile) {
@@ -613,7 +636,7 @@ export class ProjectComponent
           this.symFilter.delete(type)
         }
       }
-      this._onDidChangeTreeData.fire()
+      await this.reveal()
     }
   )
 
@@ -633,7 +656,7 @@ export class ProjectComponent
           this.symFilter.delete(type)
         }
       }
-      this._onDidChangeTreeData.fire()
+      await this.reveal()
     }
   )
 
@@ -644,7 +667,7 @@ export class ProjectComponent
     },
     async () => {
       this.includeHidden = !this.includeHidden
-      this._onDidChangeTreeData.fire()
+      await this.reveal()
     }
   )
 
