@@ -2,7 +2,7 @@
   "name": "vscode-slang",
   "displayName": "Slang Server for Verilog/SystemVerilog",
   "description": "Verilog and SystemVerilog support via the slang language server.",
-  "version": "25.7.6",
+  "version": "25.7.7",
   "publisher": "AndrewNolte",
   "keywords": [
     "verilog",
@@ -476,7 +476,7 @@
       },
       {
         "command": "slang.project.toggleHidden",
-        "title": "Toggle Hidden",
+        "title": "Toggle Macro Defined",
         "icon": "$(eye)"
       },
       {
@@ -540,8 +540,7 @@
         },
         {
           "id": "slang.project.instancesView",
-          "name": "Modules",
-          "icon": "$(chip)"
+          "name": "Modules"
         }
       ]
     },
