@@ -4,92 +4,14 @@
 
   Directories to format
 
-- `slang.svFormat.verible.runAtFileLocation`: boolean = false
+- `slang.svFormat.command`: string = ""
 
-  Run at file location
+  Formatter Command. The file contents will be sent to stdin, and formatted code should be sent back on stdout
 
-- `slang.svFormat.verible.args`: string = ""
+- `slang.verilogFormat.command`: string = ""
 
-  Arguments to pass to the tool
+  Formatter Command. The file contents will be sent to stdin, and formatted code should be sent back on stdout
 
-- `slang.svFormat.verible.path`: path
-
-  Platform Defaults:
-
-    linux:   `verible-verilog-format`
-
-    mac:     `verible-verilog-format`
-
-    windows: `verible-verilog-format.exe`
-
-- `slang.svFormat.formatter`: string = ""
-
-  Formatter Selection
-
-  Options:
-  - verible-verilog-format
-- `slang.verilogFormat.verilogFormatter.runAtFileLocation`: boolean = false
-
-  Run at file location
-
-- `slang.verilogFormat.verilogFormatter.args`: string = ""
-
-  Arguments to pass to the tool
-
-- `slang.verilogFormat.verilogFormatter.path`: path
-
-  Platform Defaults:
-
-    linux:   `verilogFormat`
-
-    mac:     `verilogFormat`
-
-    windows: `verilogFormat.exe`
-
-- `slang.verilogFormat.iStyleFormatter.runAtFileLocation`: boolean = false
-
-  Run at file location
-
-- `slang.verilogFormat.iStyleFormatter.args`: string = ""
-
-  Arguments to pass to the tool
-
-- `slang.verilogFormat.iStyleFormatter.path`: path
-
-  Platform Defaults:
-
-    linux:   `istyleFormat`
-
-    mac:     `istyleFormat`
-
-    windows: `istyleFormat.exe`
-
-- `slang.verilogFormat.veribleFormatter.runAtFileLocation`: boolean = false
-
-  Run at file location
-
-- `slang.verilogFormat.veribleFormatter.args`: string = ""
-
-  Arguments to pass to the tool
-
-- `slang.verilogFormat.veribleFormatter.path`: path
-
-  Platform Defaults:
-
-    linux:   `verible`
-
-    mac:     `verible`
-
-    windows: `verible.exe`
-
-- `slang.verilogFormat.formatter`: string = ""
-
-  Formatter Selection
-
-  Options:
-  - verilog-format
-  - istyle-format
-  - verible-verilog-format
 - `slang.rewriterPath`: string = ""
 
   Path to the rewriter script (typically slang rewriter binary with --expand-macros flag)

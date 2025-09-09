@@ -7,7 +7,7 @@ import path from 'path'
 import { promisify } from 'util'
 import * as vscodelc from 'vscode-languageclient/node'
 import { LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient/node'
-import { SystemVerilogFormatProvider, VerilogFormatProvider } from './FormatProvider'
+import { ExternalFormatter } from './ExternalFormatter'
 import {
   ActivityBarComponent,
   CommandNode,
@@ -37,8 +37,8 @@ export class SlangExtension extends ActivityBarComponent {
   /// extension subcomponents
   ////////////////////////////////////////////////
 
-  svFormat: SystemVerilogFormatProvider = new SystemVerilogFormatProvider()
-  verilogFormat: VerilogFormatProvider = new VerilogFormatProvider()
+  svFormat: ExternalFormatter = new ExternalFormatter()
+  verilogFormat: ExternalFormatter = new ExternalFormatter()
 
   // Side bar
   project: ProjectComponent = new ProjectComponent()
@@ -103,7 +103,8 @@ export class SlangExtension extends ActivityBarComponent {
 
   args: ConfigObject<string[]> = new ConfigObject({
     default: [],
-    description: 'Arguments to pass to the slang-server',
+    description:
+      'Arguments to pass to the slang-server. These are different from slang flags; for those open `.slang/server.json`',
   })
 
   debugArgs: ConfigObject<string[]> = new ConfigObject({

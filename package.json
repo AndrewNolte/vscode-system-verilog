@@ -93,8 +93,8 @@
     "jsonValidation": [
       {
         "fileMatch": [
-          ".slang-server.json",
-          ".slang-server.local.json"
+          ".slang/server.json",
+          ".slang/local/server.json"
         ],
         "url": "./resources/config.schema.json"
       }
@@ -321,83 +321,15 @@
             "type": "string"
           }
         },
-        "slang.svFormat.verible.runAtFileLocation": {
-          "default": false,
-          "description": "Run at file location",
-          "type": "boolean"
-        },
-        "slang.svFormat.verible.args": {
-          "default": "",
-          "description": "Arguments to pass to the tool",
-          "type": "string"
-        },
-        "slang.svFormat.verible.path": {
-          "description": "Path to the tool",
+        "slang.svFormat.command": {
+          "description": "Formatter Command. The file contents will be sent to stdin, and formatted code should be sent back on stdout",
           "default": "",
           "type": "string"
         },
-        "slang.svFormat.formatter": {
-          "description": "Formatter Selection",
-          "default": "",
-          "type": "string",
-          "enum": [
-            "verible-verilog-format"
-          ]
-        },
-        "slang.verilogFormat.verilogFormatter.runAtFileLocation": {
-          "default": false,
-          "description": "Run at file location",
-          "type": "boolean"
-        },
-        "slang.verilogFormat.verilogFormatter.args": {
-          "default": "",
-          "description": "Arguments to pass to the tool",
-          "type": "string"
-        },
-        "slang.verilogFormat.verilogFormatter.path": {
-          "description": "Path to the tool",
+        "slang.verilogFormat.command": {
+          "description": "Formatter Command. The file contents will be sent to stdin, and formatted code should be sent back on stdout",
           "default": "",
           "type": "string"
-        },
-        "slang.verilogFormat.iStyleFormatter.runAtFileLocation": {
-          "default": false,
-          "description": "Run at file location",
-          "type": "boolean"
-        },
-        "slang.verilogFormat.iStyleFormatter.args": {
-          "default": "",
-          "description": "Arguments to pass to the tool",
-          "type": "string"
-        },
-        "slang.verilogFormat.iStyleFormatter.path": {
-          "description": "Path to the tool",
-          "default": "",
-          "type": "string"
-        },
-        "slang.verilogFormat.veribleFormatter.runAtFileLocation": {
-          "default": false,
-          "description": "Run at file location",
-          "type": "boolean"
-        },
-        "slang.verilogFormat.veribleFormatter.args": {
-          "default": "",
-          "description": "Arguments to pass to the tool",
-          "type": "string"
-        },
-        "slang.verilogFormat.veribleFormatter.path": {
-          "description": "Path to the tool",
-          "default": "",
-          "type": "string"
-        },
-        "slang.verilogFormat.formatter": {
-          "description": "Formatter Selection",
-          "default": "",
-          "type": "string",
-          "enum": [
-            "verilog-format",
-            "istyle-format",
-            "verible-verilog-format"
-          ]
         },
         "slang.rewriterPath": {
           "default": "",
