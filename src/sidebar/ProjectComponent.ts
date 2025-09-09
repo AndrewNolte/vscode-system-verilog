@@ -244,10 +244,11 @@ export class UnitItem implements HasChildren {
   }
 }
 
+// Split a scope path into parts, handling array indices.
+// e.g. "top.u1[0].u2[0][1]" -> ["top", "u1", "[0]", "u2", "[0]", "[1]"]
 function splitScope(path: string): string[] {
   const parts = path.split('.')
   const partsWithBrackets = []
-  // remove brackets from parts
   for (const part of parts) {
     if (part.includes('[')) {
       const bracketSplit = part.split('[')
