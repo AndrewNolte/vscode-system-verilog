@@ -2,6 +2,8 @@
 
 Verilog and SystemVerilog support including linting from popular tools, completions, formatting, and project level analysis.
 
+This is not the Slang Server extension, this is a ctags-based implementation for vscode. For the newer and more feature rich Slang Server, see https://github.com/hudson-trading/slang-server.
+
 Install it from the [VS Code Marketplace](https://marketplace.visualstudio.com/items/AndrewNolte.vscode-system-verilog) or [OpenVSX](https://open-vsx.org/extension/AndrewNolte/vscode-system-verilog)
 
 <!--
